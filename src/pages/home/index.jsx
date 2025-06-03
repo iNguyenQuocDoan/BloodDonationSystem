@@ -1,8 +1,10 @@
+import { RegisterPage } from "../auth/Register";
+
 const Homepage = () => {
   return (
     <>
       <div>
-        <span></span>
+        <span>trang chủ</span>
       </div>
     </>
   );
