@@ -57,7 +57,7 @@ export const LoginPage = () => {
             </div>
           </form>
           <div className="flex justify-center">
-            <span className="text-[#1F1F1F]">Don't have an account?</span>{" "}
+            <span className="text-[#1F1F1F]">Don't have an account? 1</span>{" "}
             <Link to="/register" className="block text-[#D32F2F]">
               <span className="hover:underline"> Register</span>
             </Link>
