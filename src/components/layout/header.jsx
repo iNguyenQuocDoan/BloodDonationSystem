@@ -6,7 +6,7 @@ const Header = () => {
 
   return (
     <>
-      <div className="flex justify-center items-center w-full h-[40px] bg-[#E57373] text-[11px]">
+      <div className="flex justify-center items-center w-full h-[40px] bg-[#E57373] md:text-[21px] sm:text-[14px] text-[12px] ">
         <span className="text-[#FFFFFF]">
           Become a blood donor today and share compassion with those in need.
         </span>
@@ -16,7 +16,7 @@ const Header = () => {
         <div className="mx-auto">
           <div className="flex justify-between items-center px-[26px] py-[18px]">
             <a
-              href="/home"
+              href="/"
               className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[23px] text-[22px]"
             >
               DaiVietBlood
