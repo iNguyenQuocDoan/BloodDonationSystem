@@ -17,22 +17,15 @@ const Header = () => {
           <div className="flex justify-between items-center px-[26px] py-[18px]">
             <a
               href="/home"
-              className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[26px] md:text-[22px] text-[19px] flex-1"
+              className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[23px] text-[22px]"
             >
               DaiVietBlood
             </a>
 
-            <button
-              className="md:hidden text-[#D32F2F] text-2xl"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              ☰
-            </button>
-
             <nav className="hidden md:flex ">
-              <ul className="flex xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[18px] md:text-[13px] sm:text-[13px] text-[12px]">
+              <ul className="flex  xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px]">
                 <li>
-                  <Link to="/home" className="hover:underline">
+                  <Link to="/" className="hover:underline">
                     Home
                   </Link>
                 </li>
@@ -47,35 +40,43 @@ const Header = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/news" className="hover:underline">
-                    News
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/faq" className="hover:underline">
-                    FAQ
-                  </Link>
-                </li>
-                <li>
                   <Link to="/contact" className="hover:underline">
                     Contact
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link to="/login" className="hover:underline">
                     Login
                   </Link>
                 </li>
                 <li className="rounded-[3px] md:px-[12px] px-[8px] py-[1px] text-white bg-[#D32F2F]">
                   <Link to="/register">Register</Link>
-                </li>
+                </li> */}
               </ul>
             </nav>
+            <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] ">
+              <div>
+                <Link to="/login" className="hover:underline mr-[12px] ">
+                  Login
+                </Link>
+              </div>
+              <div className="rounded-[3px] md:px-[12px] px-[8px] py-[1px] text-white bg-[#D32F2F]">
+                <Link to="/register">Register</Link>
+              </div>
+            </div>
+
+            <button
+              className="md:hidden text-[#D32F2F] text-2xl"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              ☰
+            </button>
           </div>
+
           {/* Menu mobile */}
           {isOpen && (
             <nav className="md:hidden bg-white border-t">
-              <ul className="flex  px-[26px] py-[12px] gap-y-2 flex-col-reverse">
+              <ul className="flex flex-col px-[26px] py-[12px] gap-y-2 ">
                 <li>
                   <Link
                     to="/"
@@ -139,10 +140,10 @@ const Header = () => {
                     Login
                   </Link>
                 </li>
-                <li className=" text-white bg-[#D32F2F]">
+                <li className="  ">
                   <Link
                     to="/register"
-                    className="block text-[14px]"
+                    className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
                     Register

@@ -3,27 +3,34 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <>
-      <footer className="bg-[#333333] h-[164px]">
-        <div className="container mx-auto">
-          <ul className="flex gap-x-[12px] text-white font-[300]">
-            <li>
-              <Link to="/home">Home</Link>
-            </li>
-            <li>
-              <Link to="/aboutus">About Us </Link>
-            </li>
-            <li>
-              <Link to="/aboutus">FAQ </Link>
-            </li>
-            <li>
-              <Link to="/contact">Contact</Link>
-            </li>
-            <li>
-              <Link to="/news">News</Link>
-            </li>
-          </ul>
-          <div className="flex justify-center items-center mt-[4%]">
-            <strong>© 2025 DaiVietBlood. All rights reserved.</strong>
+      <footer className="bg-[#333333] h-[164px] ">
+        <div className="container mx-auto h-full">
+          <div className="flex flex-wrap md:justify-between justify-center gap-x-[11px]  ">
+            <ul className="flex md:gap-x-[12px] gap-x-[10px] mx-auto text-white font-[500] md:mt-[20px] lg:text-[19px] md:text-[15px] text-[13px] ">
+              <li className="hover:underline">
+                <Link to="/home">Home</Link>
+              </li>
+              <li className="hover:underline">
+                <Link to="/aboutus">About Us</Link>
+              </li>
+              <li className="hover:underline">
+                <Link to="/aboutus">FAQ</Link>
+              </li>
+              <li className="hover:underline">
+                <Link to="/contact">Contact</Link>
+              </li>
+              <li className="hover:underline">
+                <Link to="/news">News</Link>
+              </li>
+            </ul>
+            <div className="font-[500] text-white mt-[20px]  lg:text-[19px] md:text-[15px] text-[13px]">
+              <p className="font-serif">
+                “Every drop of blood given – connects millions of lives.”
+              </p>
+            </div>
+          </div>
+          <div className="w-max mx-auto mt-[40px] text-white font-[600] text-[14px]">
+            © 2025 DaiVietBlood. All rights reserved.
           </div>
         </div>
       </footer>
