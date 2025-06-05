@@ -2,7 +2,6 @@ import "./App.css";
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import Header from "./components/layout/header";
 import { LoginPage } from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { RegisterPage } from "./pages/auth/Register";

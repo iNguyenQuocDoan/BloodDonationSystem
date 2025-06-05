@@ -13,12 +13,11 @@ export const RegisterPage = () => {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     if (e.target.name === "phone") {
-      setPhoneError(""); 
+      setPhoneError("");
     }
   };
 
   const validatePhone = (phone) => {
-   
     return /^0\d{9}$/.test(phone);
   };
 
@@ -36,7 +35,9 @@ export const RegisterPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF]">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-3xl font-bold text-center text-[#D32F2F] mb-6">Register</h2>
+        <h2 className="text-3xl font-bold text-center text-[#D32F2F] mb-6">
+          Register
+        </h2>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-[#555555] mb-1">Full Name:</label>
@@ -82,7 +83,9 @@ export const RegisterPage = () => {
               value={form.phone}
               onChange={handleChange}
               placeholder="Enter your phone number"
-              className={`w-full px-3 py-2 border rounded ${phoneError ? "border-red-500" : ""}`}
+              className={`w-full px-3 py-2 border rounded ${
+                phoneError ? "border-red-500" : ""
+              }`}
               required
             />
             {phoneError && (
@@ -96,11 +99,9 @@ export const RegisterPage = () => {
             Register
           </button>
         </form>
-        <Link
-          to="/login"
-          className="block text-center text-[#D32F2F] mt-4 text-sm hover:underline"
-        >
-          Already have an account? Login
+        <Link to="/login" className="block text-center text-black mt-4 text-sm">
+          Already have an account?{" "}
+          <span className="hover:underline text-[#D32F2F]">Login</span>
         </Link>
       </div>
     </div>
