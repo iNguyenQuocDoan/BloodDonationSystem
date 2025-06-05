@@ -6,30 +6,44 @@ export const RegisterPage = () => {
     fullname: "",
     email: "",
     password: "",
+    confirmPassword: "",
     phone: "",
   });
-  const [phoneError, setPhoneError] = useState("");
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.fullname.trim()) newErrors.fullname = "Full name is required.";
+    if (!form.email.trim()) newErrors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Invalid email format.";
+    if (!form.password) newErrors.password = "Password is required.";
+    else if (form.password.length < 8) newErrors.password = "Password must be at least 8 characters.";
+    if (!form.confirmPassword) newErrors.confirmPassword = "Please confirm your password.";
+    else if (form.password !== form.confirmPassword) newErrors.confirmPassword = "Passwords do not match.";
+    if (!/^0\d{9}$/.test(form.phone)) newErrors.phone = "Phone must start with 0 and be exactly 10 digits.";
+    return newErrors;
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    if (e.target.name === "phone") {
-      setPhoneError("");
-    }
-  };
-
-  const validatePhone = (phone) => {
-    return /^0\d{9}$/.test(phone);
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validatePhone(form.phone)) {
-      setPhoneError("Phone number must start with 0 and be exactly 10 digits.");
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
-    if (form.fullname && form.email && form.password && form.phone) {
-      window.location.reload();
-    }
+    alert("Registration successful!");
+    setForm({
+      fullname: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phone: "",
+    });
   };
 
   return (
@@ -38,7 +52,7 @@ export const RegisterPage = () => {
         <h2 className="text-3xl font-bold text-center text-[#D32F2F] mb-6">
           Register
         </h2>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
           <div>
             <label className="block text-[#555555] mb-1">Full Name:</label>
             <input
@@ -50,6 +64,9 @@ export const RegisterPage = () => {
               className="w-full px-3 py-2 border rounded"
               required
             />
+            {errors.fullname && (
+              <p className="text-red-500 text-sm mt-1">{errors.fullname}</p>
+            )}
           </div>
           <div>
             <label className="block text-[#555555] mb-1">Email:</label>
@@ -62,6 +79,9 @@ export const RegisterPage = () => {
               className="w-full px-3 py-2 border rounded"
               required
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
           <div>
             <label className="block text-[#555555] mb-1">Password:</label>
@@ -74,6 +94,24 @@ export const RegisterPage = () => {
               className="w-full px-3 py-2 border rounded"
               required
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-[#555555] mb-1">Confirm Password:</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+            )}
           </div>
           <div>
             <label className="block text-[#555555] mb-1">Phone Number:</label>
@@ -83,13 +121,11 @@ export const RegisterPage = () => {
               value={form.phone}
               onChange={handleChange}
               placeholder="Enter your phone number"
-              className={`w-full px-3 py-2 border rounded ${
-                phoneError ? "border-red-500" : ""
-              }`}
+              className={`w-full px-3 py-2 border rounded ${errors.phone ? "border-red-500" : ""}`}
               required
             />
-            {phoneError && (
-              <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+            {errors.phone && (
+              <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
             )}
           </div>
           <button
