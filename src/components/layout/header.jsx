@@ -23,7 +23,7 @@ const Header = () => {
             </a>
 
             <nav className="hidden md:flex ">
-              <ul className="flex  xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px]">
+              <ul className="flex  xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[7px] xl:text-[20px] lg:text-[19px] md:text-[14px] sm:text-[13px] text-[12px]">
                 <li>
                   <Link to="/" className="hover:underline">
                     Home
@@ -42,6 +42,11 @@ const Header = () => {
                 <li>
                   <Link to="/contact" className="hover:underline">
                     Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/news" className="hover:underline">
+                    News
                   </Link>
                 </li>
                 {/* <li>
