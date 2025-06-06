@@ -36,10 +36,11 @@ export const FAQPage = () => {
   const [showFAQ, setShowFAQ] = useState([]);
 
   const toggleFAQ = (id) => {
-    setShowFAQ((prev) =>
-      prev.includes(id)
-        ? prev.filter((item) => item !== id) // đóng nếu đang mở
-        : [...prev, id] // mở thêm nếu đang đóng
+    setShowFAQ(
+      (prev) =>
+        prev.includes(id)
+          ? prev.filter((item) => item !== id) // đóng nếu đang mở
+          : [...prev, id] // mở thêm nếu đang đóng
     );
   };
 
