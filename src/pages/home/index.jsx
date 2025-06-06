@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const Homepage = () => {
@@ -184,7 +185,48 @@ const Homepage = () => {
           </div>
         </div>
       </div>
-      {/* End Section 2 */}
+      {/* End Section 3 */}
+      {/* Section 4 */}
+      <div className="py-[48px]">
+        <div className="container mx-auto ">
+          <h4 className="text-[20px] text-[#D32F2F] text-center mb-[24px] ">
+            Blood Donation for Humanity
+          </h4>
+          <div className="flex justify-center items-center">
+            <div className="grid md:grid-cols-4 grid-cols-2 gap-x-[20px] ">
+              <div className="max-w-screen-xl   sm:h-[160px] h-[130px] sm:w-[270px] w-[180px]">
+                <img
+                  src="/image/Gruop.png"
+                  alt="DaiVietBlood"
+                  className="object-fit w-full h-full border rounded-[5px]"
+                ></img>
+              </div>
+              <div className="max-w-screen-xl  sm:h-[160px] h-[130px] sm:w-[270px] w-[180px]">
+                <img
+                  src="/image/mobile.png "
+                  alt="DaiVietBlood"
+                  className="object-fit w-full h-full border rounded-[5px]"
+                ></img>
+              </div>
+              <div className="max-w-screen-xl  sm:h-[160px] h-[130px] sm:w-[270px] w-[180px]">
+                <img
+                  src="/image/emergency.png "
+                  alt="DaiVietBlood"
+                  className="object-fit w-full h-full border rounded-[5px]"
+                ></img>
+              </div>
+              <div className="max-w-screen-xl   sm:h-[160px] h-[130px] sm:w-[270px] w-[180px]">
+                <img
+                  src="/image/thanks.png "
+                  alt="DaiVietBlood"
+                  className="object-fit w-full h-full border rounded-[5px]"
+                ></img>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* End Section 4 */}
     </>
   );
 };
