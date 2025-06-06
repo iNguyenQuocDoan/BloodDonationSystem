@@ -138,7 +138,7 @@ const Homepage = () => {
 
         <div className="container mx-auto px-4 mt-[48px]">
           <h4 className="text-[24px] text-[#D32F2F] text-center font-semibold mb-[16px]">
-            Tương thích nhóm máu
+            Blood Type Compatibility
           </h4>
 
           <div className="bg-white rounded-[5px] shadow-md overflow-x-auto max-w-4xl mx-auto">
@@ -227,6 +227,9 @@ const Homepage = () => {
         </div>
       </div>
       {/* End Section 4 */}
+      <h2 className="text-center hover:underline text-[#D32F2F] mb-[20px]">
+        <Link to="/faq">FAQ</Link>
+      </h2>
     </>
   );
 };
