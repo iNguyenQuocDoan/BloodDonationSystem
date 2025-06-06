@@ -29,34 +29,30 @@ export const FAQPage = () => {
         }
     ])
 
-    const [showFAQ, setShowFAQ] = useState([])
+    const [openFAQs, setOpenFAQs] = useState([]);
 
     const toggleFAQ = (id) => {
-        setShowFAQ(prev => (
-            prev.includes(id)
-                ? prev.filter(item => item !== id) // đóng nếu đang mở
-                : [...prev, id]                    // mở thêm nếu đang đóng
-        ));
-    }
+        setOpenFAQs(openFAQs.includes(id)
+            ? openFAQs.filter(faqId => faqId !== id)
+            : [...openFAQs, id]
+        );
+    };
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-center text-2xl pb-8 text-[#D32F2F] pt-8">Frequently Asked Questions</h1>
-            <div className="flex flex-wrap gap-6">
+        <div className="mx-auto px-4 py-8">
+            <h1 className="text-center text-2xl pb-8 text-[#D32F2F]">Frequently Asked Questions</h1>
+            <div className="max-w-4xl mx-auto space-y-4">
                 {faqList.map((item) => (
-                    <div key={item.id} className="w-full md:w-[calc(50%-12px)] border rounded-lg shadow-sm border-hidden">
+                    <div key={item.id} className="w-full border rounded-lg shadow-sm">
                         <button
                             className="w-full flex justify-between p-4 bg-gray-50 hover:bg-gray-100"
                             onClick={() => toggleFAQ(item.id)}
                         >
                             <h2 className="font-semibold">{item.question}</h2>
-                            <AiFillCaretDown className={`transform 
-                                transition 
-                                ${showFAQ.includes(item.id) ? 'rotate-180' : ''}
-                                text-gray-400
-                                `} />
+                            <AiFillCaretDown className={`
+                                transform transition ${openFAQs.includes(item.id) ? 'rotate-180' : ''} text-gray-400`} />
                         </button>
-                        {showFAQ.includes(item.id) && (
+                        {openFAQs.includes(item.id) && (
                             <div className="p-4">
                                 <p className="text-black">{item.answer}</p>
                             </div>
