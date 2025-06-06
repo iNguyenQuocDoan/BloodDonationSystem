@@ -6,44 +6,45 @@ import axios from "axios";
 import { RegisterPage } from "./Register";
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  const [error, setError] = useState({ email: "", password: "" });
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-  const validationForm = () => {
-    if (!form.email.trim()) {
-      console.log("Need email");
-      return false;
-    }
-
-    if (!form.password) {
-      console.log("Need pass");
-      return false;
-    }
-    return true;
-  };
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "email") {
+      setEmail(value);
+    } else {
+      setPassword(value);
+    }
   };
+  const validationForm = () => {
+    const newErrors = {};
+    if (!email.trim()) {
+      console.log("Need email");
+      newErrors.email = "Need Email";
+    }
+
+    if (!password) {
+      console.log("Need pass");
+      newErrors.password = "Need Pass";
+    }
+    setError(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validationForm(form.email)) {
-      setError("email");
-      return;
-    }
-    if (!validationForm(form.password)) {
-      setError("password");
+    if (!validationForm()) {
       return;
     }
     try {
-      const response = await axios.post(
-        `http://localhost:3000/api/login`,
-        form
-      );
+      const response = await axios.post(`http://localhost:3000/api/login`, {
+        email,
+        password,
+      });
 
-      console.log("form", form);
+      console.log("form", email, password);
       const { data } = response;
       console.log("respone", data);
       if (data.statusCode == 200) {
@@ -70,23 +71,29 @@ export const LoginPage = () => {
               <input
                 type="email"
                 name="email"
-                value={form.email}
+                value={email}
                 onChange={handleChange}
                 placeholder="Enter your email"
                 className="w-full px-4 py-2 border rounded"
               />
-              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+              {error.email && (
+                <div className="text-red-500 text-sm mt-1">{error.email}</div>
+              )}
               <label className="block text-[#555555]">Password:</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  value={form.password}
+                  value={password}
                   onChange={handleChange}
                   placeholder="Enter your password"
                   className="w-full px-4 py-2 border rounded"
                 />
-                {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+                {error.password && (
+                  <div className="text-red-500 text-sm mt-1">
+                    {error.password}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
