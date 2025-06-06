@@ -9,6 +9,7 @@ import Contact from "./pages/home/Contact";
 import LayoutDeFault from "./Layouts/LayoutDefault";
 import Homepage from "./pages/home";
 import DonateBlood from "./pages/home/DonateBlood";
+import { FAQPage } from "./pages/home/FAQ";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/" element={<Homepage />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="faq" element={<FAQPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
