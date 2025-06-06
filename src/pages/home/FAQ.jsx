@@ -30,10 +30,13 @@ export const FAQPage = () => {
     ])
 
     const [openFAQs, setOpenFAQs] = useState([]);
-
+    
+// Hàm này điều khiển việc mở/đóng câu trả lời
+// Nếu ID đã tồn tại trong openFAQs (câu hỏi đang mở) → loại bỏ ID đó (đóng câu hỏi)
+// Nếu ID chưa tồn tại → thêm ID vào (mở câu hỏi)
     const toggleFAQ = (id) => {
         setOpenFAQs(openFAQs.includes(id)
-            ? openFAQs.filter(faqId => faqId !== id)
+            ? openFAQs.filter(faqId => faqId !== id) 
             : [...openFAQs, id]
         );
     };
