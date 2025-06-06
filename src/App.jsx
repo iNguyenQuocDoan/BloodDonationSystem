@@ -9,7 +9,7 @@ import { RegisterPage } from "./pages/auth/Register";
 
 import "./App.css";
 import LayoutDeFault from "./Layouts/LayoutDefault";
-import Homepage from "./pages/home";
+// import Homepage from "./pages/home";
 
 function App() {
   return (
@@ -21,7 +21,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/" element={<Homepage />} />
+            {/* <Route path="/" element={<Homepage />} /> */}
           </Route>
         </Routes>
       </BrowserRouter>

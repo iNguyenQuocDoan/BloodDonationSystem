@@ -1,8 +1,61 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineEyeInvisible } from "react-icons/ai";
 import { AiOutlineEye } from "react-icons/ai";
+import axios from "axios";
+import { RegisterPage } from "./Register";
 export const LoginPage = () => {
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+  const validationForm = () => {
+    if (!form.email.trim()) {
+      console.log("Need email");
+      return false;
+    }
+
+    if (!form.password) {
+      console.log("Need pass");
+      return false;
+    }
+    return true;
+  };
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validationForm(form.email)) {
+      setError("email");
+      return;
+    }
+    if (!validationForm(form.password)) {
+      setError("password");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/api/login`,
+        form
+      );
+
+      console.log("form", form);
+      const { data } = response;
+      console.log("respone", data);
+      if (data.statusCode == 200) {
+        console.log("Login Success");
+        navigate(RegisterPage);
+      } else {
+        console.log("Login fail");
+      }
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
   const [showPassword, setShowPassword] = useState(false);
   return (
     <>
@@ -11,23 +64,29 @@ export const LoginPage = () => {
           <h2 className="text-3xl font-bold text-center text-[#D32F2F]">
             Login
           </h2>
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label className="block text-[#555555]">Email:</label>
               <input
                 type="email"
                 name="email"
+                value={form.email}
+                onChange={handleChange}
                 placeholder="Enter your email"
                 className="w-full px-4 py-2 border rounded"
               />
+              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
               <label className="block text-[#555555]">Password:</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
+                  value={form.password}
+                  onChange={handleChange}
                   placeholder="Enter your password"
                   className="w-full px-4 py-2 border rounded"
                 />
+                {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
