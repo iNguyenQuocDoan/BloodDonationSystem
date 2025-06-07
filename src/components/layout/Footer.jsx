@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <>
-      <footer className="bg-[#333333] h-[164px] ">
-        <div className="container mx-auto h-full">
+      <footer className="bg-[#333333]">
+        <div className="container mx-auto h-full ">
           <div className="flex flex-wrap md:justify-between justify-center gap-x-[11px]  ">
             <ul className="flex md:gap-x-[12px] gap-x-[10px] mx-auto text-white font-[500] md:mt-[20px] mt-[10px] lg:text-[19px] md:text-[15px] text-[13px] ">
               <li className="hover:underline">

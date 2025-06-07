@@ -27,7 +27,7 @@ const Header = () => {
 
   return (
     <>
-      <div className="flex justify-center items-center w-full h-[40px] bg-[#E57373] text-[11px]">
+      <div className="flex justify-center items-center w-full h-[40px] bg-[#E57373] md:text-[21px] sm:text-[14px] text-[12px] ">
         <span className="text-[#FFFFFF]">
           Become a blood donor today and share compassion with those in need.
         </span>
@@ -37,14 +37,14 @@ const Header = () => {
         <div className="mx-auto">
           <div className="flex justify-between items-center px-[26px] py-[18px]">
             <a
-              href="/home"
+              href="/"
               className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[23px] text-[22px]"
             >
               DaiVietBlood
             </a>
 
             <nav className="hidden md:flex ">
-              <ul className="flex  xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px]">
+              <ul className="flex  xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[7px] xl:text-[20px] lg:text-[19px] md:text-[14px] sm:text-[13px] text-[12px]">
                 <li>
                   <Link to="/" className="hover:underline">
                     Home
