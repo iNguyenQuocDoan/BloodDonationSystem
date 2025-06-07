@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export const RegisterPage = () => {
   const [form, setForm] = useState({
@@ -10,6 +10,8 @@ export const RegisterPage = () => {
     phone: "",
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const validate = () => {
     const newErrors = {};
@@ -29,21 +31,38 @@ export const RegisterPage = () => {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    alert("Registration successful!");
-    setForm({
-      fullname: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      phone: "",
-    });
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/user/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullname: form.fullname,
+          email: form.email,
+          password: form.password,
+          phone: form.phone,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        alert("Registration successful! Please login.");
+        navigate("/login");
+      } else {
+        alert(data.message || "Registration failed!");
+      }
+    } catch (err) {
+      alert("Cannot connect to server!");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -131,8 +150,9 @@ export const RegisterPage = () => {
           <button
             type="submit"
             className="w-full py-2 bg-[#D32F2F] text-white font-semibold rounded mt-2 transition duration-200"
+            disabled={loading}
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
         <Link to="/login" className="block text-center text-black mt-4 text-sm">
