@@ -47,7 +47,7 @@ export const LoginPage = () => {
       console.log("form", email, password);
       const { data } = response;
       console.log("respone", data);
-      if (data.success) {
+      if (data.data.statusCode == 200) {
         console.log("Login Success");
         navigate("/register");
       } else {
