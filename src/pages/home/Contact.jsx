@@ -24,16 +24,16 @@ const Contact = () => {
       </h2>
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
         <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-0">
-          <h3 className="font-semibold text-lg mb-4">Office Information</h3>
-          <p>Address: 123 A Street, District B, HCMC</p>
+          <h3 className="font-semibold text-lg mb-4">Địa chỉ của chúng tôi</h3>
+          <p>Địa chỉ: 123 A Street, District B, HCMC</p>
           <p>Hotline: 0123 456 789</p>
           <p>Email: support@bloodshare.vn</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-0">
-          <h3 className="font-semibold text-lg mb-4">Send a Message</h3>
+          <h3 className="font-semibold text-lg mb-4">Gửi </h3>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block mb-1">Full Name:</label>
+              <label className="block mb-1">Họ tên</label>
               <input
                 type="text"
                 name="name"
@@ -71,7 +71,7 @@ const Contact = () => {
               type="submit"
               className="w-full bg-[#D32F2F] text-white px-6 py-2 rounded font-semibold hover:bg-[#b71c1c] transition"
             >
-              Send
+              Gửi
             </button>
           </form>
         </div>

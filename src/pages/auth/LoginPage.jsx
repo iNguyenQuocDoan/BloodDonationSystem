@@ -16,11 +16,12 @@ export const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/user/login", {
+      const res = await fetch("http://localhost:3000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      console.log("test thu");
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         // Save token or flag to localStorage for login status
@@ -33,6 +34,7 @@ export const LoginPage = () => {
         navigate("/");
         window.location.reload();
       } else {
+        console.log();
         alert(data.message || "Login failed!");
       }
     } catch (err) {
@@ -46,9 +48,7 @@ export const LoginPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF]">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md ">
-        <h2 className="text-3xl font-bold text-center text-[#D32F2F]">
-          Login
-        </h2>
+        <h2 className="text-3xl font-bold text-center text-[#D32F2F]">Login</h2>
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label className="block text-[#555555]">Email:</label>
@@ -61,7 +61,7 @@ export const LoginPage = () => {
               className="w-full px-4 py-2 border rounded"
               required
             />
-            <label className="block text-[#555555]">Password:</label>
+            <label className="block text-[#555555]">Mật khẩu:</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -98,16 +98,14 @@ export const LoginPage = () => {
               to="/forgot-password"
               className="block text-[#0000EE] hover:underline text-center font-semibold"
             >
-              Forgot Password?
+              Quên mật khẩu
             </Link>
           </div>
         </form>
         <div className="flex justify-center">
-          <span className="text-[#1F1F1F] mr-[5px]">
-            Don't have an account?{" "}
-          </span>
+          <span className="text-[#1F1F1F] mr-[5px]">Chưa có tài khoản? </span>
           <Link to="/register" className="block text-[#D32F2F]">
-            <span className="hover:underline"> Register</span>
+            <span className="hover:underline"> Đăng kí</span>
           </Link>
         </div>
       </div>

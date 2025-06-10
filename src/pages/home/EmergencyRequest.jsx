@@ -22,7 +22,8 @@ const EmergencyRequest = () => {
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Full name is required.";
     if (!form.phone.trim()) newErrors.phone = "Phone number is required.";
-    else if (!isValidPhone(form.phone)) newErrors.phone = "Invalid phone number format.";
+    else if (!isValidPhone(form.phone))
+      newErrors.phone = "Invalid phone number format.";
     if (!form.bloodType) newErrors.bloodType = "Please select a blood type.";
     if (!form.location.trim()) newErrors.location = "Location is required.";
     if (!form.message.trim()) newErrors.message = "Message is required.";
@@ -52,45 +53,61 @@ const EmergencyRequest = () => {
     <div className="min-h-screen bg-[#f5f5f5] py-8 px-2 flex items-center justify-center">
       <div className="w-full max-w-xl bg-white rounded-lg shadow p-6 md:p-8">
         <h2 className="text-2xl md:text-3xl font-bold text-[#D32F2F] text-center mb-6">
-          Emergency Blood Request
+          Yêu cầu hiến máu khẩn cấp
         </h2>
         <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Full Name</label>
+            <label className="block mb-1 font-medium text-gray-700">
+              Họ tên
+            </label>
             <input
               type="text"
               name="name"
               value={form.name}
               onChange={handleChange}
               placeholder="Enter your full name"
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${errors.name ? "border-red-500" : ""}`}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
+                errors.name ? "border-red-500" : ""
+              }`}
               required
             />
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+            )}
           </div>
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Phone Number</label>
+            <label className="block mb-1 font-medium text-gray-700">
+              Số điện thoại
+            </label>
             <input
               type="tel"
               name="phone"
               value={form.phone}
               onChange={handleChange}
               placeholder="Enter your phone number"
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${errors.phone ? "border-red-500" : ""}`}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
+                errors.phone ? "border-red-500" : ""
+              }`}
               required
             />
-            {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+            {errors.phone && (
+              <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+            )}
           </div>
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Blood Type</label>
+            <label className="block mb-1 font-medium text-gray-700">
+              Loại máu
+            </label>
             <select
               name="bloodType"
               value={form.bloodType}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${errors.bloodType ? "border-red-500" : ""}`}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
+                errors.bloodType ? "border-red-500" : ""
+              }`}
               required
             >
-              <option value="">Select blood type</option>
+              <option value="">Chọn loại máu</option>
               <option value="A+">A+</option>
               <option value="A-">A-</option>
               <option value="B+">B+</option>
@@ -100,32 +117,46 @@ const EmergencyRequest = () => {
               <option value="AB+">AB+</option>
               <option value="AB-">AB-</option>
             </select>
-            {errors.bloodType && <p className="text-red-500 text-xs mt-1">{errors.bloodType}</p>}
+            {errors.bloodType && (
+              <p className="text-red-500 text-xs mt-1">{errors.bloodType}</p>
+            )}
           </div>
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Location</label>
+            <label className="block mb-1 font-medium text-gray-700">
+              Địa chỉ
+            </label>
             <input
               type="text"
               name="location"
               value={form.location}
               onChange={handleChange}
               placeholder="Enter hospital or address"
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${errors.location ? "border-red-500" : ""}`}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
+                errors.location ? "border-red-500" : ""
+              }`}
               required
             />
-            {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
+            {errors.location && (
+              <p className="text-red-500 text-xs mt-1">{errors.location}</p>
+            )}
           </div>
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Message</label>
+            <label className="block mb-1 font-medium text-gray-700">
+              Message
+            </label>
             <textarea
               name="message"
               value={form.message}
               onChange={handleChange}
               placeholder="Describe the emergency situation"
-              className={`w-full px-3 py-2 border rounded min-h-[80px] focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${errors.message ? "border-red-500" : ""}`}
+              className={`w-full px-3 py-2 border rounded min-h-[80px] focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
+                errors.message ? "border-red-500" : ""
+              }`}
               required
             />
-            {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
+            {errors.message && (
+              <p className="text-red-500 text-xs mt-1">{errors.message}</p>
+            )}
           </div>
           <button
             type="submit"

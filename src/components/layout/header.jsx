@@ -27,15 +27,19 @@ const Header = () => {
 
   return (
     <>
-      <div className="flex justify-center items-center w-full h-[40px] bg-[#E57373] md:text-[21px] sm:text-[14px] text-[12px] ">
-        <span className="text-[#FFFFFF]">
-          Become a blood donor today and share compassion with those in need.
-        </span>
+      <div className="w-full bg-[#E57373]">
+        <div
+          className="container mx-auto h-[30px] flex justify-center items-center
+                  text-[12px] sm:text-[14px] md:text-[16px] text-white"
+        >
+          Hãy hiến máu hôm nay – Trao đi yêu thương, cứu sống những người đang
+          cần.
+        </div>
       </div>
 
       <header className="w-full bg-white shadow">
         <div className="mx-auto">
-          <div className="flex justify-between items-center px-[26px] py-[18px]">
+          <div className="flex justify-between items-center px-[20px] py-[8px]">
             <a
               href="/"
               className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[23px] text-[22px]"
@@ -44,25 +48,25 @@ const Header = () => {
             </a>
 
             <nav className="hidden md:flex ">
-              <ul className="flex  xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[7px] xl:text-[20px] lg:text-[19px] md:text-[14px] sm:text-[13px] text-[12px]">
+              <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
                 <li>
                   <Link to="/" className="hover:underline">
-                    Home
+                    Trang chủ
                   </Link>
                 </li>
                 <li>
                   <Link to="/donate" className="hover:underline">
-                    Donate blood
+                    Đăng kí hiến máu
                   </Link>
                 </li>
                 <li>
                   <Link to="/emergency" className="hover:underline">
-                    Emergency Request
+                    Yêu cầu máu khẩn cấp
                   </Link>
                 </li>
                 <li>
                   <Link to="/contact" className="hover:underline">
-                    Contact
+                    Liên hệ
                   </Link>
                 </li>
               </ul>
@@ -85,7 +89,7 @@ const Header = () => {
                             className="block px-4 py-2 hover:bg-gray-100"
                             onClick={() => setDropdown(false)}
                           >
-                            Update Profile
+                            Cập nhật trang cá nhân
                           </Link>
                         </li>
                         <li>
@@ -93,7 +97,7 @@ const Header = () => {
                             onClick={handleLogout}
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F]"
                           >
-                            Logout
+                            Đăng xuất
                           </button>
                         </li>
                       </ul>
@@ -104,11 +108,11 @@ const Header = () => {
                 <>
                   <div>
                     <Link to="/login" className="hover:underline mr-[12px] ">
-                      Login
+                      Đăng nhập
                     </Link>
                   </div>
                   <div className="rounded-[3px] md:px-[12px] px-[8px] py-[1px] text-white bg-[#D32F2F]">
-                    <Link to="/register">Register</Link>
+                    <Link to="/register">Đăng kí</Link>
                   </div>
                 </>
               )}
@@ -132,7 +136,7 @@ const Header = () => {
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Home
+                    Trang chủ
                   </Link>
                 </li>
                 <li>
@@ -141,7 +145,7 @@ const Header = () => {
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Donate blood
+                    Đăng kí hiến máu
                   </Link>
                 </li>
                 <li>
@@ -150,7 +154,7 @@ const Header = () => {
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Emergency Request
+                    Yêu cầu máu khẩn cấp
                   </Link>
                 </li>
                 <li>
@@ -159,7 +163,7 @@ const Header = () => {
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    News
+                    Tin tức
                   </Link>
                 </li>
                 <li>
@@ -177,7 +181,7 @@ const Header = () => {
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Contact
+                    Liên hệ
                   </Link>
                 </li>
                 {isLoggedIn ? (
@@ -188,7 +192,7 @@ const Header = () => {
                         className="block text-[14px] hover:underline"
                         onClick={() => setIsOpen(false)}
                       >
-                        Update Profile
+                        Cập nhật trang cá nhân
                       </Link>
                     </li>
                     <li>
@@ -199,7 +203,7 @@ const Header = () => {
                         }}
                         className="block text-[14px] text-[#D32F2F] hover:underline w-full text-left"
                       >
-                        Logout
+                        Đăng xuất
                       </button>
                     </li>
                   </>
@@ -211,7 +215,7 @@ const Header = () => {
                         className="block text-[14px] hover:underline"
                         onClick={() => setIsOpen(false)}
                       >
-                        Login
+                        Đăng nhập
                       </Link>
                     </li>
                     <li>
@@ -220,7 +224,7 @@ const Header = () => {
                         className="block text-[14px] hover:underline"
                         onClick={() => setIsOpen(false)}
                       >
-                        Register
+                        Đăng kí
                       </Link>
                     </li>
                   </>
