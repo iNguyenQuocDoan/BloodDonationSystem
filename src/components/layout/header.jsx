@@ -27,7 +27,7 @@ const Header = () => {
 
   return (
     <>
-      <div className="w-full bg-[#E57373]">
+      {/* <div className="w-full bg-[#E57373]">
         <div
           className="container mx-auto h-[30px] flex justify-center items-center
                   text-[12px] sm:text-[14px] md:text-[16px] text-white"
@@ -35,7 +35,7 @@ const Header = () => {
           Hãy hiến máu hôm nay – Trao đi yêu thương, cứu sống những người đang
           cần.
         </div>
-      </div>
+      </div> */}
 
       <header className="w-full bg-white shadow">
         <div className="mx-auto">
