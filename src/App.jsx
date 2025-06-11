@@ -14,27 +14,46 @@ import Homepage from "./pages/home";
 import EmergencyRequest from "./pages/home/EmergencyRequest";  // đã thêm trang EmergencyRequest 6/6/2025 By Vượng
 import DonateBlood from "./pages/home/DonateBlood";
 import { FAQPage } from "./pages/home/FAQ";
+import LayoutStaff from "./Layouts/LayoutStaff";
+import HomepageStaff from "./pages/Staff/Home";
+import CreateSlotPage from "./pages/Staff/CreateSlot";
+import ReportPage from "./pages/Staff/Report";
+import ConfirmBloodPage from "./pages/Staff/ComfirmBlood";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <Routes>
+          {/*           
           <Route element={<LayoutDeFault />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/register" element={<RegisterPage />} />
-             <Route path="/contact" element={<Contact />} />   {/* đã sửa thêm trang contact nha*/} 
-             <Route path="aboutus" element={<AboutUs />} /> {/* đã sửa thêm trang about us 6/6/2025 đã đông bộ với footer*/}
-             <Route path="/emergency" element={<EmergencyRequest />} />
+            <Route path="/contact" element={<Contact />} />         đã sửa thêm trang contact nha
+            <Route path="aboutus" element={<AboutUs />} />          đã sửa thêm trang about us 6/6/2025 đã đông bộ với footer
+            <Route path="/emergency" element={<EmergencyRequest />} />
             <Route path="/contact" element={<Contact />} />{" "}
-            {/* đã sửa thêm trang contact nha*/}
+            
             <Route path="/" element={<Homepage />} />
-            
-            
+
+
             <Route path="/contact" element={<Contact />} />
             <Route path="faq" element={<FAQPage />} />
+          </Route> */}
+
+          {/*Cái này chỉ là ví dụ để xem UI header của Staff nếu phân quyền xong thì mở comment trên và gộp lại 
+          sẵn gộp luôn headerStaff với header thành 1 và Layout cũng dị và Footer nữa*/}
+          <Route element={<LayoutStaff />}>
+            <Route path="/" element={<HomepageStaff />} />
+            <Route path="create-slot" element={<CreateSlotPage />} />
+            <Route path="report" element={<ReportPage />} />
+            <Route path="confirm-blood" element={<ConfirmBloodPage />} />
+            <Route path="edit-blood"/>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           </Route>
+          
         </Routes>
       </BrowserRouter>
     </>
