@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const Homepage = () => {
@@ -69,6 +70,7 @@ const Homepage = () => {
 
       {/*End Section 1 */}
 
+      {/* Section 2 */}
       <div className="container mx-auto mt-[48px]">
         <h4 className="text-[20px] text-[#D32F2F] text-center">
           Are You Eligible to Donate Blood?
@@ -126,6 +128,108 @@ const Homepage = () => {
           </div>
         </div>
       </div>
+
+      {/* End Section 2 */}
+      {/*  Section 3 */}
+      <div className="container mx-auto mt-[48px]">
+        <h4 className="text-[20px] text-[#D32F2F] text-center mb-[24px]">
+          Compatible Blood Types
+        </h4>
+
+        <div className="container mx-auto px-4 mt-[48px]">
+          <h4 className="text-[24px] text-[#D32F2F] text-center font-semibold mb-[16px]">
+            Blood Type Compatibility
+          </h4>
+
+          <div className="bg-white rounded-[5px] shadow-md overflow-x-auto max-w-4xl mx-auto">
+            <table className="min-w-full text-sm text-center border-collapse">
+              <thead className="bg-[#FAFAFA] border-b">
+                <tr>
+                  <th className="px-6 py-4 text-[#D32F2F] font-semibold">
+                    Blood Type
+                  </th>
+                  <th className="px-6 py-4 text-[#D32F2F] font-semibold">
+                    Can Donate To
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="px-6 py-3 font-medium">O</td>
+                  <td className="px-6 py-3">
+                    O, A, B, AB <br />
+                    <span className="text-gray-500 text-xs">
+                      (Universal Donor)
+                    </span>
+                  </td>
+                </tr>
+                <tr className="bg-gray-50 border-b">
+                  <td className="px-6 py-3 font-medium">A</td>
+                  <td className="px-6 py-3">A, AB</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="px-6 py-3 font-medium">B</td>
+                  <td className="px-6 py-3">B, AB</td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-3 font-medium">AB</td>
+                  <td className="px-6 py-3">
+                    AB <br />
+                    <span className="text-gray-500 text-xs">
+                      (Universal Recipient)
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {/* End Section 3 */}
+      {/* Section 4 */}
+      <div className="py-[48px]">
+        <div className="container mx-auto ">
+          <h4 className="text-[20px] text-[#D32F2F] text-center mb-[24px] ">
+            Blood Donation for Humanity
+          </h4>
+          <div className="flex justify-center items-center">
+            <div className="grid md:grid-cols-4 grid-cols-2 gap-x-[20px] ">
+              <div className="max-w-screen-xl   sm:h-[160px] h-[130px] sm:w-[270px] w-[180px]">
+                <img
+                  src="/image/Gruop.png"
+                  alt="DaiVietBlood"
+                  className="object-fit w-full h-full border rounded-[5px]"
+                ></img>
+              </div>
+              <div className="max-w-screen-xl  sm:h-[160px] h-[130px] sm:w-[270px] w-[180px]">
+                <img
+                  src="/image/mobile.png "
+                  alt="DaiVietBlood"
+                  className="object-fit w-full h-full border rounded-[5px]"
+                ></img>
+              </div>
+              <div className="max-w-screen-xl  sm:h-[160px] h-[130px] sm:w-[270px] w-[180px]">
+                <img
+                  src="/image/emergency.png "
+                  alt="DaiVietBlood"
+                  className="object-fit w-full h-full border rounded-[5px]"
+                ></img>
+              </div>
+              <div className="max-w-screen-xl   sm:h-[160px] h-[130px] sm:w-[270px] w-[180px]">
+                <img
+                  src="/image/thanks.png "
+                  alt="DaiVietBlood"
+                  className="object-fit w-full h-full border rounded-[5px]"
+                ></img>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* End Section 4 */}
+      <h2 className="text-center hover:underline text-[#D32F2F] mb-[20px]">
+        <Link to="/faq">FAQ</Link>
+      </h2>
     </>
   );
 };
