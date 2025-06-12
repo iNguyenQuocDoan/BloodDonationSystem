@@ -15,10 +15,10 @@ import EmergencyRequest from "./pages/home/EmergencyRequest";  // đã thêm tra
 import DonateBlood from "./pages/home/DonateBlood";
 import { FAQPage } from "./pages/home/FAQ";
 import LayoutStaff from "./Layouts/LayoutStaff";
-import HomepageStaff from "./pages/Staff/Home";
 import CreateSlotPage from "./pages/Staff/CreateSlot";
-import ReportPage from "./pages/Staff/Report";
-import ConfirmBloodPage from "./pages/Staff/ComfirmBlood";
+import ConfirmBloodPage from "./pages/Staff/ConfirmBlood";
+import DashboardPage from "./pages/Staff/Dashboard";
+import ManageEmergencyPage from "./pages/Staff/ManageEmergency";
 
 function App() {
   return (
@@ -45,15 +45,15 @@ function App() {
           {/*Cái này chỉ là ví dụ để xem UI header của Staff nếu phân quyền xong thì mở comment trên và gộp lại 
           sẵn gộp luôn headerStaff với header thành 1 và Layout cũng dị và Footer nữa*/}
           <Route element={<LayoutStaff />}>
-            <Route path="/" element={<HomepageStaff />} />
             <Route path="create-slot" element={<CreateSlotPage />} />
-            <Route path="report" element={<ReportPage />} />
+            <Route path="/" element={<DashboardPage />} />
             <Route path="confirm-blood" element={<ConfirmBloodPage />} />
-            <Route path="edit-blood"/>
+            <Route path="edit-blood" />
+            <Route path="manage-emergency" element={<ManageEmergencyPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           </Route>
-          
+
         </Routes>
       </BrowserRouter>
     </>

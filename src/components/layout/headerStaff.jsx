@@ -54,7 +54,7 @@ const HeaderStaff = () =>{
                   </Link>
                 </li>
                 <li>
-                  <Link to="/report" className="hover:underline">
+                  <Link to="/" className="hover:underline">
                     Báo cáo thống kê
                   </Link>
                 </li>
@@ -65,12 +65,12 @@ const HeaderStaff = () =>{
                 </li>
                 <li>
                   <Link to="/manage-emergency" className="hover:underline">
-                    Quản lý yêu cầu khẩn cấp
+                    Yêu cầu khẩn cấp
                   </Link>
                 </li>
                  <li>
                   <Link to="/edit-blood" className="hover:underline">
-                    Chỉnh sửa nhóm máu
+                    Non-feat
                   </Link>
                 </li>
               </ul>
@@ -164,7 +164,7 @@ const HeaderStaff = () =>{
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Quản lý yêu cầu khẩn cấp
+                    Yêu cầu khẩn cấp
                   </Link>
                 </li>
                 <li>
@@ -173,7 +173,7 @@ const HeaderStaff = () =>{
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Chỉnh sửa nhóm máu
+                    Non-feat
                   </Link>
                 </li>
                 {isLoggedIn ? (
