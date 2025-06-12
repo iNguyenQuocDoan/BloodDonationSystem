@@ -24,14 +24,14 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/register" element={<RegisterPage />} />
-             <Route path="/contact" element={<Contact />} />   {/* đã sửa thêm trang contact nha*/} 
-             <Route path="aboutus" element={<AboutUs />} /> {/* đã sửa thêm trang about us 6/6/2025 đã đông bộ với footer*/}
-             <Route path="/emergency" element={<EmergencyRequest />} />
+            <Route path="/contact" element={<Contact />} />   {/* đã sửa thêm trang contact nha*/}
+            <Route path="aboutus" element={<AboutUs />} /> {/* đã sửa thêm trang about us 6/6/2025 đã đông bộ với footer*/}
+            <Route path="/emergency" element={<EmergencyRequest />} />
             <Route path="/contact" element={<Contact />} />{" "}
             {/* đã sửa thêm trang contact nha*/}
             <Route path="/" element={<Homepage />} />
-            
-            
+
+
             <Route path="/contact" element={<Contact />} />
             <Route path="faq" element={<FAQPage />} />
           </Route>

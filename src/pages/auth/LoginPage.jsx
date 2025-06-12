@@ -20,13 +20,13 @@ export const LoginPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
+        credentials: "include"
       });
-      console.log("test thu");
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         // Save token or flag to localStorage for login status
-        if (data.token) {
-          localStorage.setItem("token", data.token);
+        if (data.data.token) {
+          localStorage.setItem("token", data.data.token);
         } else {
           // If backend does not return token, set a dummy token for demo
           localStorage.setItem("token", "dummy_token");
