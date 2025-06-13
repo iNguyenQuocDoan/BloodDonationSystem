@@ -30,9 +30,10 @@ export const LoginPage = () => {
         // }else{
         //   localStorage.getItem("token", "dummy_token")
         // }
-        // Lưu thông tin đăng nhập
+        // Lưu thông tin đăng nhậ
         localStorage.setItem("isLoggedIn", "true");
 
+      
         // Lưu thông tin user nếu server trả về
         if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
