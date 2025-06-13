@@ -5,13 +5,27 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
   const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem("token");
+  const isLoggedIn = !!localStorage.getItem("isLoggedIn");
   const dropdownRef = useRef(null);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-    window.location.reload();
+  const handleLogout = async () => {
+    // localStorage.removeItem("token");
+    // navigate("/login");
+     try {
+      // Gọi API đăng xuất để xóa cookie ở server
+      await fetch("http://localhost:3000/api/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Xóa dữ liệu đăng nhập khỏi localStorage
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("user");
+      navigate("/login");
+      window.location.reload();
+    }
   };
 
   // Đóng dropdown khi click ra ngoài

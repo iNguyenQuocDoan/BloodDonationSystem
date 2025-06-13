@@ -20,17 +20,29 @@ export const LoginPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
-        credentials: "include"
+        credentials: "include",
       });
       const data = await res.json().catch(() => ({}));
+
       if (res.ok) {
-        // Save token or flag to localStorage for login status
-        if (data.data.token) {
-          localStorage.setItem("token", data.data.token);
-        } else {
-          // If backend does not return token, set a dummy token for demo
-          localStorage.setItem("token", "dummy_token");
+        // if(data.token){
+        //   localStorage.getItem("token", data.token)
+        // }else{
+        //   localStorage.getItem("token", "dummy_token")
+        // }
+        // Lưu thông tin đăng nhập
+        localStorage.setItem("isLoggedIn", "true");
+
+        // Lưu thông tin user nếu server trả về
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          // Lưu role nếu có
+          if (data.user.role) {
+            localStorage.setItem("userRole", data.user.role);
+          }
         }
+
+
         navigate("/");
         window.location.reload();
       } else {

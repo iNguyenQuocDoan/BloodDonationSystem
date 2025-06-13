@@ -34,6 +34,7 @@ function App() {
 
             <Route path="/contact" element={<Contact />} />
             <Route path="faq" element={<FAQPage />} />
+            <Route path="donate" element={<DonateBlood />} />
           </Route>
         </Routes>
       </BrowserRouter>
