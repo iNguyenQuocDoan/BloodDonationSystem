@@ -4,9 +4,9 @@ export const FAQPage = () => {
   const [faqList, setfaqList] = useState([
     {
       id: 1,
-      question: "Who can donate blood?",
+      question: "Làm cách nào để đăng ký tài khoản trên hệ thống?",
       answer:
-        "People aged 18-60, weighing over 45kg, healthy and free from infectious diseases can donate blood.",
+        "Bạn nhấn vào nút “Đăng ký” ở góc trên bên phải màn hình, điền đầy đủ thông tin như họ tên, email, số điện thoại, khai báo nhóm máu, sau đó nhấn “Đăng ký”.",
     },
     {
       id: 2,
