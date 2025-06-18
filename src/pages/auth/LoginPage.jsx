@@ -4,7 +4,7 @@ import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai";
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({user_id:"", email: "", password: "" });
+  const [form, setForm] = useState({ user_id: "", email: "", password: "", role: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -31,12 +31,15 @@ export const LoginPage = () => {
         //   localStorage.getItem("token", "dummy_token")
         // }
         // Lưu thông tin đăng nhậ
+
         localStorage.setItem("isLoggedIn", "true");
+
         const userData = {
           // Sử dụng email như ID
           user_id: data.data.user_id || form.user_id,
           user_email: data.user_email || form.email,
-          user_name: data.data.user_name || ""
+          user_name: data.data.user_name || "",
+          user_role: data.data.user_role || form.role
         };
 
         // Lưu thông tin user nếu server trả về
@@ -46,7 +49,12 @@ export const LoginPage = () => {
           // Lưu role nếu có
         }
 
-        navigate("/");
+        if (userData.user_role === "AR002") {
+          navigate("/dashboard")
+        } else {
+          navigate("/");
+        }
+
         window.location.reload();
       } else {
         alert(data.message || "Login failed!");

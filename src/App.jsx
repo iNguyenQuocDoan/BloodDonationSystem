@@ -14,6 +14,12 @@ import Homepage from "./pages/home";
 import EmergencyRequest from "./pages/home/EmergencyRequest";  // đã thêm trang EmergencyRequest 6/6/2025 By Vượng
 import DonateBlood from "./pages/home/DonateBlood";
 import { FAQPage } from "./pages/home/FAQ";
+import LayoutStaff from "./Layouts/LayoutStaff";
+import CreateSlotPage from "./pages/Staff/CreateSlot";
+import DashboardPage from "./pages/Staff/Dashboard";
+import EditBloodPage from "./pages/Staff/EditBlood";
+import ManageEmergencyPage from "./pages/Staff/ManageEmergency";
+import ConfirmBloodPage from "./pages/Staff/ConfirmBlood";
 
 function App() {
   return (
@@ -35,6 +41,14 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="faq" element={<FAQPage />} />
             <Route path="donate" element={<DonateBlood />} />
+          </Route>
+
+          <Route element={<LayoutStaff />}>
+            <Route path="create-slot" element={<CreateSlotPage />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="confirm-blood" element={<ConfirmBloodPage />} />
+            <Route path="edit-blood" element={<EditBloodPage />}/>
+            <Route path="manage-emergency" element={<ManageEmergencyPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
