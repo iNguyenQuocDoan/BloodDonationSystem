@@ -23,6 +23,7 @@ import ConfirmBloodPage from "./pages/Staff/ConfirmBlood";
 import AdminLayout from "./Layouts/LayoutAdmin";
 import CreateSlot from "./pages/Admin/CreateSlot";
 import ManageEmergencyRequest from "./pages/Admin/EmergencyRequest";
+import RoleManagement from "./pages/Admin/Rolemange";
 
 function App() {
   return (
@@ -60,6 +61,8 @@ function App() {
               path="emergency-request"
               element={<ManageEmergencyRequest />}
             />
+
+            <Route path="manage-role" element={<RoleManagement />} />
           </Route>
         </Routes>
       </BrowserRouter>

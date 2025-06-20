@@ -28,7 +28,7 @@ const AdminNavbar = () => {
           Quản lý Staff
         </Link>
         <Link
-          to="#"
+          to="/manage-role"
           className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
         >
           <FaKey />
