@@ -49,12 +49,7 @@ const HeaderStaff = () =>{
             </a>
 
             <nav className="hidden md:flex ">
-              <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
-                <li>
-                  <Link to="/create-slot" className="hover:underline">
-                    Tạo ca
-                  </Link>
-                </li>
+              <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">         
                 <li>
                   <Link to="/" className="hover:underline">
                     Báo cáo thống kê
@@ -78,7 +73,7 @@ const HeaderStaff = () =>{
               </ul>
             </nav>
             <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
-              {(isLoggedIn && role ==="AR002") ? (
+              {(isLoggedIn && role ==="staff") ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdown((prev) => !prev)}
@@ -133,15 +128,6 @@ const HeaderStaff = () =>{
           {isOpen && (
             <nav className="md:hidden bg-white border-t">
               <ul className="flex flex-col px-[26px] py-[12px] gap-y-2 ">
-                <li>
-                  <Link
-                    to="/create-slot"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Tạo ca
-                  </Link>
-                </li>
                 <li>
                   <Link
                     to="/report"

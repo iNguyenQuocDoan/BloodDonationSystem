@@ -1,6 +1,8 @@
 import "./App.css";
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import { LoginPage } from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -16,7 +18,6 @@ import EmergencyRequest from "./pages/home/EmergencyRequest"; // đã thêm tran
 import DonateBlood from "./pages/home/DonateBlood";
 import { FAQPage } from "./pages/home/FAQ";
 import LayoutStaff from "./Layouts/LayoutStaff";
-import CreateSlotPage from "./pages/Staff/CreateSlot";
 import DashboardPage from "./pages/Staff/Dashboard";
 import EditBloodPage from "./pages/Staff/EditBlood";
 import ManageEmergencyPage from "./pages/Staff/ManageEmergency";
@@ -25,13 +26,15 @@ import AdminLayout from "./Layouts/LayoutAdmin";
 import CreateSlot from "./pages/Admin/CreateSlot";
 import ManageEmergencyRequest from "./pages/Admin/EmergencyRequest";
 import RoleManagement from "./pages/Admin/Rolemange";
-import AdminDashboard from "./pages/Admin";
+import RequireRole from "./components/auth/RequireRole";
+import AdminDashboard from "./pages/Admin/Dashboard";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <Routes>
+          {/* Các route public cho member */}
           <Route element={<LayoutDeFault />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -49,26 +52,28 @@ function App() {
             <Route path="donate" element={<DonateBlood />} />
           </Route>
 
-          <Route element={<LayoutStaff />}>
-            <Route path="create-slot" element={<CreateSlotPage />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="confirm-blood" element={<ConfirmBloodPage />} />
-            <Route path="edit-blood" element={<EditBloodPage />} />
-            <Route path="manage-emergency" element={<ManageEmergencyPage />} />
+          {/* Route cho staff */}
+          <Route element={<RequireRole allowedRoles={["staff"]} />}>
+            <Route element={<LayoutStaff />}>
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="confirm-blood" element={<ConfirmBloodPage />} />
+              <Route path="edit-blood" element={<EditBloodPage />} />
+              <Route path="manage-emergency" element={<ManageEmergencyPage />} />
+            </Route>
           </Route>
 
-          <Route element={<AdminLayout />}>
-            <Route path="create-slot" element={<CreateSlot />} />
-            <Route path="/" element={<AdminDashboard />} />
-            <Route
-              path="emergency-request"
-              element={<ManageEmergencyRequest />}
-            />
-
-            <Route path="manage-role" element={<RoleManagement />} />
+          {/* Route cho admin */}
+          <Route element={<RequireRole allowedRoles={["admin"]} />}>
+            <Route element={<AdminLayout />}>
+              <Route path="admin" element={<AdminDashboard />} />
+              <Route path="/admin/create-slot" element={<CreateSlot />} />
+              <Route path="/admin/emergency-request" element={<ManageEmergencyRequest />} />
+              <Route path="/admin/manage-role" element={<RoleManagement />} />      
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>
+      <ToastContainer />
     </>
   );
 }

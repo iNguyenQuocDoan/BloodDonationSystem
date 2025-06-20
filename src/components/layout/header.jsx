@@ -88,7 +88,7 @@ const Header = () => {
               </ul>
             </nav>
             <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
-              {(isLoggedIn && role ==="AR003") ? (
+              {(isLoggedIn && role ==="member") ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdown((prev) => !prev)}
