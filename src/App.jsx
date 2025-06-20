@@ -26,6 +26,7 @@ import CreateSlot from "./pages/Admin/CreateSlot";
 import ManageEmergencyRequest from "./pages/Admin/EmergencyRequest";
 import RoleManagement from "./pages/Admin/Rolemange";
 import AdminDashboard from "./pages/Admin";
+import BloodInventory from "./pages/Admin/BloodInventory";
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function App() {
               path="emergency-request"
               element={<ManageEmergencyRequest />}
             />
+            <Route path="blood-inventory" element={<BloodInventory />} />
 
             <Route path="manage-role" element={<RoleManagement />} />
           </Route>

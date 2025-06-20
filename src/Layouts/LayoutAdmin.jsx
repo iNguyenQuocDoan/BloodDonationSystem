@@ -1,4 +1,4 @@
-import AdminNavbar from "./AdminNavbar";
+import AdminNavbar from "../components/layout/SidebarAdmin";
 
 const AdminLayout = () => {
   return (
