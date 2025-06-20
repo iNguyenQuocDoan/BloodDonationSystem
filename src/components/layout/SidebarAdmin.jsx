@@ -11,7 +11,7 @@ import {
 const AdminNavbar = () => {
   return (
     <div className="w-64 min-h-screen bg-blue-600 text-white flex flex-col px-4 py-6">
-      <h2 className="text-lg font-bold mb-6">BloodShare Admin</h2>
+      <h2 className="text-lg font-bold mb-6">DaiVietBlood Admin</h2>
       <nav className="flex-1 space-y-3 text-sm">
         <Link
           to="/"
@@ -49,11 +49,11 @@ const AdminNavbar = () => {
           Yêu cầu khẩn cấp
         </Link>
         <Link
-          to="#"
+          to="/blood-inventory"
           className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
         >
           <FaTools />
-          Cài đặt
+          Quản lý kho máu
         </Link>
         <Link
           to="#"

@@ -5,9 +5,10 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { LoginPage } from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import { RegisterPage } from "./pages/auth/Register";
+
+//** import layout */
 import Contact from "./pages/home/Contact";
 import AboutUs from "./pages/home/AboutUs";
-
 import "./App.css";
 import LayoutDeFault from "./Layouts/LayoutDefault";
 import Homepage from "./pages/home";
@@ -24,6 +25,7 @@ import AdminLayout from "./Layouts/LayoutAdmin";
 import CreateSlot from "./pages/Admin/CreateSlot";
 import ManageEmergencyRequest from "./pages/Admin/EmergencyRequest";
 import RoleManagement from "./pages/Admin/Rolemange";
+import AdminDashboard from "./pages/Admin";
 
 function App() {
   return (
@@ -57,6 +59,7 @@ function App() {
 
           <Route element={<AdminLayout />}>
             <Route path="create-slot" element={<CreateSlot />} />
+            <Route path="/" element={<AdminDashboard />} />
             <Route
               path="emergency-request"
               element={<ManageEmergencyRequest />}
