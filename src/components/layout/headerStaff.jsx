@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const Header = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const HeaderStaff = () =>{
+    const [isOpen, setIsOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem("isLoggedIn");
@@ -10,24 +10,10 @@ const Header = () => {
   const role = userdata.user_role
   const dropdownRef = useRef(null);
 
-  const handleLogout = async () => {
-    // localStorage.removeItem("token");
-    // navigate("/login");
-     try {
-      // Gọi API đăng xuất để xóa cookie ở server
-      await fetch("http://localhost:3000/api/logout", {
-        method: "POST",
-        credentials: "include"
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Xóa dữ liệu đăng nhập khỏi localStorage
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("user");
-      navigate("/login");
-      window.location.reload();
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+    window.location.reload();
   };
 
   // Đóng dropdown khi click ra ngoài
@@ -43,15 +29,14 @@ const Header = () => {
 
   return (
     <>
-      {/* <div className="w-full bg-[#E57373]">
+      <div className="w-full bg-[#E57373]">
         <div
           className="container mx-auto h-[30px] flex justify-center items-center
                   text-[12px] sm:text-[14px] md:text-[16px] text-white"
         >
-          Hãy hiến máu hôm nay – Trao đi yêu thương, cứu sống những người đang
-          cần.
+          Quản lý nhân viên Đại việt Blood
         </div>
-      </div> */}
+      </div>
 
       <header className="w-full bg-white shadow">
         <div className="mx-auto">
@@ -66,35 +51,40 @@ const Header = () => {
             <nav className="hidden md:flex ">
               <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
                 <li>
+                  <Link to="/create-slot" className="hover:underline">
+                    Tạo ca
+                  </Link>
+                </li>
+                <li>
                   <Link to="/" className="hover:underline">
-                    Trang chủ
+                    Báo cáo thống kê
                   </Link>
                 </li>
                 <li>
-                  <Link to="/donate" className="hover:underline">
-                    Đăng kí hiến máu
+                  <Link to="/confirm-blood" className="hover:underline">
+                    Xác nhận nhóm máu
                   </Link>
                 </li>
                 <li>
-                  <Link to="/emergency" className="hover:underline">
-                    Yêu cầu máu khẩn cấp
+                  <Link to="/manage-emergency" className="hover:underline">
+                    Yêu cầu khẩn cấp
                   </Link>
                 </li>
-                <li>
-                  <Link to="/contact" className="hover:underline">
-                    Liên hệ
+                 <li>
+                  <Link to="/edit-blood" className="hover:underline">
+                    Non-feat
                   </Link>
                 </li>
               </ul>
             </nav>
             <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
-              {(isLoggedIn && role ==="AR003") ? (
+              {(isLoggedIn && role ==="AR002") ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdown((prev) => !prev)}
                     className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg focus:outline-none"
                   >
-                    U
+                    ST
                   </button>
                   {dropdown && (
                     <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
@@ -121,16 +111,13 @@ const Header = () => {
                   )}
                 </div>
               ) : (
-                <>
+                
                   <div>
                     <Link to="/login" className="hover:underline mr-[12px] ">
                       Đăng nhập
                     </Link>
                   </div>
-                  <div className="rounded-[3px] md:px-[12px] px-[8px] py-[1px] text-white bg-[#D32F2F]">
-                    <Link to="/register">Đăng kí</Link>
-                  </div>
-                </>
+                 
               )}
             </div>
 
@@ -148,56 +135,47 @@ const Header = () => {
               <ul className="flex flex-col px-[26px] py-[12px] gap-y-2 ">
                 <li>
                   <Link
-                    to="/"
+                    to="/create-slot"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Trang chủ
+                    Tạo ca
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/donate"
+                    to="/report"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Đăng kí hiến máu
+                    Báo cáo thống kê
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/emergency"
+                    to="/confirm-blood"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Yêu cầu máu khẩn cấp
+                    Xác nhận nhóm máu
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/news"
+                    to="/manage-emergency"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Tin tức
+                    Yêu cầu khẩn cấp
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/faq"
+                    to="/edit-blood"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    FAQ
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/contact"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Liên hệ
+                    Non-feat
                   </Link>
                 </li>
                 {isLoggedIn ? (
@@ -224,7 +202,7 @@ const Header = () => {
                     </li>
                   </>
                 ) : (
-                  <>
+                
                     <li>
                       <Link
                         to="/login"
@@ -234,16 +212,7 @@ const Header = () => {
                         Đăng nhập
                       </Link>
                     </li>
-                    <li>
-                      <Link
-                        to="/register"
-                        className="block text-[14px] hover:underline"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Đăng kí
-                      </Link>
-                    </li>
-                  </>
+                   
                 )}
               </ul>
             </nav>
@@ -252,6 +221,5 @@ const Header = () => {
       </header>
     </>
   );
-};
-
-export default Header;
+}
+export default HeaderStaff;

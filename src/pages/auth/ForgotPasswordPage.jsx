@@ -6,12 +6,12 @@ const ForgotPasswordPage = () => {
       <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF]">
         <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
           <h2 className="text-3xl font-bold text-center text-[#D32F2F] py-6">
-            Forgot Password
+            Quên mật khẩu
           </h2>
           <form className="space-y-5">
             <div className="space-y-2">
               <label className="block text-[#555555]">
-                Enter your registered email address:
+                Nhập tài email đã đăng kí
               </label>
               <input
                 type="email"
@@ -24,7 +24,7 @@ const ForgotPasswordPage = () => {
               type="submit"
               className="w-full px-4 py-2 bg-[#D32F2F] text-white font-semibold rounded transition duration-200"
             >
-              Submit request
+              Gửi yêu cầu
             </button>
           </form>
 
@@ -34,7 +34,7 @@ const ForgotPasswordPage = () => {
           >
             <div className="flex items-center justify-center gap-2">
               <GoArrowLeft className="text-xl" />
-              <span>Back to Login</span>
+              <span>Quay lại trang Login</span>
             </div>
           </Link>
         </div>
