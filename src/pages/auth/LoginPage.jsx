@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai";
+import { toast } from 'react-toastify';
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -49,15 +50,39 @@ export const LoginPage = () => {
           // Lưu role nếu có
         }
 
-        if (userData.user_role === "AR002") {
-          navigate("/dashboard")
-        } else {
-          navigate("/");
-        }
+        // Thông báo popup login thành công với delay 1s
+        setTimeout(() => {
+          toast.success("Đăng nhập thành công!", {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: false,
+            progress: undefined,
+          });
 
-        window.location.reload();
+          setTimeout(() => {
+            if (userData.user_role === "AR002") {
+              navigate("/dashboard");
+            } else if (userData.user_role === "AR001") {
+              navigate("/admin");
+            } else {
+              navigate("/");
+            }
+            window.location.reload();
+          }, 2000); // Chờ popup biến mất rồi mới chuyển trang
+        }, 1000); // Delay 1s trước khi hiện popup
       } else {
-        alert(data.message || "Login failed!");
+        toast.error(data.message || "Sai tài khoản hoặc mật khẩu!", {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+        });
       }
     } catch (err) {
       alert("Cannot connect to server!");

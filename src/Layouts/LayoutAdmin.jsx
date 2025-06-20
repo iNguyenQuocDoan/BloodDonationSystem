@@ -1,14 +1,12 @@
-import AdminNavbar from "./AdminNavbar";
+import SidebarAdmin from "../components/layout/SidebarAdmin";
+import { Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
   return (
     <div className="flex">
-      <AdminNavbar />
+      <SidebarAdmin />
       <main className="p-8 flex-1">
-        <h1 className="text-xl font-semibold mb-2">Admin Navbar Mockup</h1>
-        <p className="text-sm text-gray-600">
-          Đây là nội dung demo để kiểm tra Navbar.
-        </p>
+        <Outlet />
       </main>
     </div>
   );
