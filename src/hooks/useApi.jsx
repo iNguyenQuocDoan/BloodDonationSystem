@@ -10,33 +10,11 @@ const useApi = () => {
     return localStorage.getItem("isLoggedIn") === "true";
   }, []);
 
-  // const isTokenExpired = useCallback(() => {
-  //   const expireTime = localStorage.getItem("tokenExpireTime");
-  //   if (!expireTime) return true;
-  //   return Date.now() >= parseInt(expireTime);
-  // }, []);
-
   const clearAuthData = useCallback(() => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("user");
-    // localStorage.removeItem("tokenExpireTime");
-    // localStorage.removeItem("loginTime");
+
   }, []);
-
-  // // Auto logout when token expires
-  // useEffect(() => {
-  //   const checkTokenStatus = () => {
-  //     if (isLoggedIn() && isTokenExpired()) {
-  //       clearAuthData();
-  //       console.log('Token expired - auto logout');
-  //       window.location.href = '/login';
-  //     }
-  //   };
-
-  //   checkTokenStatus();
-  //   const interval = setInterval(checkTokenStatus, 1000);
-  //   return () => clearInterval(interval);
-  // }, [isLoggedIn, isTokenExpired, clearAuthData]);
 
   // Main API caller
   const callApi = useCallback(async (endpoint, options = {}) => {
@@ -45,12 +23,6 @@ const useApi = () => {
     setError(null);
 
     try {
-      // Check token before API call
-      // if (isLoggedIn() && isTokenExpired()) {
-      //   clearAuthData();
-      //   window.location.href = '/login';
-      //   throw new Error('Session expired');
-      // }
 
       const response = await fetch(url, {
         headers: {
@@ -91,13 +63,10 @@ const useApi = () => {
     });
 
     if (result.status) {
-      // const loginTime = Date.now();
-      // const expireTime = loginTime + 900000; // 30 minutes
+
 
       localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("user", JSON.stringify(result.data));
-      // localStorage.setItem("loginTime", loginTime.toString());
-      // localStorage.setItem("tokenExpireTime", expireTime.toString());
+
     }
 
     return result;
@@ -158,8 +127,7 @@ const useApi = () => {
     getSlotList,
     registerSlot,
     createSlot,
-    isLoggedIn: isLoggedIn(),
-    getToken: () => null
+    isLoggedIn: isLoggedIn()
   };
 };
 

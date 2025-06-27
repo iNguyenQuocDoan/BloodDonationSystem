@@ -5,12 +5,13 @@ import useApi from "../../hooks/useApi";
 import { FaCalendarAlt, FaSearch } from "react-icons/fa";
 
 const DonateBlood = () => {
+  const [user, setUser] = useState(null);
   const [slots, setSlots] = useState([]);
   const [filteredSlots, setFilteredSlots] = useState([]);
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [isSearching, setIsSearching] = useState(false);
-  const { loading, error, getSlotList, registerSlot } = useApi();
+  const { loading, error, getSlotList, registerSlot, getCurrentUser } = useApi();
   const navigate = useNavigate();
 
   // Fetch slots data on component mount
@@ -18,6 +19,11 @@ const DonateBlood = () => {
     fetchSlots();
   }, []);
 
+  useEffect(() => {
+    if (localStorage.getItem("isLoggedIn") === "true") {
+      getCurrentUser().then(res => setUser(res.data)).catch(() => setUser(null));
+    }
+  }, [getCurrentUser]);
 
   const fetchSlots = async () => {
     try {
@@ -76,45 +82,21 @@ const DonateBlood = () => {
   };
 
   const handleRegister = async (slotId) => {
-    try {
-      // Check login status
-      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-      if (!isLoggedIn) {
-        toast.warning("Vui lòng đăng nhập để đăng ký hiến máu");
-        navigate("/login", { state: { from: "/donate" } });
-        return;
-      }
-
-      // Get and validate user data
-      const userStr = localStorage.getItem("user");
-      if (!userStr) {
-        toast.error("Không tìm thấy thông tin người dùng");
-        return;
-      }
-
-      const user = JSON.parse(userStr);
-
-      // Check user role
-      if (user.user_role !== 'member') {
-        toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu");
-        return;
-      }
-
-      // Validate user_id
-      if (!user.user_id) {
-        toast.error("Không tìm thấy ID người dùng");
-        console.error("User object missing user_id:", user);
-        return;
-      }
-
-      // Call API and handle success
-      await registerSlot(slotId, user.user_id);
-      toast.success("Đăng ký hiến máu thành công!");
-      fetchSlots(); // Refresh slots after successful registration
-    } catch (error) {
-      console.error("Registration error:", error);
-      toast.error(error.message || "Đăng ký thất bại");
+    if (!user) {
+      toast.error("Không tìm thấy thông tin người dùng");
+      return;
     }
+    if (user.user_role !== 'member') {
+      toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu");
+      return;
+    }
+    if (!user.user_id) {
+      toast.error("Không tìm thấy ID người dùng");
+      return;
+    }
+    await registerSlot(slotId, user.user_id);
+    toast.success("Đăng ký hiến máu thành công!");
+    fetchSlots(); // Refresh slots after successful registration
   };
 
   // Format helpers

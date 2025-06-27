@@ -1,20 +1,25 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import useApi from "../../hooks/useApi";
 
-const HeaderStaff = () =>{
-    const [isOpen, setIsOpen] = useState(false);
+const HeaderStaff = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem("isLoggedIn");
-  const userdata = JSON.parse(localStorage.getItem("user") || "{}")
-  const role = userdata.user_role
   const dropdownRef = useRef(null);
+  const { getCurrentUser, logout } = useApi();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-    window.location.reload();
-  };
+  useEffect(() => {
+    if (isLoggedIn) {
+      getCurrentUser()
+        .then((res) => setUser(res.data))
+        .catch(() => setUser(null));
+    } else {
+      setUser(null);
+    }
+  }, [isLoggedIn, getCurrentUser]);
 
   // Đóng dropdown khi click ra ngoài
   useEffect(() => {
@@ -26,6 +31,8 @@ const HeaderStaff = () =>{
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const role = user?.user_role;
 
   return (
     <>
@@ -49,7 +56,7 @@ const HeaderStaff = () =>{
             </a>
 
             <nav className="hidden md:flex ">
-              <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">         
+              <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
                 <li>
                   <Link to="/dashboard" className="hover:underline">
                     Báo cáo thống kê
@@ -65,7 +72,7 @@ const HeaderStaff = () =>{
                     Yêu cầu khẩn cấp
                   </Link>
                 </li>
-                 <li>
+                <li>
                   <Link to="/edit-blood" className="hover:underline">
                     Quản lý danh sách hiến máu
                   </Link>
@@ -73,7 +80,7 @@ const HeaderStaff = () =>{
               </ul>
             </nav>
             <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
-              {(isLoggedIn && role ==="staff") ? (
+              {(isLoggedIn && role === "staff") ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdown((prev) => !prev)}
@@ -95,7 +102,7 @@ const HeaderStaff = () =>{
                         </li>
                         <li>
                           <button
-                            onClick={handleLogout}
+                            onClick={logout}
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F]"
                           >
                             Đăng xuất
@@ -106,13 +113,11 @@ const HeaderStaff = () =>{
                   )}
                 </div>
               ) : (
-                
-                  <div>
-                    <Link to="/login" className="hover:underline mr-[12px] ">
-                      Đăng nhập
-                    </Link>
-                  </div>
-                 
+                <div>
+                  <Link to="/login" className="hover:underline mr-[12px] ">
+                    Đăng nhập
+                  </Link>
+                </div>
               )}
             </div>
 
@@ -179,7 +184,7 @@ const HeaderStaff = () =>{
                       <button
                         onClick={() => {
                           setIsOpen(false);
-                          handleLogout();
+                          logout();
                         }}
                         className="block text-[14px] text-[#D32F2F] hover:underline w-full text-left"
                       >
@@ -188,17 +193,15 @@ const HeaderStaff = () =>{
                     </li>
                   </>
                 ) : (
-                
-                    <li>
-                      <Link
-                        to="/login"
-                        className="block text-[14px] hover:underline"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Đăng nhập
-                      </Link>
-                    </li>
-                   
+                  <li>
+                    <Link
+                      to="/login"
+                      className="block text-[14px] hover:underline"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Đăng nhập
+                    </Link>
+                  </li>
                 )}
               </ul>
             </nav>
@@ -207,5 +210,6 @@ const HeaderStaff = () =>{
       </header>
     </>
   );
-}
+};
+
 export default HeaderStaff;

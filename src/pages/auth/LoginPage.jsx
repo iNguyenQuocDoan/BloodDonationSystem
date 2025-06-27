@@ -29,11 +29,11 @@ export const LoginPage = () => {
       });
 
       console.log("Login response data:", data);
-      console.log("User role:", data.data.user_role);
+
 
       // Lưu thông tin người dùng
       localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("user", JSON.stringify(data.data));
+
 
       toast.success("Đăng nhập thành công!", {
         position: "top-center",
