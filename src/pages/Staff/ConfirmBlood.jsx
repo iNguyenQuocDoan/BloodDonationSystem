@@ -42,8 +42,10 @@ const ConfirmBloodPage = () => {
                                             <option>O</option>
                                         </select>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <button className="bg-[#D32F2F] text-white px-4 py-1 rounded">Lưu</button>
+                                    <td className="px-4 py-3 gap-x-2">
+                                        <button className="bg-[#D32F2F] text-white px-4 py-1 rounded ">Xác nhận</button>
+                                        <button className="bg-[#D32F2F] text-white px-4 py-1 rounded">Từ chối</button>
+                                        
                                         </td>
                                 </tr>
                             ))}

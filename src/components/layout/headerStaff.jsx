@@ -51,7 +51,7 @@ const HeaderStaff = () =>{
             <nav className="hidden md:flex ">
               <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">         
                 <li>
-                  <Link to="/" className="hover:underline">
+                  <Link to="/dashboard" className="hover:underline">
                     Báo cáo thống kê
                   </Link>
                 </li>
@@ -67,7 +67,7 @@ const HeaderStaff = () =>{
                 </li>
                  <li>
                   <Link to="/edit-blood" className="hover:underline">
-                    Non-feat
+                    Quản lý danh sách hiến máu
                   </Link>
                 </li>
               </ul>

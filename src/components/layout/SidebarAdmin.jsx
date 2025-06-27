@@ -64,7 +64,7 @@ const AdminNavbar = () => {
           Yêu cầu khẩn cấp
         </Link>
         <Link
-          to="/blood-inventory"
+          to="/admin/blood-inventory"
           className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
         >
           <FaTools />

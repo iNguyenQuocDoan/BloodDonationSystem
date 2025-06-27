@@ -4,76 +4,102 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// Auth component
+
+
+// Auth pages
 import { LoginPage } from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import { RegisterPage } from "./pages/auth/Register";
 
-//** import layout */
+
+// Layouts
+import LayoutDeFault from "./Layouts/LayoutDefault";
+import LayoutStaff from "./Layouts/LayoutStaff";
+import LayoutAdmin from "./Layouts/LayoutAdmin";
+
+// Public pages
+import Homepage from "./pages/home";
 import Contact from "./pages/home/Contact";
 import AboutUs from "./pages/home/AboutUs";
-import "./App.css";
-import LayoutDeFault from "./Layouts/LayoutDefault";
-import Homepage from "./pages/home";
-import EmergencyRequest from "./pages/home/EmergencyRequest"; // đã thêm trang EmergencyRequest 6/6/2025 By Vượng
+import EmergencyRequest from "./pages/home/EmergencyRequest";
 import DonateBlood from "./pages/home/DonateBlood";
 import { FAQPage } from "./pages/home/FAQ";
-import LayoutStaff from "./Layouts/LayoutStaff";
+
+// Staff pages
 import DashboardPage from "./pages/Staff/Dashboard";
 import EditBloodPage from "./pages/Staff/EditBlood";
-import ManageEmergencyPage from "./pages/Staff/ManageEmergency";
 import ConfirmBloodPage from "./pages/Staff/ConfirmBlood";
-import AdminLayout from "./Layouts/LayoutAdmin";
+import ManageEmergencyPage from "./pages/Staff/ManageEmergency";
+
+// Admin pages
+import AdminDashboard from "./pages/Admin";
 import CreateSlot from "./pages/Admin/CreateSlot";
-import ManageEmergencyRequest from "./pages/Admin/EmergencyRequest";
-import RoleManagement from "./pages/Admin/Rolemange";
-import RequireRole from "./components/auth/RequireRole";
-import AdminDashboard from "./pages/Admin/Dashboard";
+import RoleManage from "./pages/Admin/Rolemange";
+import BloodInventory from "./pages/Admin/BloodInventory";
+import AdminEmergencyRequest from "./pages/Admin/EmergencyRequest";
+import ProtectedRoute from "./components/auth/RequireRole";
+import AdminLayout from "./Layouts/LayoutAdmin";
+import { RegisterPage } from "./pages/auth/Register";
+
 
 function App() {
   return (
     <>
       <BrowserRouter>
+        <ToastContainer />
         <Routes>
-          {/* Các route public cho member */}
-          <Route element={<LayoutDeFault />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/contact" element={<Contact />} />{" "}
-            {/* đã sửa thêm trang contact nha*/}
-            <Route path="aboutus" element={<AboutUs />} />{" "}
-            {/* đã sửa thêm trang about us 6/6/2025 đã đông bộ với footer*/}
-            <Route path="/emergency" element={<EmergencyRequest />} />
-            <Route path="/contact" element={<Contact />} />{" "}
-            {/* đã sửa thêm trang contact nha*/}
-            <Route path="/" element={<Homepage />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="faq" element={<FAQPage />} />
-            <Route path="donate" element={<DonateBlood />} />
+          {/* Các route công khai */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<LayoutDeFault />}>
+              <Route path="/" element={<Homepage />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/aboutus" element={<AboutUs />} />
+              <Route path="/emergency" element={<EmergencyRequest />} />
+              <Route path="/donate" element={<DonateBlood />} />
+              <Route path="/faq" element={<FAQPage />} />
+            </Route>
           </Route>
 
-          {/* Route cho staff */}
-          <Route element={<RequireRole allowedRoles={["staff"]} />}>
+          {/* Các route xác thực (chuyển hướng nếu đã đăng nhập) */}
+          <Route element={<ProtectedRoute restricted={true} />}>
+            <Route element={<LayoutDeFault />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Route>
+          </Route>
+
+          {/* Các route yêu cầu đăng nhập */}
+          <Route element={<ProtectedRoute requireAuth={true} />}>
+            <Route element={<LayoutDeFault />}>
+
+            </Route>
+          </Route>
+
+          {/* Các route dành riêng cho staff */}
+          <Route element={<ProtectedRoute requireAuth={true} allowedRoles={["staff"]} />}>
             <Route element={<LayoutStaff />}>
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="confirm-blood" element={<ConfirmBloodPage />} />
-              <Route path="edit-blood" element={<EditBloodPage />} />
-              <Route path="manage-emergency" element={<ManageEmergencyPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/edit-blood" element={<EditBloodPage />} />
+              <Route path="/confirm-blood" element={<ConfirmBloodPage />} />
+              <Route path="/manage-emergency" element={<ManageEmergencyPage />} />
             </Route>
           </Route>
 
-          {/* Route cho admin */}
-          <Route element={<RequireRole allowedRoles={["admin"]} />}>
+          {/* Các route dành riêng cho admin */}
+          <Route element={<ProtectedRoute requireAuth={true} allowedRoles={["admin"]} />}>
             <Route element={<AdminLayout />}>
-              <Route path="admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/create-slot" element={<CreateSlot />} />
-              <Route path="/admin/emergency-request" element={<ManageEmergencyRequest />} />
-              <Route path="/admin/manage-role" element={<RoleManagement />} />      
+              <Route path="/admin/manage-role" element={<RoleManage />} />
+              <Route path="/admin/blood-inventory" element={<BloodInventory />} />
+              <Route path="/admin/emergency-request" element={<AdminEmergencyRequest />} />
             </Route>
           </Route>
+
+
         </Routes>
       </BrowserRouter>
-      <ToastContainer />
     </>
   );
 }

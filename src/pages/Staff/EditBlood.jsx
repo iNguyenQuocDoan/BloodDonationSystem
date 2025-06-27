@@ -1,7 +1,7 @@
 const EditBloodPage = () =>{
 return(
     <>
-    <h1>Trang chỉnh sửa nhóm máu</h1>
+    <h1>Trang quản lý danh sách hiến máu</h1>
     </>
 )
 };
