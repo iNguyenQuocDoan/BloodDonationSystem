@@ -3,69 +3,87 @@ const AboutUs = () => {
     <div className="bg-[#f5f5f5] min-h-screen py-6 px-2">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8">
         <h2 className="text-center text-2xl md:text-3xl font-bold text-[#D32F2F] mb-8">
-          About Us
+          Giới Thiệu
         </h2>
 
         <div className="mb-6">
-          <h3 className="font-semibold text-[#D32F2F] mb-1">Our Mission</h3>
+          <h3 className="font-semibold text-[#D32F2F] mb-1">Sứ Mệnh</h3>
           <p className="text-gray-700 text-sm md:text-base">
-            BloodShare is committed to connecting blood donors and recipients, providing safe, transparent, and humane solutions to save community lives.
+            DaiVietBlood cam kết kết nối người hiến máu và người nhận máu, cung
+            cấp giải pháp an toàn, minh bạch và nhân văn để cứu sống cộng đồng.
           </p>
         </div>
 
         <div className="mb-6">
-          <h3 className="font-semibold text-[#D32F2F] mb-1">Our Vision</h3>
+          <h3 className="font-semibold text-[#D32F2F] mb-1">Tầm Nhìn</h3>
           <p className="text-gray-700 text-sm md:text-base">
-            To become Vietnam's leading blood donation platform, where every drop of blood given brings hope to patients and their families.
+            Trở thành nền tảng hiến máu hàng đầu Việt Nam, nơi mỗi giọt máu trao
+            đi mang lại hy vọng cho bệnh nhân và gia đình họ.
           </p>
         </div>
 
         <div className="mb-6">
-          <h3 className="font-semibold text-[#D32F2F] mb-1">Core Values</h3>
+          <h3 className="font-semibold text-[#D32F2F] mb-1">Giá Trị Cốt Lõi</h3>
           <ul className="text-gray-700 text-sm md:text-base list-none pl-0 space-y-1">
             <li>
-              <span className="font-bold text-black">Compassion:</span> Sharing love and helping those in difficult circumstances.
+              <span className="font-bold text-black">Nhân ái:</span> Chia sẻ yêu
+              thương và hỗ trợ những hoàn cảnh khó khăn.
             </li>
             <li>
-              <span className="font-bold text-black">Safety:</span> Strictly following medical procedures to protect community health.
+              <span className="font-bold text-black">An toàn:</span> Tuân thủ
+              nghiêm ngặt quy trình y tế để bảo vệ sức khỏe cộng đồng.
             </li>
             <li>
-              <span className="font-bold text-black">Transparency:</span> All information and activities are public and verifiable.
+              <span className="font-bold text-black">Minh bạch:</span> Mọi thông
+              tin và hoạt động đều được công khai, dễ dàng kiểm chứng.
             </li>
             <li>
-              <span className="font-bold text-black">Solidarity:</span> Connecting volunteers, organizations, and individuals to spread good deeds together.
+              <span className="font-bold text-black">Đoàn kết:</span> Kết nối
+              tình nguyện viên, tổ chức và cá nhân để lan tỏa những điều tốt
+              đẹp.
             </li>
           </ul>
         </div>
 
         <div className="mb-8">
-          <h3 className="font-semibold text-[#D32F2F] mb-3">Our Team</h3>
+          <h3 className="font-semibold text-[#D32F2F] mb-3">
+            Đội Ngũ Chúng Tôi
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="bg-[#fafbfc] rounded-lg shadow p-4 flex flex-col items-center">
-              <span className="font-bold text-[#D32F2F]">Nguyen Thi A</span>
-              <span className="text-gray-700 text-xs md:text-sm mt-1">Chief Executive Officer</span>
+              <span className="font-bold text-[#D32F2F]">Nguyễn Thị A</span>
+              <span className="text-gray-700 text-xs md:text-sm mt-1">
+                Giám đốc điều hành
+              </span>
             </div>
             <div className="bg-[#fafbfc] rounded-lg shadow p-4 flex flex-col items-center">
-              <span className="font-bold text-[#D32F2F]">Tran Van B</span>
-              <span className="text-gray-700 text-xs md:text-sm mt-1">Head of Medical Department</span>
+              <span className="font-bold text-[#D32F2F]">Trần Văn B</span>
+              <span className="text-gray-700 text-xs md:text-sm mt-1">
+                Trưởng phòng Y tế
+              </span>
             </div>
             <div className="bg-[#fafbfc] rounded-lg shadow p-4 flex flex-col items-center">
-              <span className="font-bold text-[#D32F2F]">Pham Thi C</span>
-              <span className="text-gray-700 text-xs md:text-sm mt-1">Media Manager</span>
+              <span className="font-bold text-[#D32F2F]">Phạm Thị C</span>
+              <span className="text-gray-700 text-xs md:text-sm mt-1">
+                Quản lý Truyền thông
+              </span>
             </div>
           </div>
         </div>
 
         <div>
-          <h3 className="font-semibold text-[#D32F2F] mb-1">Partners & Collaborators</h3>
+          <h3 className="font-semibold text-[#D32F2F] mb-1">
+            Đối Tác &amp; Cộng Tác
+          </h3>
           <p className="text-gray-700 text-sm md:text-base mb-2">
-            We are proud to collaborate with hospitals, medical organizations, and volunteer communities to expand the blood donation network:
+            Chúng tôi tự hào hợp tác với các bệnh viện, tổ chức y tế và cộng
+            đồng tình nguyện để mở rộng mạng lưới hiến máu:
           </p>
           <ul className="list-disc pl-5 text-gray-700 text-sm md:text-base space-y-1">
-            <li>Hospital A</li>
-            <li>Hospital B</li>
-            <li>Medical Organization C</li>
-            <li>Volunteer Club D</li>
+            <li>Bệnh viện A</li>
+            <li>Bệnh viện B</li>
+            <li>Tổ chức Y tế C</li>
+            <li>Câu lạc bộ Tình nguyện D</li>
           </ul>
         </div>
       </div>

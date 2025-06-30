@@ -1,102 +1,74 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import useApi from "../../hooks/useApi";
 
 export const LoginPage = () => {
+  const [form, setForm] = useState({
+    email: "",
+    password: ""
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ user_id: "", email: "", password: "", role: "" });
-  const [loading, setLoading] = useState(false);
+  const { loading, login } = useApi(); // Sử dụng custom hook
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+
+    // Xử lý sau đăng nhập thành công
     try {
-      const res = await fetch("http://localhost:3000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-        credentials: "include",
+      const data = await login({
+        email: form.email,
+        password: form.password,
       });
-      const data = await res.json().catch(() => ({}));
 
-      if (res.ok) {
-        // if(data.token){
-        //   localStorage.getItem("token", data.token)
-        // }else{
-        //   localStorage.getItem("token", "dummy_token")
-        // }
-        // Lưu thông tin đăng nhậ
+      console.log("Login response data:", data);
 
-        localStorage.setItem("isLoggedIn", "true");
 
-        const userData = {
-          // Sử dụng email như ID
-          user_id: data.data.user_id || form.user_id,
-          user_email: data.user_email || form.email,
-          user_name: data.data.user_name || "",
-          user_role: data.data.user_role || form.role
-        };
+      // Lưu thông tin người dùng
+      localStorage.setItem("isLoggedIn", "true");
 
-        // Lưu thông tin user nếu server trả về
-        if (data) {
-          localStorage.setItem("user", JSON.stringify(userData));
 
-          // Lưu role nếu có
+      toast.success("Đăng nhập thành công!", {
+        position: "top-center",
+        autoClose: 2000,
+      });
+
+      // Chuẩn hóa role và chờ một chút để đảm bảo localStorage được cập nhật
+      const userRole = (data.data.user_role || "").trim().toLowerCase();
+      console.log("Normalized role:", userRole);
+      
+      // Đợi localStorage được cập nhật hoàn toàn trước khi chuyển hướng
+      setTimeout(() => {
+        if (userRole === "admin") {
+          navigate("/admin", { replace: true });
+        } else if (userRole === "staff") {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/", { replace: true });
         }
-
-        // Thông báo popup login thành công với delay 1s
-        setTimeout(() => {
-          toast.success("Đăng nhập thành công!", {
-            position: "top-center",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: false,
-            progress: undefined,
-          });
-
-          setTimeout(() => {
-            if (userData.user_role === "staff") {
-              navigate("/dashboard");
-            } else if (userData.user_role === "admin") {
-              navigate("/admin");
-            } else {
-              navigate("/");
-            }
-            window.location.reload();
-          }, 1000); // Chờ popup biến mất rồi mới chuyển trang
-        }); // Delay 1s trước khi hiện popup
-      } else {
-        toast.error(data.message || "Sai tài khoản hoặc mật khẩu!", {
-          position: "top-center",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: false,
-          progress: undefined,
-        });
-      }
-    } catch (err) {
-      alert("Cannot connect to server!");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      }, 300);
+    } catch (error) {
+      toast.error(error.message || "Đăng nhập thất bại", {
+        position: "top-center",
+        autoClose: 2000,
+      });
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF]">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md ">
-        <h2 className="text-3xl font-bold text-center text-[#D32F2F]">Login</h2>
-        <form className="space-y-5" onSubmit={handleSubmit}>
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+        <h2 className="text-3xl font-bold text-center text-[#D32F2F] py-6">
+          Đăng Nhập
+        </h2>
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label className="block text-[#555555]">Email:</label>
             <input
@@ -104,10 +76,12 @@ export const LoginPage = () => {
               name="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="Enter your email"
+              placeholder="Nhập email của bạn"
               className="w-full px-4 py-2 border rounded"
               required
             />
+          </div>
+          <div className="space-y-2">
             <label className="block text-[#555555]">Mật khẩu:</label>
             <div className="relative">
               <input
@@ -115,7 +89,7 @@ export const LoginPage = () => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                placeholder="Enter your password"
+                placeholder="Nhập mật khẩu của bạn"
                 className="w-full px-4 py-2 border rounded"
                 required
               />
@@ -139,7 +113,7 @@ export const LoginPage = () => {
               className="w-full py-2 px-4 bg-[#D32F2F] text-white font-semibold rounded transition duration-200"
               disabled={loading}
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
             <Link
               to="/forgot-password"
@@ -149,7 +123,7 @@ export const LoginPage = () => {
             </Link>
           </div>
         </form>
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-4">
           <span className="text-[#1F1F1F] mr-[5px]">Chưa có tài khoản? </span>
           <Link to="/register" className="block text-[#D32F2F]">
             <span className="hover:underline"> Đăng kí</span>

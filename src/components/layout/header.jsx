@@ -1,36 +1,26 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import useApi from "../../hooks/useApi";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem("isLoggedIn");
-  const userdata = JSON.parse(localStorage.getItem("user") || "{}")
-  const role = userdata.user_role
   const dropdownRef = useRef(null);
+  const { getCurrentUser, logout } = useApi();
 
-  const handleLogout = async () => {
-    // localStorage.removeItem("token");
-    // navigate("/login");
-     try {
-      // Gọi API đăng xuất để xóa cookie ở server
-      await fetch("http://localhost:3000/api/logout", {
-        method: "POST",
-        credentials: "include"
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Xóa dữ liệu đăng nhập khỏi localStorage
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("user");
-      navigate("/login");
-      window.location.reload();
+  useEffect(() => {
+    if (isLoggedIn) {
+      getCurrentUser()
+        .then((res) => setUser(res.data))
+        .catch(() => setUser(null));
+    } else {
+      setUser(null);
     }
-  };
+  }, [isLoggedIn, getCurrentUser]);
 
-  // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -41,18 +31,10 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const role = user?.user_role;
+
   return (
     <>
-      {/* <div className="w-full bg-[#E57373]">
-        <div
-          className="container mx-auto h-[30px] flex justify-center items-center
-                  text-[12px] sm:text-[14px] md:text-[16px] text-white"
-        >
-          Hãy hiến máu hôm nay – Trao đi yêu thương, cứu sống những người đang
-          cần.
-        </div>
-      </div> */}
-
       <header className="w-full bg-white shadow">
         <div className="mx-auto">
           <div className="flex justify-between items-center px-[20px] py-[8px]">
@@ -66,35 +48,53 @@ const Header = () => {
             <nav className="hidden md:flex ">
               <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
                 <li>
-                  <Link to="/" className="hover:underline">
+                  <Link
+                    to="/"
+                    className="  
+        text-black
+    px-3 py-2
+    border-b-2 border-b-transparent
+    transition-colors duration-200
+    hover:text-red-500 hover:border-b-red-500
+    hover:bg-gray-100/40"
+                  >
                     Trang chủ
                   </Link>
                 </li>
                 <li>
-                  <Link to="/donate" className="hover:underline">
+                  <Link
+                    to="/donate"
+                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
+                  >
                     Đăng kí hiến máu
                   </Link>
                 </li>
                 <li>
-                  <Link to="/emergency" className="hover:underline">
+                  <Link
+                    to="/emergency"
+                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
+                  >
                     Yêu cầu máu khẩn cấp
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="hover:underline">
+                  <Link
+                    to="/contact"
+                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
+                  >
                     Liên hệ
                   </Link>
                 </li>
               </ul>
             </nav>
             <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
-              {(isLoggedIn && role ==="member") ? (
+              {isLoggedIn && role === "member" ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdown((prev) => !prev)}
                     className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg focus:outline-none"
                   >
-                    U
+                    {user?.name?.[0]?.toUpperCase() || "U"}
                   </button>
                   {dropdown && (
                     <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
@@ -110,7 +110,7 @@ const Header = () => {
                         </li>
                         <li>
                           <button
-                            onClick={handleLogout}
+                            onClick={logout}
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F]"
                           >
                             Đăng xuất
@@ -123,7 +123,15 @@ const Header = () => {
               ) : (
                 <>
                   <div>
-                    <Link to="/login" className="hover:underline mr-[12px] ">
+                    <Link
+                      to="/login"
+                      className="  text-black
+    px-3 py-2
+    border-b-2 border-b-transparent
+    transition-colors duration-200
+    hover:text-red-500 hover:border-b-red-500
+    hover:bg-gray-100/40 "
+                    >
                       Đăng nhập
                     </Link>
                   </div>
@@ -215,7 +223,7 @@ const Header = () => {
                       <button
                         onClick={() => {
                           setIsOpen(false);
-                          handleLogout();
+                          logout();
                         }}
                         className="block text-[14px] text-[#D32F2F] hover:underline w-full text-left"
                       >

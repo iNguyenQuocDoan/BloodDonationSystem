@@ -1,185 +1,237 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import useApi from "../../hooks/useApi";
+import { FaCalendarAlt, FaSearch } from "react-icons/fa";
 
 const DonateBlood = () => {
+  const [user, setUser] = useState(null);
   const [slots, setSlots] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-  const intervalRef = useRef(null);
+  const [filteredSlots, setFilteredSlots] = useState([]);
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [isSearching, setIsSearching] = useState(false);
+  const { loading, error, getSlotList, registerSlot, getCurrentUser } = useApi();
   const navigate = useNavigate();
-  
+
+  // Fetch slots data on component mount
+  useEffect(() => {
+    fetchSlots();
+  }, []);
+
+  useEffect(() => {
+    if (localStorage.getItem("isLoggedIn") === "true") {
+      getCurrentUser().then(res => setUser(res.data)).catch(() => setUser(null));
+    }
+  }, [getCurrentUser]);
+
   const fetchSlots = async () => {
     try {
-      setLoading(true);
-      const response = await fetch('http://localhost:3000/api/getSlotList');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('API Response:', data);
-      
-      // Xử lý dữ liệu trả về từ API
-      if (data && data.status) {
-        // Chỉnh sửa để phù hợp với cấu trúc API response
-        setSlots(data.data || []);
-        setLastUpdated(new Date());
-      } else {
-        setError(data.message || 'Không thể lấy dữ liệu');
-      }
+      const response = await getSlotList();
+      const slotsData = response.data || [];
+      setSlots(slotsData);
+      setFilteredSlots(slotsData);
     } catch (error) {
-      console.error("Error fetching slots:", error);
-      setError('Lỗi khi tải dữ liệu: ' + error.message);
+      toast.error(error.message || "Không thể tải danh sách lịch hiến máu");
+    }
+  };
+
+  // Tối ưu hóa hàm filterSlotsByDate với useCallback
+  const filterSlotsByDate = useCallback(() => {
+    if (!startDate && !endDate) {
+      setFilteredSlots(slots);
+      return;
+    }
+
+    const filtered = slots.filter((slot) => {
+      if (!slot.Slot_Date) return false;
+
+      const slotDate = new Date(slot.Slot_Date);
+      slotDate.setHours(0, 0, 0, 0); // Loại bỏ thời gian để so sánh chỉ theo ngày
+
+      const compareStartDate = startDate ? new Date(startDate) : null;
+      const compareEndDate = endDate ? new Date(endDate) : null;
+
+      if (compareStartDate) compareStartDate.setHours(0, 0, 0, 0);
+      if (compareEndDate) compareEndDate.setHours(0, 0, 0, 0);
+
+      // Simplified logic with early returns
+      if (compareStartDate && compareEndDate) {
+        return slotDate >= compareStartDate && slotDate <= compareEndDate;
+      }
+      if (compareStartDate) {
+        return slotDate >= compareStartDate;
+      }
+      if (compareEndDate) {
+        return slotDate <= compareEndDate;
+      }
+
+      return true;
+    });
+
+    setFilteredSlots(filtered);
+  }, [slots, startDate, endDate]);
+
+  const handleSearch = () => {
+    setIsSearching(true);
+    try {
+      filterSlotsByDate();
     } finally {
-      setLoading(false);
+      setIsSearching(false);
     }
   };
 
   const handleRegister = async (slotId) => {
-    // Kiểm tra đăng nhập
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      alert('Vui lòng đăng nhập để đăng ký hiến máu');
-      navigate('/login');
+    if (!user) {
+      toast.error("Không tìm thấy thông tin người dùng");
       return;
     }
-    
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      console.log('Registering slot with data:', {
-        Slot_ID: slotId,
-        User_ID: user.user_id || user.id
-      });
-      
-      const response = await fetch('http://localhost:3000/api/registerSlot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          Slot_ID: slotId,
-          User_ID: user.user_id || user.id,
-        })
-      });
-      
-      const data = await response.json();
-      console.log('Register response:', data);
-      
-      if (data.status) {
-        alert('Đăng ký hiến máu thành công!');
-        fetchSlots(); // Tải lại dữ liệu sau khi đăng ký
-      } else {
-        alert(data.message || 'Đăng ký không thành công');
-      }
-    } catch (error) {
-      console.error('Error registering slot:', error);
-      alert('Có lỗi xảy ra khi đăng ký: ' + error.message);
+    if (user.user_role !== 'member') {
+      toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu");
+      return;
     }
+    if (!user.user_id) {
+      toast.error("Không tìm thấy ID người dùng");
+      return;
+    }
+    await registerSlot(slotId, user.user_id);
+    toast.success("Đăng ký hiến máu thành công!");
+    fetchSlots(); // Refresh slots after successful registration
   };
 
-  useEffect(() => {
-    // Fetch data immediately when component mounts
-    fetchSlots();
-    
-    // Set up interval to fetch data every 30 seconds
-    intervalRef.current = setInterval(() => {
-      fetchSlots();
-    }, 30000);
-    
-    // Clear interval when component unmounts
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
+  // Format helpers
+  const formatDate = useCallback((dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
   }, []);
 
-  // Kiểm tra nếu slots là undefined hoặc null
-  const safeSlots = Array.isArray(slots) ? slots : [];
+  const formatTime = useCallback((timeString) => {
+    if (!timeString) return "";
+    return timeString.substring(0, 5); // Get HH:MM part
+  }, []);
+
+  // Memoize the empty state message
+  const emptyStateMessage = useMemo(() => {
+    return slots.length === 0
+      ? "Hiện tại chưa có lịch hiến máu nào được mở."
+      : "Không tìm thấy lịch hiến máu nào trong khoảng thời gian đã chọn.";
+  }, [slots.length]);
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-2xl text-center font-bold text-red-600 mb-8">Danh sách ca hiến máu</h2>
-      <p className="text-center text-sm text-gray-500 mb-4">
-        Cập nhật lần cuối: {lastUpdated.toLocaleTimeString()}
-      </p>
-      
-      {loading && (
-        <div className="text-center py-8">Đang tải dữ liệu...</div>
-      )}
-      
-      {error && (
-        <div className="text-center text-red-500 py-8">
-          {error}
-          <button 
-            className="ml-4 px-4 py-1 bg-red-600 text-white rounded"
-            onClick={fetchSlots}
-          >
-            Thử lại
-          </button>
-        </div>
-      )}
-      
-      {!loading && !error && safeSlots.length === 0 && (
-        <div className="text-center py-8">Hiện tại không có ca hiến máu nào</div>
-      )}
-      
-      {!loading && !error && safeSlots.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {safeSlots.map((slot, index) => {
-            // Sử dụng optional chaining và các phương pháp phòng trạng thái null
-            const volume = parseInt(slot?.volume || 0);
-            const maxVolume = parseInt(slot?.max_volume || 1);
-            const percentage = Math.round((volume / maxVolume) * 100) || 0;
-            const isFull = volume >= maxVolume;
-            
-            // Chuyển đổi ngày và thời gian
-            let formattedDate = "N/A";
-            try {
-              if (slot?.slot_date) {
-                formattedDate = new Date(slot.slot_date).toLocaleDateString('vi-VN');
-              }
-            } catch (e) {
-              console.error("Error formatting date:", e);
-            }
-            
-            const startTime = slot?.start_time?.substring(0, 5) || "N/A";
-            const endTime = slot?.end_time?.substring(0, 5) || "N/A";
-            
-            return (
-              <div key={slot?.slot_id || index} className="bg-white rounded-lg shadow-md p-5">
-                <h3 className="text-lg font-medium text-red-600 mb-3">
-                  {formattedDate}
-                </h3>
-                <p className="text-gray-600 mb-1">
-                  {startTime} - {endTime}
-                </p>
-                <p className="text-gray-600 text-sm mb-3">
-                  Đã đăng ký: {volume}/{maxVolume}
-                </p>
-                
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                  <div 
-                    className={`h-2 rounded-full ${
-                      percentage >= 80 ? 'bg-red-500' : 'bg-green-500'
-                    }`} 
-                    style={{ width: `${percentage}%` }}
-                  ></div>
+    <div className="container mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold text-center mb-8 text-red-600">Đăng ký hiến máu</h1>
+
+      {/* Date Range Picker - Optimized UI */}
+      <div className="mb-8 overflow-hidden rounded-lg shadow">
+        <div className="flex flex-col md:flex-row">
+          <div className="flex items-center p-4 md:p-5 bg-white md:border-r border-gray-200 md:whitespace-nowrap">
+            <FaCalendarAlt className="mr-3 text-red-600" />
+            <span className="font-medium text-gray-700">Bạn cần đặt lịch vào thời gian nào?</span>
+          </div>
+
+          <div className="flex flex-1">
+            <div className="flex-1">
+              {/* Input thứ nhất (startDate) */}
+              <div className="relative flex-1">
+                <div className="absolute left-10 top-0 bg-gray-50 text-xs font-medium text-gray-500 px-1 py-0.5 rounded">
+                  Từ ngày
                 </div>
-                
-                <button 
-                  className={`w-full py-2 rounded-md font-medium text-white ${
-                    isFull 
-                      ? 'bg-gray-400 cursor-not-allowed' 
-                      : 'bg-red-600 hover:bg-red-700 transition duration-200'
-                  }`}
-                  onClick={() => !isFull && handleRegister(slot?.slot_id)}
-                  disabled={isFull}
-                >
-                  {isFull ? "Đã đầy" : "Đăng ký"}
-                </button>
+                <input
+                  type="date"
+                  value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    const newDate = e.target.value ? new Date(e.target.value) : null;
+                    setDateRange([newDate, endDate]);
+                  }}
+                  className="w-full h-full pl-10 pt-6 pb-2 border-0 focus:outline-none"
+                />
+              </div>
+
+              {/* Input thứ hai (endDate) */}
+              <div  className="relative flex-1">
+                <div className="absolute left-10 top-0 bg-gray-50 text-xs font-medium text-gray-500 px-1 py-0.5 rounded">
+                  Đến ngày
+                </div>
+                <input
+                  type="date"
+                  value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    const newDate = e.target.value ? new Date(e.target.value) : null;
+                    setDateRange([startDate, newDate]);
+                  }}
+                  className="w-full h-full pl-10 pt-6 pb-2 border-0 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleSearch}
+              disabled={isSearching}
+              className="bg-red-600 text-white px-8 py-4 flex items-center justify-center min-w-[120px] disabled:bg-blue-400"
+            >Tìm kiếm
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Display states */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+        </div>
+      ) : error ? (
+        <div className="text-center text-red-500 py-8 bg-white rounded-lg shadow p-4">
+          <p className="text-lg">{error}</p>
+        </div>
+      ) : filteredSlots.length === 0 ? (
+        <div className="text-center py-8 bg-white rounded-lg shadow p-4">
+          <p className="text-lg text-gray-600">{emptyStateMessage}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredSlots.map((slot) => {
+            const isSlotFull = slot.Status !== 'A' || (parseInt(slot.Volume) >= parseInt(slot.Max_Volume));
+
+            return (
+              <div key={slot.Slot_ID} className="bg-white rounded-lg shadow-md overflow-hidden transform transition hover:shadow-lg hover:-translate-y-1">
+                <div className="bg-red-100 p-4">
+                  <h3 className="text-xl font-semibold text-red-800">
+                    Lịch hiến máu: {formatDate(slot.Slot_Date)}
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <div className="mb-4">
+                    <p className="text-gray-700 mb-2">
+                      <span className="font-medium">Thời gian: </span>
+                      {formatTime(slot.Start_Time)} - {formatTime(slot.End_Time)}
+                    </p>
+                    <p className="text-gray-700 mb-2">
+                      <span className="font-medium">Số lượng đã đăng ký: </span>
+                      <span className={parseInt(slot.Volume) >= parseInt(slot.Max_Volume) ? "text-red-600 font-medium" : ""}>
+                        {slot.Volume || 0}/{slot.Max_Volume || 0}
+                      </span>
+                    </p>
+                    <p className="text-gray-700">
+                      <span className="font-medium">Trạng thái: </span>
+                      {slot.Status === 'A' ?
+                        <span className="text-green-600 font-medium">Đang mở đăng ký</span> :
+                        <span className="text-red-600 font-medium">Đã đầy</span>
+                      }
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => handleRegister(slot.Slot_ID)}
+                    disabled={loading || isSlotFull}
+                    className={`w-full py-2 px-4 rounded transition duration-300 
+                      ${isSlotFull
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                  >
+                    {loading ? 'Đang đăng ký...' : isSlotFull ? 'Đã đầy' : 'Đăng ký'}
+                  </button>
+                </div>
               </div>
             );
           })}

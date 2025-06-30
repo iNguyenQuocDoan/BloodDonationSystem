@@ -1,97 +1,77 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import useApi from "../../hooks/useApi";
+
 
 export const RegisterPage = () => {
   const [form, setForm] = useState({
-    fullname: "",
+    user_name: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    phone: "",
+    confirm_password: "",
+    telephone: "",
+    address: "",
+    dob: "",
   });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const { loading, register } = useApi();
   const navigate = useNavigate();
 
-  const validate = () => {
-    const newErrors = {};
-    if (!form.fullname.trim()) newErrors.fullname = "Full name is required.";
-    if (!form.email.trim()) newErrors.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(form.email))
-      newErrors.email = "Invalid email format.";
-    if (!form.password) newErrors.password = "Password is required.";
-    else if (form.password.length < 8)
-      newErrors.password = "Password must be at least 8 characters.";
-    if (!form.confirmPassword)
-      newErrors.confirmPassword = "Please confirm your password.";
-    else if (form.password !== form.confirmPassword)
-      newErrors.confirmPassword = "Passwords do not match.";
-    if (!/^0\d{9}$/.test(form.phone))
-      newErrors.phone = "Phone must start with 0 and be exactly 10 digits.";
-    return newErrors;
-  };
-
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    setLoading(true);
+
+    // Validate dữ liệu ở đây nếu cần
+
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullname: form.fullname,
-          email: form.email,
-          password: form.password,
-          phone: form.phone,
-        }),
+      const data = await register({
+        email: form.email,
+        password: form.password,
+        confirm_password: form.confirm_password,
+        name: form.user_name, // Đúng tên trường BE yêu cầu
+        date_of_birth: form.dob,
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        alert("Registration successful! Please login.");
+
+      toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {
+        position: "top-center",
+        autoClose: 2000,
+      });
+
+      setTimeout(() => {
         navigate("/login");
-      } else {
-        alert(data.message || "Registration failed!");
-      }
-    } catch (err) {
-      alert("Cannot connect to server!");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      }, 2000);
+    } catch (error) {
+      toast.error(error.message || "Đăng ký thất bại", {
+        position: "top-center",
+        autoClose: 3000,
+      });
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF]">
+    <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF] py-8">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-3xl font-bold text-center text-[#D32F2F] mb-6">
-          Register
+        <h2 className="text-3xl font-bold text-center text-[#D32F2F] py-4">
+          Đăng Ký
         </h2>
-        <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-[#555555] mb-1">Họ tên:</label>
+            <label className="block text-[#555555] mb-1">Họ và tên:</label>
             <input
               type="text"
-              name="fullname"
-              value={form.fullname}
+              name="user_name"
+              value={form.user_name}
               onChange={handleChange}
-              placeholder="Enter your full name"
-              className="w-full px-3 py-2 border rounded"
+              placeholder="Nhập họ và tên của bạn"
+              className="w-full px-4 py-2 border rounded"
               required
             />
-            {errors.fullname && (
-              <p className="text-red-500 text-sm mt-1">{errors.fullname}</p>
-            )}
           </div>
+
           <div>
             <label className="block text-[#555555] mb-1">Email:</label>
             <input
@@ -99,77 +79,93 @@ export const RegisterPage = () => {
               name="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="Enter your email"
-              className="w-full px-3 py-2 border rounded"
+              placeholder="Nhập email của bạn"
+              className="w-full px-4 py-2 border rounded"
               required
             />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
           </div>
+
           <div>
             <label className="block text-[#555555] mb-1">Mật khẩu:</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              className="w-full px-3 py-2 border rounded"
-              required
-            />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-            )}
+            <div className="relative">
+              <input
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="Nhập mật khẩu của bạn"
+                className="w-full px-4 py-2 border rounded"
+                required
+              />
+            </div>
           </div>
+
           <div>
-            <label className="block text-[#555555] mb-1">
-              Xác nhận mật khẩu:
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              className="w-full px-3 py-2 border rounded"
-              required
-            />
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.confirmPassword}
-              </p>
-            )}
+            <label className="block text-[#555555] mb-1">Xác nhận mật khẩu:</label>
+            <div className="relative">
+              <input
+                type="password"
+                name="confirm_password"
+                value={form.confirm_password}
+                onChange={handleChange}
+                placeholder="Nhập lại mật khẩu của bạn"
+                className="w-full px-4 py-2 border rounded"
+                required
+              />
+            </div>
           </div>
-          <div>
+
+          {/* <div>
             <label className="block text-[#555555] mb-1">Số điện thoại:</label>
             <input
-              type="text"
-              name="phone"
-              value={form.phone}
+              type="tel"
+              name="telephone"
+              value={form.telephone}
               onChange={handleChange}
-              placeholder="Enter your phone number"
-              className={`w-full px-3 py-2 border rounded ${
-                errors.phone ? "border-red-500" : ""
-              }`}
-              required
+              placeholder="Nhập số điện thoại của bạn"
+              className="w-full px-4 py-2 border rounded"
             />
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-            )}
           </div>
-          <button
-            type="submit"
-            className="w-full py-2 bg-[#D32F2F] text-white font-semibold rounded mt-2 transition duration-200"
-            disabled={loading}
-          >
-            {loading ? "Registering..." : "Register"}
-          </button>
+
+          <div>
+            <label className="block text-[#555555] mb-1">Địa chỉ:</label>
+            <input
+              type="text"
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              placeholder="Nhập địa chỉ của bạn"
+              className="w-full px-4 py-2 border rounded"
+            />
+          </div> */}
+
+          <div>
+            <label className="block text-[#555555] mb-1">Ngày sinh:</label>
+            <input
+              type="date"
+              name="dob"
+              value={form.dob}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded"
+            />
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              className="w-full py-2 px-4 bg-[#D32F2F] text-white font-semibold rounded transition duration-200"
+              disabled={loading}
+            >
+              {loading ? "Đang đăng ký..." : "Đăng ký"}
+            </button>
+          </div>
         </form>
-        <Link to="/login" className="block text-center text-black mt-4 text-sm">
-          Đã có tài khoản?{" "}
-          <span className="hover:underline text-[#D32F2F]">Đăng nhập</span>
-        </Link>
+        <div className="flex justify-center mt-4">
+          <span className="text-[#1F1F1F] mr-[5px]">Đã có tài khoản? </span>
+          <Link to="/login" className="block text-[#D32F2F]">
+            <span className="hover:underline">Đăng nhập</span>
+          </Link>
+        </div>
       </div>
     </div>
   );

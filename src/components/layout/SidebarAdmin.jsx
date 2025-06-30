@@ -9,9 +9,12 @@ import {
   FaBell,
 } from "react-icons/fa";
 import React from "react";
+import useApi from "../../hooks/useApi";
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
+  const { logout } = useApi();
+
   const handleLogout = async () => {
     try {
       await fetch("http://localhost:3000/api/logout", {
@@ -66,14 +69,14 @@ const AdminNavbar = () => {
           Yêu cầu khẩn cấp
         </Link>
         <Link
-          to="/blood-inventory"
+          to="/admin/blood-inventory"
           className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
         >
           <FaTools />
           Quản lý kho máu
         </Link>
         <button
-          onClick={handleLogout}
+          onClick={logout}
           className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded w-full text-left"
         >
           <FaSignOutAlt />
