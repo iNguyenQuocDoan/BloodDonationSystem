@@ -5,7 +5,7 @@ const Homepage = () => {
   return (
     <>
       {/* Section 1 */}
-      <div className="relative bg-[#000000] w-full h-[400px]">
+      <div className="relative bg-[#000000] w-full h-[650px]">
         <div className=""></div>
         <img
           src="/image/DonateBloodBanner.jpg"
