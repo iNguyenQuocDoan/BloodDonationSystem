@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useApi from "../../hooks/useApi";
 
-const Header = () => {
+const HeaderStaff = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
   const [user, setUser] = useState(null);
@@ -21,6 +21,7 @@ const Header = () => {
     }
   }, [isLoggedIn, getCurrentUser]);
 
+  // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -35,6 +36,15 @@ const Header = () => {
 
   return (
     <>
+      <div className="w-full bg-[#E57373]">
+        <div
+          className="container mx-auto h-[30px] flex justify-center items-center
+                  text-[12px] sm:text-[14px] md:text-[16px] text-white"
+        >
+          Quản lý nhân viên Đại việt Blood
+        </div>
+      </div>
+
       <header className="w-full bg-white shadow">
         <div className="mx-auto">
           <div className="flex justify-between items-center px-[20px] py-[8px]">
@@ -48,55 +58,54 @@ const Header = () => {
             <nav className="hidden md:flex ">
               <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
                 <li>
+
                   <Link
-                    to="/"
-                    className="  
-        text-black
-    px-3 py-2
-    border-b-2 border-b-transparent
-    transition-colors duration-200
-    hover:text-red-500 hover:border-b-red-500
-    hover:bg-gray-100/40"
+                    to="/dashboard"
+                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
                   >
-                    Trang chủ
+
+                    Báo cáo thống kê
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/donate"
+                    to="/confirm-blood"
                     className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
                   >
-                    Đăng kí hiến máu
+                    Xác nhận nhóm máu
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/emergency"
+                    to="/manage-emergency"
                     className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
                   >
-                    Yêu cầu máu khẩn cấp
+                    Yêu cầu khẩn cấp
                   </Link>
                 </li>
                 <li>
+
                   <Link
-                    to="/contact"
+                    to="/edit-blood"
                     className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
                   >
-                    Liên hệ
+
+
+                    Quản lý danh sách hiến máu
                   </Link>
                 </li>
               </ul>
             </nav>
             <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
 
-              {(isLoggedIn && role === "member") ? (
+              {(isLoggedIn && role === "staff") ? (
 
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdown((prev) => !prev)}
                     className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg focus:outline-none"
                   >
-                    {user?.name?.[0]?.toUpperCase() || "U"}
+                    ST
                   </button>
                   {dropdown && (
                     <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
@@ -123,24 +132,11 @@ const Header = () => {
                   )}
                 </div>
               ) : (
-                <>
-                  <div>
-                    <Link
-                      to="/login"
-                      className="  text-black
-    px-3 py-2
-    border-b-2 border-b-transparent
-    transition-colors duration-200
-    hover:text-red-500 hover:border-b-red-500
-    hover:bg-gray-100/40 "
-                    >
-                      Đăng nhập
-                    </Link>
-                  </div>
-                  <div className="rounded-[3px] md:px-[12px] px-[8px] py-[1px] text-white bg-[#D32F2F]">
-                    <Link to="/register">Đăng kí</Link>
-                  </div>
-                </>
+                <div>
+                  <Link to="/login" className="hover:underline mr-[12px] ">
+                    Đăng nhập
+                  </Link>
+                </div>
               )}
             </div>
 
@@ -158,56 +154,38 @@ const Header = () => {
               <ul className="flex flex-col px-[26px] py-[12px] gap-y-2 ">
                 <li>
                   <Link
-                    to="/"
+                    to="/report"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Trang chủ
+                    Báo cáo thống kê
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/donate"
+                    to="/confirm-blood"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Đăng kí hiến máu
+                    Xác nhận nhóm máu
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/emergency"
+                    to="/manage-emergency"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Yêu cầu máu khẩn cấp
+                    Yêu cầu khẩn cấp
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/news"
+                    to="/edit-blood"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Tin tức
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/faq"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    FAQ
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/contact"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Liên hệ
+                    Non-feat
                   </Link>
                 </li>
                 {isLoggedIn ? (
@@ -234,26 +212,15 @@ const Header = () => {
                     </li>
                   </>
                 ) : (
-                  <>
-                    <li>
-                      <Link
-                        to="/login"
-                        className="block text-[14px] hover:underline"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Đăng nhập
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/register"
-                        className="block text-[14px] hover:underline"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Đăng kí
-                      </Link>
-                    </li>
-                  </>
+                  <li>
+                    <Link
+                      to="/login"
+                      className="block text-[14px] hover:underline"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Đăng nhập
+                    </Link>
+                  </li>
                 )}
               </ul>
             </nav>
@@ -264,4 +231,8 @@ const Header = () => {
   );
 };
 
-export default Header;
+
+
+
+export default HeaderStaff;
+
