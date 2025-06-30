@@ -48,29 +48,49 @@ const Header = () => {
             <nav className="hidden md:flex ">
               <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
                 <li>
-                  <Link to="/" className="hover:underline">
+                  <Link
+                    to="/"
+                    className="  
+        text-black
+    px-3 py-2
+    border-b-2 border-b-transparent
+    transition-colors duration-200
+    hover:text-red-500 hover:border-b-red-500
+    hover:bg-gray-100/40"
+                  >
                     Trang chủ
                   </Link>
                 </li>
                 <li>
-                  <Link to="/donate" className="hover:underline">
+                  <Link
+                    to="/donate"
+                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
+                  >
                     Đăng kí hiến máu
                   </Link>
                 </li>
                 <li>
-                  <Link to="/emergency" className="hover:underline">
+                  <Link
+                    to="/emergency"
+                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
+                  >
                     Yêu cầu máu khẩn cấp
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="hover:underline">
+                  <Link
+                    to="/contact"
+                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
+                  >
                     Liên hệ
                   </Link>
                 </li>
               </ul>
             </nav>
             <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
+
               {(isLoggedIn && role === "member") ? (
+
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdown((prev) => !prev)}
@@ -105,7 +125,15 @@ const Header = () => {
               ) : (
                 <>
                   <div>
-                    <Link to="/login" className="hover:underline mr-[12px] ">
+                    <Link
+                      to="/login"
+                      className="  text-black
+    px-3 py-2
+    border-b-2 border-b-transparent
+    transition-colors duration-200
+    hover:text-red-500 hover:border-b-red-500
+    hover:bg-gray-100/40 "
+                    >
                       Đăng nhập
                     </Link>
                   </div>

@@ -21,7 +21,9 @@ const AdminNavbar = () => {
         method: "POST",
         credentials: "include",
       });
-    } catch (e) {}
+    } catch (e) {
+      console.log("Logout error:", e);
+    }
     localStorage.removeItem("user");
     localStorage.removeItem("isLoggedIn");
     navigate("/login");
