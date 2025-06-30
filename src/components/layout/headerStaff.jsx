@@ -1,16 +1,26 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import useApi from "../../hooks/useApi";
+
+// nav item classes for staff: maintain border and font to prevent shift
+const staffNavItemClass = ({ isActive }) =>
+  [
+    "px-3 py-2 rounded-md transition-colors duration-200 font-medium border-b-2 border-b-transparent",
+    isActive
+      ? "border-b-red-500 text-[#D32F2F] bg-[#FDE8E8]"
+      : "text-black hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40",
+  ].join(" ");
 
 const HeaderStaff = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
   const [user, setUser] = useState(null);
-  const navigate = useNavigate();
+
   const isLoggedIn = !!localStorage.getItem("isLoggedIn");
   const dropdownRef = useRef(null);
   const { getCurrentUser, logout } = useApi();
 
+  // fetch user data
   useEffect(() => {
     if (isLoggedIn) {
       getCurrentUser()
@@ -21,13 +31,13 @@ const HeaderStaff = () => {
     }
   }, [isLoggedIn, getCurrentUser]);
 
-  // Đóng dropdown khi click ra ngoài
+  // close dropdown on outside click
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdown(false);
       }
-    }
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -36,11 +46,9 @@ const HeaderStaff = () => {
 
   return (
     <>
+      {/* top banner */}
       <div className="w-full bg-[#E57373]">
-        <div
-          className="container mx-auto h-[30px] flex justify-center items-center
-                  text-[12px] sm:text-[14px] md:text-[16px] text-white"
-        >
+        <div className="container mx-auto h-[30px] flex justify-center items-center text-[12px] sm:text-[14px] md:text-[16px] text-white">
           Quản lý nhân viên Đại việt Blood
         </div>
       </div>
@@ -48,76 +56,60 @@ const HeaderStaff = () => {
       <header className="w-full bg-white shadow">
         <div className="mx-auto">
           <div className="flex justify-between items-center px-[20px] py-[8px]">
-            <a
-              href="/"
+            <NavLink
+              to="/"
               className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[23px] text-[22px]"
             >
               DaiVietBlood
-            </a>
+            </NavLink>
 
-            <nav className="hidden md:flex ">
-              <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
+            {/* Desktop nav for staff */}
+            <nav className="hidden md:flex">
+              <ul className="flex xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
                 <li>
-
-                  <Link
-                    to="/dashboard"
-                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
-                  >
-
+                  <NavLink to="/dashboard" className={staffNavItemClass}>
                     Báo cáo thống kê
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-                  <Link
-                    to="/confirm-blood"
-                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
-                  >
+                  <NavLink to="/confirm-blood" className={staffNavItemClass}>
                     Xác nhận nhóm máu
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-                  <Link
-                    to="/manage-emergency"
-                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
-                  >
+                  <NavLink to="/manage-emergency" className={staffNavItemClass}>
                     Yêu cầu khẩn cấp
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-
-                  <Link
-                    to="/edit-blood"
-                    className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
-                  >
-
-
+                  <NavLink to="/edit-blood" className={staffNavItemClass}>
                     Quản lý danh sách hiến máu
-                  </Link>
+                  </NavLink>
                 </li>
               </ul>
             </nav>
-            <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
 
-              {(isLoggedIn && role === "staff") ? (
-
+            {/* Desktop auth/avatar */}
+            <div className="hidden md:flex items-center xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px]">
+              {isLoggedIn && role === "staff" ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
-                    onClick={() => setDropdown((prev) => !prev)}
-                    className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg focus:outline-none"
+                    onClick={() => setDropdown(!dropdown)}
+                    className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg"
                   >
                     ST
                   </button>
                   {dropdown && (
                     <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
-                      <ul className="py-2">
+                      <ul className="py-2 text-[14px]">
                         <li>
-                          <Link
+                          <NavLink
                             to="/update-profile"
                             className="block px-4 py-2 hover:bg-gray-100"
                             onClick={() => setDropdown(false)}
                           >
                             Cập nhật trang cá nhân
-                          </Link>
+                          </NavLink>
                         </li>
                         <li>
                           <button
@@ -132,14 +124,13 @@ const HeaderStaff = () => {
                   )}
                 </div>
               ) : (
-                <div>
-                  <Link to="/login" className="hover:underline mr-[12px] ">
-                    Đăng nhập
-                  </Link>
-                </div>
+                <NavLink to="/login" className="hover:underline mr-[12px]">
+                  Đăng nhập
+                </NavLink>
               )}
             </div>
 
+            {/* Mobile burger */}
             <button
               className="md:hidden text-[#D32F2F] text-2xl"
               onClick={() => setIsOpen(!isOpen)}
@@ -148,56 +139,44 @@ const HeaderStaff = () => {
             </button>
           </div>
 
-          {/* Menu mobile */}
+          {/* Mobile menu */}
           {isOpen && (
             <nav className="md:hidden bg-white border-t">
-              <ul className="flex flex-col px-[26px] py-[12px] gap-y-2 ">
-                <li>
-                  <Link
-                    to="/report"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Báo cáo thống kê
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/confirm-blood"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Xác nhận nhóm máu
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/manage-emergency"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Yêu cầu khẩn cấp
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/edit-blood"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Non-feat
-                  </Link>
-                </li>
+              <ul className="flex flex-col px-[26px] py-[12px] gap-y-2 text-[14px]">
+                {[
+                  { to: "/dashboard", label: "Báo cáo thống kê", exact: true },
+                  { to: "/confirm-blood", label: "Xác nhận nhóm máu" },
+                  { to: "/manage-emergency", label: "Yêu cầu khẩn cấp" },
+                  { to: "/edit-blood", label: "Quản lý danh sách hiến máu" },
+                ].map(({ to, label, exact }) => (
+                  <li key={to}>
+                    <NavLink
+                      to={to}
+                      end={exact}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        [
+                          "block rounded-md px-3 py-2 font-medium border-b-2 border-b-transparent",
+                          isActive
+                            ? "border-b-red-500 text-[#D32F2F] bg-[#FDE8E8]"
+                            : "hover:bg-gray-100/40",
+                        ].join(" ")
+                      }
+                    >
+                      {label}
+                    </NavLink>
+                  </li>
+                ))}
                 {isLoggedIn ? (
                   <>
                     <li>
-                      <Link
+                      <NavLink
                         to="/update-profile"
-                        className="block text-[14px] hover:underline"
+                        className="block rounded-md px-3 py-2 hover:bg-gray-100/40"
                         onClick={() => setIsOpen(false)}
                       >
                         Cập nhật trang cá nhân
-                      </Link>
+                      </NavLink>
                     </li>
                     <li>
                       <button
@@ -205,7 +184,7 @@ const HeaderStaff = () => {
                           setIsOpen(false);
                           logout();
                         }}
-                        className="block text-[14px] text-[#D32F2F] hover:underline w-full text-left"
+                        className="block w-full text-left rounded-md px-3 py-2 text-[#D32F2F] hover:bg-gray-100/40"
                       >
                         Đăng xuất
                       </button>
@@ -213,13 +192,13 @@ const HeaderStaff = () => {
                   </>
                 ) : (
                   <li>
-                    <Link
+                    <NavLink
                       to="/login"
-                      className="block text-[14px] hover:underline"
+                      className="block rounded-md px-3 py-2 hover:bg-gray-100/40"
                       onClick={() => setIsOpen(false)}
                     >
                       Đăng nhập
-                    </Link>
+                    </NavLink>
                   </li>
                 )}
               </ul>
@@ -231,8 +210,4 @@ const HeaderStaff = () => {
   );
 };
 
-
-
-
 export default HeaderStaff;
-

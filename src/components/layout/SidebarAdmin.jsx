@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaTachometerAlt,
   FaUserShield,
@@ -8,8 +9,16 @@ import {
   FaSignOutAlt,
   FaBell,
 } from "react-icons/fa";
-import React from "react";
 import useApi from "../../hooks/useApi";
+
+// nav item classes for admin: maintain border, font and prevent shift
+const adminNavItemClass = ({ isActive }) =>
+  [
+    "flex items-center gap-2 px-3 py-2 transition-colors duration-200 font-medium rounded-r-md border-l-4 border-l-transparent",
+    isActive
+      ? "border-l-red-500 bg-[#FDE8E8] text-[#D32F2F]"
+      : "text-white hover:text-[#D32F2F] hover:bg-gray-100/40",
+  ].join(" ");
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
@@ -29,58 +38,34 @@ const AdminNavbar = () => {
     navigate("/login");
     window.location.reload();
   };
+
   return (
-    <div className="w-64 min-h-screen bg-blue-600 text-white flex flex-col px-4 py-6">
+    <div className="w-64 min-h-screen bg-[#D32F2F] text-white flex flex-col px-4 py-6">
       <h2 className="text-lg font-bold mb-6">DaiVietBlood Admin</h2>
       <nav className="flex-1 space-y-3 text-sm">
-        <Link
-          to="/admin"
-          className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
-        >
-          <FaTachometerAlt className="text-white" />
-          Dashboard
-        </Link>
-        <Link
-          to="#"
-          className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
-        >
-          <FaUserShield />
-          Quản lý Staff
-        </Link>
-        <Link
-          to="/admin/manage-role"
-          className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
-        >
-          <FaKey />
-          Quản lý Role
-        </Link>
-        <Link
-          to="/admin/create-slot"
-          className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
-        >
-          <FaChartBar />
-          Tạo ca
-        </Link>
-        <Link
-          to="/admin/emergency-request"
-          className="flex items-center gap-2 text-red-300 hover:bg-blue-500 px-3 py-2 rounded"
-        >
-          <FaBell />
-          Yêu cầu khẩn cấp
-        </Link>
-        <Link
-          to="/admin/blood-inventory"
-          className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded"
-        >
-          <FaTools />
-          Quản lý kho máu
-        </Link>
+        <NavLink to="/admin" end className={adminNavItemClass}>
+          <FaTachometerAlt /> Dashboard
+        </NavLink>
+        <NavLink to="/admin/manage-staff" className={adminNavItemClass}>
+          <FaUserShield /> Quản lý Staff
+        </NavLink>
+        <NavLink to="/admin/manage-role" className={adminNavItemClass}>
+          <FaKey /> Quản lý Role
+        </NavLink>
+        <NavLink to="/admin/create-slot" className={adminNavItemClass}>
+          <FaChartBar /> Tạo ca
+        </NavLink>
+        <NavLink to="/admin/emergency-request" className={adminNavItemClass}>
+          <FaBell /> Yêu cầu khẩn cấp
+        </NavLink>
+        <NavLink to="/admin/blood-inventory" className={adminNavItemClass}>
+          <FaTools /> Quản lý kho máu
+        </NavLink>
         <button
-          onClick={logout}
-          className="flex items-center gap-2 hover:bg-blue-500 px-3 py-2 rounded w-full text-left"
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-3 py-2 rounded-r-md text-white hover:text-[#D32F2F] hover:bg-gray-100/40 font-medium"
         >
-          <FaSignOutAlt />
-          Đăng xuất
+          <FaSignOutAlt /> Đăng xuất
         </button>
       </nav>
     </div>
