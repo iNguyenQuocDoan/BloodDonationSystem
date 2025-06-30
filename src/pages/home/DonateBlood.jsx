@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import useApi from "../../hooks/useApi";
 import { FaCalendarAlt, FaSearch } from "react-icons/fa";
+import React from "react";
 
 const DonateBlood = () => {
   const [user, setUser] = useState(null);
@@ -12,7 +13,8 @@ const DonateBlood = () => {
   const [startDate, endDate] = dateRange;
   const [isSearching, setIsSearching] = useState(false);
   const { loading, error, getSlotList, registerSlot, getCurrentUser } = useApi();
-  const navigate = useNavigate();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
   // Fetch slots data on component mount
   useEffect(() => {
@@ -32,7 +34,14 @@ const DonateBlood = () => {
       setSlots(slotsData);
       setFilteredSlots(slotsData);
     } catch (error) {
-      toast.error(error.message || "Không thể tải danh sách lịch hiến máu");
+      if (
+        error.message?.includes("Unexpected end of JSON input") ||
+        error.message?.includes("Failed to execute 'json'")
+      ) {
+        toast.error("Không nhận phản hồi từ server");
+      } else {
+        toast.error(error.message || "Không thể tải danh sách lịch hiến máu");
+      }
     }
   };
 
@@ -80,8 +89,13 @@ const DonateBlood = () => {
       setIsSearching(false);
     }
   };
+  const handleRegisterClick = (slot) => {
+    setSelectedSlot(slot);
+    setShowConfirm(true);
+  };
 
-  const handleRegister = async (slotId) => {
+  const handleConfirmRegister = async () => {
+    setShowConfirm(false);
     if (!user) {
       toast.error("Không tìm thấy thông tin người dùng");
       return;
@@ -94,9 +108,26 @@ const DonateBlood = () => {
       toast.error("Không tìm thấy ID người dùng");
       return;
     }
-    await registerSlot(slotId, user.user_id);
-    toast.success("Đăng ký hiến máu thành công!");
-    fetchSlots(); // Refresh slots after successful registration
+    try {
+      await registerSlot(selectedSlot.Slot_ID, user.user_id);
+      toast.success("Đăng ký hiến máu thành công!");
+      fetchSlots();
+    } catch (error) {
+      // Kiểm tra lỗi duplicate key
+      if (
+        error?.response?.data?.includes("UNIQUE KEY constraint") ||
+        error?.message?.includes("UNIQUE KEY constraint")
+      ) {
+        toast.error("Bạn đã đăng ký lịch hiến máu này rồi!");
+      } else if (
+        error.message?.includes("Unexpected end of JSON input") ||
+        error.message?.includes("Failed to execute 'json'")
+      ) {
+        toast.error("Không nhận phản hồi từ server");
+      } else {
+        toast.error(error.message || "Đăng ký thất bại!");
+      }
+    }
   };
 
   // Format helpers
@@ -113,11 +144,9 @@ const DonateBlood = () => {
 
   // Memoize the empty state message
   const emptyStateMessage = useMemo(() => {
-    return slots.length === 0
-      ? "Hiện tại chưa có lịch hiến máu nào được mở."
-      : "Không tìm thấy lịch hiến máu nào trong khoảng thời gian đã chọn.";
-  }, [slots.length]);
-
+    return "Không tìm thấy lịch hiến máu nào trong khoảng thời gian đã chọn.";
+  }, []);
+  console.log(user)
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold text-center mb-8 text-red-600">Đăng ký hiến máu</h1>
@@ -149,7 +178,7 @@ const DonateBlood = () => {
               </div>
 
               {/* Input thứ hai (endDate) */}
-              <div  className="relative flex-1">
+              <div className="relative flex-1">
                 <div className="absolute left-10 top-0 bg-gray-50 text-xs font-medium text-gray-500 px-1 py-0.5 rounded">
                   Đến ngày
                 </div>
@@ -180,9 +209,13 @@ const DonateBlood = () => {
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
         </div>
-      ) : error ? (
+      ) : error && !error.includes("UNIQUE KEY constraint") ? (
         <div className="text-center text-red-500 py-8 bg-white rounded-lg shadow p-4">
-          <p className="text-lg">{error}</p>
+          <p className="text-lg">
+            {error.includes("Unexpected end of JSON input") || error.includes("Failed to execute 'json'")
+              ? "Không nhận phản hồi từ server"
+              : error}
+          </p>
         </div>
       ) : filteredSlots.length === 0 ? (
         <div className="text-center py-8 bg-white rounded-lg shadow p-4">
@@ -222,7 +255,7 @@ const DonateBlood = () => {
                   </div>
 
                   <button
-                    onClick={() => handleRegister(slot.Slot_ID)}
+                    onClick={() => handleRegisterClick(slot)}
                     disabled={loading || isSlotFull}
                     className={`w-full py-2 px-4 rounded transition duration-300 
                       ${isSlotFull
@@ -235,6 +268,47 @@ const DonateBlood = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirm && selectedSlot && user && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold text-[#D32F2F] mb-4">Xác nhận đăng ký hiến máu</h2>
+
+            {/* Thông tin người dùng */}
+            <div className="mb-4">
+              <h3 className="font-semibold text-gray-700 mb-2">Thông tin người đăng ký</h3>
+              <p><strong>Họ tên:</strong> {user.user_name || "Chưa có"}</p>
+              <p><strong>Số điện thoại:</strong> {user.phone || "Chưa có"}</p>
+              <p><strong>Email:</strong> {user.email || "Chưa có"}</p>
+              <p><strong>Nhóm máu:</strong> {user.blood_group || "Chưa có"}</p>
+            </div>
+
+            {/* Thông tin slot */}
+            <div className="mb-4">
+              <h3 className="font-semibold text-gray-700 mb-2">Thông tin lịch hiến máu</h3>
+              <p><strong>Ngày:</strong> {formatDate(selectedSlot.Slot_Date)}</p>
+              <p><strong>Thời gian:</strong> {formatTime(selectedSlot.Start_Time)} - {formatTime(selectedSlot.End_Time)}</p>
+              <p><strong>Số lượng đã đăng ký:</strong> {selectedSlot.Volume}/{selectedSlot.Max_Volume}</p>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                onClick={() => setShowConfirm(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-[#D32F2F] text-white hover:bg-[#b71c1c]"
+                onClick={handleConfirmRegister}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -12,7 +12,7 @@ const useApi = () => {
 
   const clearAuthData = useCallback(() => {
     localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("user");
+
 
   }, []);
 

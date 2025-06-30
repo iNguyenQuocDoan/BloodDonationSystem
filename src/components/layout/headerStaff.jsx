@@ -58,10 +58,12 @@ const HeaderStaff = () => {
             <nav className="hidden md:flex ">
               <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
                 <li>
+
                   <Link
                     to="/dashboard"
                     className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
                   >
+
                     Báo cáo thống kê
                   </Link>
                 </li>
@@ -82,17 +84,22 @@ const HeaderStaff = () => {
                   </Link>
                 </li>
                 <li>
+
                   <Link
                     to="/edit-blood"
                     className="  text-black px-3 py-2 border-b-2 border-b-transparent transition-colors duration-200 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40"
                   >
+
+
                     Quản lý danh sách hiến máu
                   </Link>
                 </li>
               </ul>
             </nav>
             <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
-              {isLoggedIn && role === "staff" ? (
+
+              {(isLoggedIn && role === "staff") ? (
+
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdown((prev) => !prev)}
@@ -224,4 +231,8 @@ const HeaderStaff = () => {
   );
 };
 
+
+
+
 export default HeaderStaff;
+
