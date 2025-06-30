@@ -172,25 +172,24 @@ const CreateSlot = () => {
         <div>
           <label className="block text-sm font-medium mb-1">Giờ Bắt Đầu</label>
           <input
-            type="time"
             name="Start_Time"
             value={formData.Start_Time}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded px-3 py-2"
             required
+            readonly
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Giờ Kết Thúc</label>
           <input
-            type="time"
             name="End_Time"
             value={formData.End_Time}
             onChange={handleChange}
             className={`w-full border ${timeError ? "border-red-500" : "border-gray-300"} rounded px-3 py-2`}
             required
-            disabled={!formData.Start_Time} // Disable if no start time is selected
+            readonly // Disable if no start time is selected
           />
           {timeError && (
             <p className="text-red-500 text-xs mt-1">{timeError}</p>
