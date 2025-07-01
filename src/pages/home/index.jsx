@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import VanillaTilt from "vanilla-tilt";
+import BloodCompatibilityDiagram from "./BloodCompatibilityDiagram";
 
 const Homepage = () => {
   useEffect(() => {
@@ -214,6 +215,19 @@ const Homepage = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      {/* Biểu đồ tương thích nhóm máu */}
+      <section
+        className="container mx-auto px-4 mt-12 mb-12"
+        data-aos="fade-up"
+      >
+        <h4 className="text-[26px] text-[#D32F2F] text-center font-semibold mb-6">
+          Sơ đồ tương thích nhóm máu
+        </h4>
+        <div className="bg-white rounded-lg shadow p-6">
+          <BloodCompatibilityDiagram />
         </div>
       </section>
 
