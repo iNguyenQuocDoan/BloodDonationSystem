@@ -1,35 +1,53 @@
 import { useState } from "react";
 import { AiFillCaretDown } from "react-icons/ai";
-export const FAQPage = () => {
+export const FAQPage = ({ onAnyClick }) => {
   const [faqList, setfaqList] = useState([
     {
       id: 1,
       question: "Làm cách nào để đăng ký tài khoản trên hệ thống?",
       answer:
-        "Bạn nhấn vào nút “Đăng ký” ở góc trên bên phải màn hình, điền đầy đủ thông tin như họ tên, email, số điện thoại, khai báo nhóm máu, sau đó nhấn “Đăng ký”.",
+        "Bạn nhấn vào nút 'Đăng ký' ở góc trên bên phải màn hình, điền đầy đủ thông tin cá nhân và xác nhận để hoàn tất đăng ký tài khoản.",
     },
     {
       id: 2,
-      question: "Is blood donation painful?",
+      question: "Hiến máu có ảnh hưởng đến sức khỏe không?",
       answer:
-        "Blood donation only causes mild pain when the needle enters the skin, similar to a routine blood test.",
+        "Hiến máu hoàn toàn an toàn đối với người khỏe mạnh. Sau khi hiến máu, cơ thể sẽ nhanh chóng tái tạo lại lượng máu đã cho. Bạn nên nghỉ ngơi và uống nhiều nước sau khi hiến.",
     },
     {
       id: 3,
-      question: "How much blood is taken per donation?",
+      question: "Mỗi lần hiến máu lấy bao nhiêu?",
       answer:
-        "Typically, each donation ranges from 250ml to 450ml of blood, depending on the donor's weight.",
+        "Mỗi lần hiến máu thường lấy từ 250ml đến 450ml, tùy theo thể trạng và cân nặng của người hiến.",
     },
     {
       id: 4,
-      question: "How long until I can donate again?",
-      answer: "Men can donate again after 3 months, women after 4 months.",
+      question: "Bao lâu tôi có thể hiến máu lại?",
+      answer: "Nam giới có thể hiến máu lại sau 12 tuần, nữ giới sau 16 tuần kể từ lần hiến trước.",
     },
     {
       id: 5,
-      question: "What should I prepare before donating?",
+      question: "Cần chuẩn bị gì trước khi hiến máu?",
       answer:
-        "Get enough sleep, eat a full breakfast, avoid alcohol, and bring your ID card.",
+        "Bạn nên ngủ đủ giấc, ăn nhẹ trước khi hiến máu, tránh sử dụng rượu bia và mang theo giấy tờ tùy thân khi đến điểm hiến máu.",
+    },
+    {
+      id: 6,
+      question: "Tôi có được nhận giấy chứng nhận hoặc quà tặng gì không?",
+      answer:
+        "Sau khi hiến máu, bạn sẽ nhận được giấy chứng nhận hiến máu tình nguyện và một phần quà nhỏ như lời cảm ơn từ chương trình.",
+    },
+    {
+      id: 7,
+      question: "Làm sao để biết nhóm máu của mình?",
+      answer:
+        "Nếu bạn chưa biết nhóm máu, khi tham gia hiến máu lần đầu, bạn sẽ được xét nghiệm và thông báo kết quả nhóm máu miễn phí.",
+    },
+    {
+      id: 8,
+      question: "Tôi có thể đăng ký hiến máu khẩn cấp qua hệ thống không?",
+      answer:
+        "Bạn có thể nhấn nút 'Hiến máu khẩn cấp' ở góc màn hình để đăng ký tham gia các đợt hiến máu khẩn cấp khi có nhu cầu từ bệnh viện.",
     },
   ]);
 
@@ -49,14 +67,17 @@ export const FAQPage = () => {
   return (
     <div className="mx-auto px-4 py-8">
       <h1 className="text-center text-2xl pb-8 text-[#D32F2F]">
-        Frequently Asked Questions
+        Câu hỏi thường gặp
       </h1>
       <div className="max-w-4xl mx-auto space-y-4">
         {faqList.map((item) => (
           <div key={item.id} className="w-full border rounded-lg shadow-sm">
             <button
               className="w-full flex justify-between p-4 bg-gray-50 hover:bg-gray-100"
-              onClick={() => toggleFAQ(item.id)}
+              onClick={() => {
+                if (onAnyClick) onAnyClick();
+                else toggleFAQ(item.id);
+              }}
             >
               <h2 className="font-semibold">{item.question}</h2>
               <AiFillCaretDown

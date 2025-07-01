@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useApi from "../../hooks/useApi";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,13 +54,13 @@ const Header = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/donate" className="hover:underline">
-                    Đăng kí hiến máu
+                  <Link to="/faq" className="hover:underline">
+                    FAQ
                   </Link>
                 </li>
                 <li>
-                  <Link to="/emergency" className="hover:underline">
-                    Yêu cầu máu khẩn cấp
+                  <Link to="/news" className="hover:underline">
+                    Tin tức
                   </Link>
                 </li>
                 <li>
@@ -139,20 +140,11 @@ const Header = () => {
                 </li>
                 <li>
                   <Link
-                    to="/donate"
+                    to="/faq"
                     className="block text-[14px] hover:underline"
                     onClick={() => setIsOpen(false)}
                   >
-                    Đăng kí hiến máu
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/emergency"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Yêu cầu máu khẩn cấp
+                    FAQ
                   </Link>
                 </li>
                 <li>
@@ -162,15 +154,6 @@ const Header = () => {
                     onClick={() => setIsOpen(false)}
                   >
                     Tin tức
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/faq"
-                    className="block text-[14px] hover:underline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    FAQ
                   </Link>
                 </li>
                 <li>
