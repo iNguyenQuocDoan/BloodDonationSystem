@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import useApi from "../../hooks/useApi";
 
-// Build nav item classes: keep border-bottom and font-weight constant to prevent layout shift
+/* -----------------------------------------------------------
+ * 1. Tiện ích dựng sẵn class cho <NavLink>
+ * --------------------------------------------------------- */
 const navItemClass = ({ isActive }) =>
   [
     "px-3 py-2 rounded-md transition-colors duration-200 font-medium border-b-2 border-b-transparent",
@@ -11,15 +13,19 @@ const navItemClass = ({ isActive }) =>
       : "text-black hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40",
   ].join(" ");
 
-const Header = () => {
+export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
   const [user, setUser] = useState(null);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const isLoggedIn = !!localStorage.getItem("isLoggedIn");
-  const dropdownRef = useRef(null);
   const { getCurrentUser, logout } = useApi();
 
+  /* -----------------------------------------------------------
+   * 2. Lấy thông tin người dùng khi đăng nhập
+   * --------------------------------------------------------- */
   useEffect(() => {
     if (isLoggedIn) {
       getCurrentUser()
@@ -30,11 +36,13 @@ const Header = () => {
     }
   }, [isLoggedIn, getCurrentUser]);
 
+  /* -----------------------------------------------------------
+   * 3. Đóng dropdown khi click ra ngoài
+   * --------------------------------------------------------- */
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target))
         setDropdown(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -42,10 +50,14 @@ const Header = () => {
 
   const role = user?.user_role;
 
+  /* -----------------------------------------------------------
+   * 4. JSX
+   * --------------------------------------------------------- */
   return (
     <header className="w-full bg-white shadow">
-      <div className="mx-auto">
+      <div className="container mx-auto">
         <div className="flex justify-between items-center px-[20px] py-[8px]">
+          {/* Logo */}
           <NavLink
             to="/"
             className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[23px] text-[22px]"
@@ -53,8 +65,8 @@ const Header = () => {
             DaiVietBlood
           </NavLink>
 
-          {/* Desktop navigation */}
-          <nav className="hidden md:flex">
+          {/* ----- NAVBAR DESKTOP (căn giữa) ----- */}
+          <nav className="hidden md:flex flex-1 justify-center">
             <ul className="flex xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
               <li>
                 <NavLink to="/" end className={navItemClass}>
@@ -62,13 +74,13 @@ const Header = () => {
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/donate" className={navItemClass}>
-                  Đăng kí hiến máu
+                <NavLink to="/faq" className={navItemClass}>
+                  FAQ
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/emergency" className={navItemClass}>
-                  Yêu cầu máu khẩn cấp
+                <NavLink to="/news" className={navItemClass}>
+                  Tin tức
                 </NavLink>
               </li>
               <li>
@@ -79,7 +91,7 @@ const Header = () => {
             </ul>
           </nav>
 
-          {/* Desktop auth/avatar */}
+          {/* ----- AVATAR / AUTH DESKTOP ----- */}
           <div className="hidden md:flex items-center xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px]">
             {isLoggedIn && role === "member" ? (
               <div className="relative" ref={dropdownRef}>
@@ -89,6 +101,7 @@ const Header = () => {
                 >
                   {user?.name?.[0]?.toUpperCase() || "U"}
                 </button>
+
                 {dropdown && (
                   <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
                     <ul className="py-2 text-[14px]">
@@ -125,7 +138,7 @@ const Header = () => {
             )}
           </div>
 
-          {/* Mobile burger icon */}
+          {/* ----- BURGER ICON (MOBILE) ----- */}
           <button
             className="md:hidden text-[#D32F2F] text-2xl"
             onClick={() => setIsOpen(!isOpen)}
@@ -134,16 +147,14 @@ const Header = () => {
           </button>
         </div>
 
-        {/* Mobile menu */}
+        {/* ----- MENU MOBILE ----- */}
         {isOpen && (
           <nav className="md:hidden bg-white border-t">
             <ul className="flex flex-col px-[26px] py-[12px] gap-y-2 text-[14px]">
               {[
                 { to: "/", label: "Trang chủ", exact: true },
-                { to: "/donate", label: "Đăng kí hiến máu" },
-                { to: "/emergency", label: "Yêu cầu máu khẩn cấp" },
-                { to: "/news", label: "Tin tức" },
                 { to: "/faq", label: "FAQ" },
+                { to: "/news", label: "Tin tức" },
                 { to: "/contact", label: "Liên hệ" },
               ].map(({ to, label, exact }) => (
                 <li key={to}>
@@ -164,13 +175,57 @@ const Header = () => {
                   </NavLink>
                 </li>
               ))}
-              {isLoggedIn ? <>...</> : <>...</>}
+
+              {/* Auth mobile */}
+              {isLoggedIn ? (
+                <>
+                  <li>
+                    <NavLink
+                      to="/profile"
+                      onClick={() => setIsOpen(false)}
+                      className="block rounded-md px-3 py-2 font-medium hover:bg-gray-100/40"
+                    >
+                      Cập nhật trang cá nhân
+                    </NavLink>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsOpen(false);
+                      }}
+                      className="w-full text-left rounded-md px-3 py-2 font-medium text-[#D32F2F] hover:bg-gray-100/40"
+                    >
+                      Đăng xuất
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <NavLink
+                      to="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="block rounded-md px-3 py-2 font-medium hover:bg-gray-100/40"
+                    >
+                      Đăng nhập
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/register"
+                      onClick={() => setIsOpen(false)}
+                      className="block rounded-md px-3 py-2 font-medium hover:bg-gray-100/40"
+                    >
+                      Đăng kí
+                    </NavLink>
+                  </li>
+                </>
+              )}
             </ul>
           </nav>
         )}
       </div>
     </header>
   );
-};
-
-export default Header;
+}

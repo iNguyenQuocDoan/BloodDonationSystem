@@ -98,25 +98,25 @@ export const FAQPage = () => {
       id: 16,
       question: "Gửi yêu cầu máu khẩn cấp thế nào?",
       answer:
-        "Vào “Yêu cầu khẩn cấp”, nhập nhóm máu, số lượng, bệnh viện, hạn thời gian. Hệ thống thông báo cho thành viên phù hợp gần nhất.",
+        "Vào “Yêu cầu khẩn cấp”, nhập nhóm máu, số lượng. Hệ thống thông báo cho thành viên phù hợp gần nhất.",
     },
-    {
-      id: 17,
-      question: "Ứng dụng có nhắc khi đủ thời gian hiến lại không?",
-      answer:
-        "Có. Sau mỗi lần hiến, hệ thống tự ghi nhận và nhắc khi đủ 3 tháng (nam) hoặc 4 tháng (nữ).",
-    },
+    // {
+    //   id: 17,
+    //   question: "Ứng dụng có nhắc khi đủ thời gian hiến lại không?",
+    //   answer:
+    //     "Có. Sau mỗi lần hiến, hệ thống tự ghi nhận và nhắc khi đủ 3 tháng (nam) hoặc 4 tháng (nữ).",
+    // },
     {
       id: 18,
       question: "Tôi xem lịch sử hiến máu và tải chứng nhận ở đâu?",
       answer:
         "Đăng nhập → “Lịch sử hiến máu”. Xem chi tiết và tải chứng nhận PDF.",
     },
-    {
-      id: 19,
-      question: "Thay đổi ngôn ngữ giao diện thế nào?",
-      answer: "Vào Cài đặt → “Ngôn ngữ” → chọn Tiếng Việt hoặc English.",
-    },
+    // {
+    //   id: 19,
+    //   question: "Thay đổi ngôn ngữ giao diện thế nào?",
+    //   answer: "Vào Cài đặt → “Ngôn ngữ” → chọn Tiếng Việt hoặc English.",
+    // },
 
     /* ── IV. KIẾN THỨC NHÓM MÁU ────────────────────────────────── */
     {
