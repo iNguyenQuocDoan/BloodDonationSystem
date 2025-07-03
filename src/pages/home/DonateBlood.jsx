@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import useApi from "../../hooks/useApi";
-import { FaCalendarAlt, FaSearch } from "react-icons/fa";
 import { DateFilter } from "../../components/DateFilter";
+import Swal from "sweetalert2";
 
 const DonateBlood = () => {
   const [user, setUser] = useState(null);
@@ -12,89 +12,89 @@ const DonateBlood = () => {
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [isSearching, setIsSearching] = useState(false);
-  const { loading, error, getSlotList, registerSlot, getCurrentUser } =
-    useApi();
-  const navigate = useNavigate();
   const [myRegistrations, setMyRegistrations] = useState([]);
+  
+  const { loading, error, getSlotList, registerSlot, getCurrentUser } = useApi();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Fetch slots data on component mount
+  // Nhận giá trị từ navigation state
   useEffect(() => {
-    fetchSlots();
-  }, []);
+    if (location.state?.startDate || location.state?.endDate) {
+      const { startDate: navStartDate, endDate: navEndDate, shouldFilter } = location.state;
+      
+      console.log("Received from homepage:", { navStartDate, navEndDate, shouldFilter });
+      
+      // Set date range từ homepage
+      setDateRange([navStartDate, navEndDate]);
+      
+      // Nếu có flag shouldFilter và đã có slots, tự động filter
+      if (shouldFilter && slots.length > 0) {
+        filterSlotsByDateWithParams(navStartDate, navEndDate);
+      }
+      
+      // Clear navigation state sau khi sử dụng
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, slots]);
 
+  // Existing useEffect for fetching data
   useEffect(() => {
-    if (localStorage.getItem("isLoggedIn") === "true") {
-      getCurrentUser()
-        .then((res) => setUser(res.data))
-        .catch(() => setUser(null));
-    }
-  }, [getCurrentUser]);
+    const fetchData = async () => {
+      try {
+        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+        if (isLoggedIn) {
+          const userRes = await getCurrentUser();
+          setUser(userRes.data);
+        }
+        
+        const slotsRes = await getSlotList();
+        setSlots(slotsRes.data);
+        setFilteredSlots(slotsRes.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
+    fetchData();
+  }, [getCurrentUser, getSlotList]);
+
+  // Auto-filter khi có slots và có date từ homepage
   useEffect(() => {
-    if (user && user.user_id) {
-      fetchMyRegistrations();
+    if (location.state?.shouldFilter && slots.length > 0 && (location.state?.startDate || location.state?.endDate)) {
+      const { startDate: navStartDate, endDate: navEndDate } = location.state;
+      filterSlotsByDateWithParams(navStartDate, navEndDate);
     }
-  }, [user]);
+  }, [slots, location.state]);
 
-  const fetchSlots = async () => {
-    try {
-      const response = await getSlotList();
-      const slotsData = response.data || [];
-      console.log("[DEBUG][FE] Slot list:", slotsData);
-      setSlots(slotsData);
-      setFilteredSlots(slotsData);
-    } catch (error) {
-      toast.error(error.message || "Không thể tải danh sách lịch hiến máu");
-    }
-  };
-
-  const fetchMyRegistrations = async () => {
-    try {
-      const response = await fetch(
-        `/api/appointments/history?userId=${user.user_id}`
-      );
-      const data = await response.json();
-      setMyRegistrations(data.data || []);
-    } catch (err) {
-      setMyRegistrations([]);
-    }
-  };
-
-  // Tối ưu hóa hàm filterSlotsByDate với useCallback
-  const filterSlotsByDate = useCallback(() => {
-    if (!startDate && !endDate) {
+  // Existing functions...
+  const filterSlotsByDateWithParams = useCallback((startDateStr, endDateStr) => {
+    if (!startDateStr && !endDateStr) {
       setFilteredSlots(slots);
       return;
     }
 
-    const filtered = slots.filter((slot) => {
-      if (!slot.Slot_Date) return false;
-
+    const filtered = slots.filter(slot => {
       const slotDate = new Date(slot.Slot_Date);
-      slotDate.setHours(0, 0, 0, 0); // Loại bỏ thời gian để so sánh chỉ theo ngày
+      const startFilter = startDateStr ? new Date(startDateStr) : null;
+      const endFilter = endDateStr ? new Date(endDateStr) : null;
 
-      const compareStartDate = startDate ? new Date(startDate) : null;
-      const compareEndDate = endDate ? new Date(endDate) : null;
-
-      if (compareStartDate) compareStartDate.setHours(0, 0, 0, 0);
-      if (compareEndDate) compareEndDate.setHours(0, 0, 0, 0);
-
-      // Simplified logic with early returns
-      if (compareStartDate && compareEndDate) {
-        return slotDate >= compareStartDate && slotDate <= compareEndDate;
+      if (startFilter && endFilter) {
+        return slotDate >= startFilter && slotDate <= endFilter;
+      } else if (startFilter) {
+        return slotDate >= startFilter;
+      } else if (endFilter) {
+        return slotDate <= endFilter;
       }
-      if (compareStartDate) {
-        return slotDate >= compareStartDate;
-      }
-      if (compareEndDate) {
-        return slotDate <= compareEndDate;
-      }
-
       return true;
     });
 
     setFilteredSlots(filtered);
-  }, [slots, startDate, endDate]);
+  }, [slots]);
+
+  const filterSlotsByDate = useCallback(() => {
+    filterSlotsByDateWithParams(startDate, endDate);
+  }, [filterSlotsByDateWithParams, startDate, endDate]);
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -106,16 +106,36 @@ const DonateBlood = () => {
   };
 
   const handleRegister = async (slotId) => {
-    if (!user) {
-      toast.error("Không tìm thấy thông tin người dùng");
+    // Kiểm tra user có đăng nhập không
+    if (!user || localStorage.getItem("isLoggedIn") !== "true") {
+      const result = await Swal.fire({
+        title: 'Lưu ý',
+        text: 'Vui lòng đăng nhập để đặt lịch hiến máu.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Hủy'
+      });
+      
+      if (result.isConfirmed) {
+        navigate("/login");
+      }
       return;
     }
     if (user.user_role !== "member") {
-      toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu");
+      toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu"),{
+        position: "top-right",
+        autoClose: 3000
+      }
       return;
     }
     if (!user.user_id) {
-      toast.error("Không tìm thấy ID người dùng");
+      toast.error("Không tìm thấy ID người dùng"), {
+        position: "top-right",
+        autoClose: 3000
+      }
       return;
     }
     // Nếu đã đăng ký 1 ca, chỉ cho phép đăng ký lại đúng ca đó
@@ -251,7 +271,9 @@ const DonateBlood = () => {
         </div>
       ) : filteredSlots.length === 0 ? (
         <div className="text-center py-8 bg-white rounded-lg shadow p-4">
-          <p className="text-lg text-gray-600">{emptyStateMessage}</p>
+          <p className="text-lg text-gray-600">
+            {startDate || endDate ? "Không có lịch hiến máu nào trong khoảng thời gian đã chọn" : "Không có lịch hiến máu nào"}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -336,10 +358,9 @@ const DonateBlood = () => {
                     onClick={() => handleRegister(slot.Slot_ID)}
                     disabled={disableRegister}
                     className={`w-full py-2 px-4 rounded transition duration-300 flex items-center justify-center font-semibold
-                      ${
-                        isSlotFull
-                          ? "bg-yellow-200 text-yellow-700 cursor-not-allowed"
-                          : isRegistered
+                      ${isSlotFull
+                        ? "bg-yellow-200 text-yellow-700 cursor-not-allowed"
+                        : isRegistered
                           ? "bg-blue-200 text-blue-700 cursor-not-allowed"
                           : "bg-red-600 hover:bg-red-700 text-white"
                       }`}
@@ -347,8 +368,8 @@ const DonateBlood = () => {
                       isRegistered
                         ? "Bạn đã đăng ký ca này."
                         : isSlotFull
-                        ? "Ca này đã đầy, vui lòng chọn ca khác."
-                        : ""
+                          ? "Ca này đã đầy, vui lòng chọn ca khác."
+                          : ""
                     }
                   >
                     {isRegistered ? (

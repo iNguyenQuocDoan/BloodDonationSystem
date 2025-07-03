@@ -52,7 +52,7 @@ function App() {
               <Route path="/" element={<Homepage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/aboutus" element={<AboutUs />} />
-              <Route path="/emergency" element={<EmergencyRequest />} />
+
               <Route path="/donate" element={<DonateBlood />} />
               <Route path="/faq" element={<FAQPage />} />
             </Route>
@@ -71,6 +71,7 @@ function App() {
           <Route element={<ProtectedRoute requireAuth={true} />}>
             <Route element={<LayoutDeFault />}>
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/emergency" element={<EmergencyRequest />} />
             </Route>
           </Route>
 

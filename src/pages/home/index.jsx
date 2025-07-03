@@ -27,7 +27,14 @@ const Homepage = () => {
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    navigate("/donate", { state: { startDate, endDate } });
+    // Chuyển sang trang DonateBlood với startDate và endDate
+    navigate("/donate", {
+      state: {
+        startDate: startDate,
+        endDate: endDate,
+        shouldFilter: true, // Flag để tự động filter
+      },
+    });
   };
 
   return (
@@ -82,6 +89,7 @@ const Homepage = () => {
                     onDateChange={setDateRange}
                     startDate={startDate}
                     endDate={endDate}
+                    modernStyle={true} 
                   />
                 </div>
               </div>

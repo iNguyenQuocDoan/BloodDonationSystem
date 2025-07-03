@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const EmergencyRequest = () => {
   const [form, setForm] = useState({
@@ -20,13 +21,13 @@ const EmergencyRequest = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!form.name.trim()) newErrors.name = "Full name is required.";
-    if (!form.phone.trim()) newErrors.phone = "Phone number is required.";
+    if (!form.name.trim()) newErrors.name = "Họ tên là bắt buộc.";
+    if (!form.phone.trim()) newErrors.phone = "Số điện thoại là bắt buộc.";
     else if (!isValidPhone(form.phone))
-      newErrors.phone = "Invalid phone number format.";
-    if (!form.bloodType) newErrors.bloodType = "Please select a blood type.";
-    if (!form.location.trim()) newErrors.location = "Location is required.";
-    if (!form.message.trim()) newErrors.message = "Message is required.";
+      newErrors.phone = "Định dạng số điện thoại không hợp lệ.";
+    if (!form.bloodType) newErrors.bloodType = "Vui lòng chọn loại máu.";
+    if (!form.location.trim()) newErrors.location = "Địa chỉ là bắt buộc.";
+    if (!form.message.trim()) newErrors.message = "Tin nhắn là bắt buộc.";
     return newErrors;
   };
 
@@ -37,8 +38,13 @@ const EmergencyRequest = () => {
       setErrors(validationErrors);
       return;
     }
+
     // Gửi dữ liệu hợp lệ lên server tại đây
-    alert("Your emergency request has been sent!");
+    toast.success("Yêu cầu hiến máu khẩn cấp đã được gửi thành công!", {
+      position: "top-center",
+      autoClose: 3000,
+    });
+
     setForm({
       name: "",
       phone: "",
@@ -65,7 +71,7 @@ const EmergencyRequest = () => {
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="Enter your full name"
+              placeholder="Nhập họ tên của bạn"
               className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
                 errors.name ? "border-red-500" : ""
               }`}
@@ -84,7 +90,7 @@ const EmergencyRequest = () => {
               name="phone"
               value={form.phone}
               onChange={handleChange}
-              placeholder="Enter your phone number"
+              placeholder="Nhập số điện thoại của bạn"
               className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
                 errors.phone ? "border-red-500" : ""
               }`}
@@ -130,7 +136,7 @@ const EmergencyRequest = () => {
               name="location"
               value={form.location}
               onChange={handleChange}
-              placeholder="Enter hospital or address"
+              placeholder="Nhập địa chỉ bệnh viện hoặc nơi cần máu"
               className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
                 errors.location ? "border-red-500" : ""
               }`}
@@ -142,13 +148,13 @@ const EmergencyRequest = () => {
           </div>
           <div>
             <label className="block mb-1 font-medium text-gray-700">
-              Message
+              Tin nhắn
             </label>
             <textarea
               name="message"
               value={form.message}
               onChange={handleChange}
-              placeholder="Describe the emergency situation"
+              placeholder="Mô tả tình huống khẩn cấp"
               className={`w-full px-3 py-2 border rounded min-h-[80px] focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
                 errors.message ? "border-red-500" : ""
               }`}
@@ -162,7 +168,7 @@ const EmergencyRequest = () => {
             type="submit"
             className="w-full bg-[#D32F2F] text-white px-6 py-2 rounded font-semibold hover:bg-[#b71c1c] transition"
           >
-            Send Request
+            Gửi yêu cầu
           </button>
         </form>
       </div>
