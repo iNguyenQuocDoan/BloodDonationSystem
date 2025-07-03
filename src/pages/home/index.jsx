@@ -3,10 +3,44 @@ import { Link, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import VanillaTilt from "vanilla-tilt";
-import BloodCompatibilityDiagram from "./BloodCompatibilityDiagram";
+import BloodCompatibilityDiagram from "../../components/custom/BloodCompatibilityDiagram";
 import DonateBlood from "./DonateBlood";
 import { DateFilter } from "../../components/DateFilter";
 import { FAQPage } from "./FAQ";
+
+// ScrollToTopButton Component
+const ScrollToTopButton = () => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.pageYOffset > 300) {
+        setVisible(true);
+      } else {
+        setVisible(false);
+      }
+    };
+
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    visible && (
+      <button
+        onClick={scrollToTop}
+        className="fixed bottom-[100px] right-5 p-3 bg-[#D32F2F] text-white rounded-full shadow-lg hover:bg-red-600 transition hover:animate-bounce"
+        aria-label="Scroll to top"
+      >
+        ↑
+      </button>
+    )
+  );
+};
 
 const Homepage = () => {
   useEffect(() => {
@@ -31,127 +65,109 @@ const Homepage = () => {
   };
 
   return (
-    <div className="container mx-auto mt-8">
+    <div className="container mx-auto mt-8 relative">
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1">
           {/* Section 1 */}
-          <div className="relative bg-[#000000] w-full h-[400px]">
-            <div className=""></div>
+          <div className="relative bg-[#000000] w-full h-[400px] overflow-hidden">
             <img
               src="/image/DonateBloodBanner.jpg"
               alt="DaiVietBlood"
-              className="object-cover w-full h-full opacity-35 relative"
-            ></img>
-            <div className="container mx-auto ">
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                <h1 className="font-[700] text-white md:text-[35px] text-[30px] flex-1">
+              className="object-cover w-full h-full opacity-35 transition-all duration-700 scale-100 hover:scale-105"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="font-bold text-white md:text-4xl text-3xl animate-slidein">
                   Một giọt máu cho đi – Thắp sáng hy vọng
                 </h1>
-                <p className="text-white md:text-[16px] text-[15px] mt-[10px]">
+                <p className="text-white md:text-lg text-base mt-2 animate-fadein-slow">
                   DaiVietBlood kết nối những tấm lòng nhân ái với những người
                   đang cần máu gấp, mở ra một hành trình sẻ chia an toàn, đơn
-                  giản và đáng tin cậy. Mỗi giọt máu không chỉ cứu sống một con
-                  người mà còn lan tỏa tinh thần yêu thương, trách nhiệm và đoàn
-                  kết trong cộng đồng.
+                  giản và đáng tin cậy.
                 </p>
               </div>
             </div>
           </div>
-          <div className="py-[24px]">
-            <div className="">
-              <p className="text-center text-[#D32F2F] py-[15.5px] bg-[#FFE6E6] border rounded-[10px]">
-                Chúng tôi đã ghi nhận:{" "}
-                <strong>
-                  {" "}
-                  1.234 tấm lòng nhân ái – mang hy vọng đến cho 3.567 cuộc đời.{" "}
-                </strong>
-                cuộc đời
-              </p>
-            </div>
-            <div className="mt-[38px]">
-              <h2 className="text-center text-[30px] text-[#D32F2F] font-[700]">
+
+          {/* Statistics & Search */}
+          <div className="py-6">
+            <p className="text-center text-[#D32F2F] py-3 bg-[#FFE6E6] rounded-lg animate-fadein">
+              Chúng tôi đã ghi nhận:{" "}
+              <strong>1.234 tấm lòng – 3.567 người được cứu</strong>
+            </p>
+            <div className="mt-8 text-center">
+              <h2 className="text-2xl text-[#D32F2F] font-bold animate-slidein">
                 Mỗi giọt máu trao đi – Thắp lên tia hy vọng.
               </h2>
-              <p className="text-center text-[18px] mt-[25px]">
+              <p className="mt-4 animate-fadein-slow">
                 Chung tay hiến máu – Trao sự sống, gieo hy vọng cho cộng đồng.
               </p>
-              <div className="flex justify-center mt-4">
-                <div className="w-full max-w-xl">
-                  <DateFilter
-                    onSearch={handleSearch}
-                    onDateChange={setDateRange}
-                    startDate={startDate}
-                    endDate={endDate}
-                  />
-                </div>
+              <div className="mt-6 mx-auto max-w-xl">
+                <DateFilter
+                  onSearch={handleSearch}
+                  onDateChange={setDateRange}
+                  startDate={startDate}
+                  endDate={endDate}
+                />
               </div>
             </div>
-
-            {/* Câu chuyện */}
-            {[...Array(2)].map((_, idx) => (
-              <div
-                key={idx}
-                data-aos="fade-up"
-                className="mt-12 bg-[#f9f9f9] py-8 px-6 rounded-md border-l-[6px] border-[#D32F2F] max-w-4xl mx-auto shadow-sm"
-              >
-                <h3 className="text-[#D32F2F] text-[22px] font-semibold mb-4">
-                  Những câu chuyện có thể giả, nhưng những cuộc đời được cứu là
-                  thật.
-                </h3>
-                <p className="text-gray-700 italic text-[18px] mb-6">
-                  {idx === 0
-                    ? '"Nhờ DaiVietBlood, tôi đã nhận được nguồn máu loại O khi cần nhất – và giờ tôi đã hoàn toàn bình phục."'
-                    : '"Nhờ DaiVietBlood, tôi đã nhanh chóng tìm được người hiến máu phù hợp..."'}
-                </p>
-                <p className="text-right text-gray-800 font-medium text-[16px]">
-                  – {idx === 0 ? "Nguyen Cong Minh" : "Chu Phuc Minh Vuong"}
-                </p>
-              </div>
-            ))}
           </div>
 
-          {/* Điều kiện hiến máu */}
-          <section className="container mx-auto px-4 mt-12" data-aos="fade-up">
-            <h4 className="text-[22px] text-[#D32F2F] text-center">
-              Bạn có đủ điều kiện hiến máu – Trao đi sự sống?
+          {/* Stories */}
+          {[...Array(2)].map((_, idx) => (
+            <div
+              key={idx}
+              data-aos="fade-up"
+              className="mt-12 bg-[#f9f9f9] p-6 rounded-md border-l-4 border-[#D32F2F] shadow-md transition-all duration-500 hover:shadow-2xl animate-fadein"
+            >
+              <h3 className="text-[#D32F2F] text-xl font-semibold mb-4">
+                "
+                {idx === 0
+                  ? "Nhờ DaiVietBlood, tôi đã nhận được máu loại O khi cần nhất."
+                  : "Tôi đã nhanh chóng tìm được người hiến máu phù hợp..."}
+                "
+              </h3>
+              <p className="text-right font-medium">
+                – {idx === 0 ? "Nguyen Cong Minh" : "Chu Phuc Minh Vuong"}
+              </p>
+            </div>
+          ))}
+
+          {/* Eligibility */}
+          <section data-aos="fade-up" className="mt-12">
+            <h4 className="text-center text-xl text-[#D32F2F] animate-slidein">
+              Bạn có đủ điều kiện hiến máu?
             </h4>
-            <div className="w-full mt-6 py-8 px-6 bg-[#E57373] max-w-4xl mx-auto shadow-sm rounded-[7px]">
-              <h5 className="text-center text-white text-[22px] font-medium">
-                Điều kiện hiến máu – Ai có thể trao đi sự sống?
-              </h5>
-              <div className="grid md:grid-cols-4 grid-cols-2 gap-4 mt-6">
+            <div className="mt-6 bg-[#E57373] p-6 rounded-lg shadow-md">
+              <div className="grid md:grid-cols-4 grid-cols-2 gap-4">
                 {[
                   {
-                    title: "Độ tuổi & Cân nặng:",
-                    lines: ["18–60 tuổi", "Nữ ≥ 45kg, Nam ≥ 50kg"],
+                    title: "Độ tuổi & Cân nặng",
+                    lines: ["18–60 tuổi", "Nữ ≥45kg, Nam ≥50kg"],
                   },
                   {
-                    title: "Tình trạng sức khỏe:",
+                    title: "Sức khỏe",
                     lines: [
                       "Không bệnh truyền nhiễm",
                       "Không dùng chất kích thích",
                     ],
                   },
                   {
-                    title: "Tần suất hiến máu:",
+                    title: "Tần suất",
                     lines: ["Nữ: mỗi 3 tháng", "Nam: mỗi 2 tháng"],
                   },
                   {
-                    title: "Phụ nữ:",
+                    title: "Phụ nữ",
                     lines: ["Không mang thai", "Không trong kỳ kinh nguyệt"],
                   },
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="tilt-card text-white bg-[#D32F2F] p-4 rounded-[15px] hover:-translate-y-1 hover:shadow-2xl transition-all"
+                    className="tilt-card bg-[#D32F2F] text-white p-4 rounded-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer animate-fadein"
                   >
-                    <p className="font-semibold text-[16px] mb-2">
-                      {item.title}
-                    </p>
-                    {item.lines.map((line, j) => (
-                      <p key={j} className="text-[15px] leading-snug">
-                        {line}
-                      </p>
+                    <p className="font-semibold mb-2">{item.title}</p>
+                    {item.lines.map((l, j) => (
+                      <p key={j}>{l}</p>
                     ))}
                   </div>
                 ))}
@@ -159,48 +175,35 @@ const Homepage = () => {
             </div>
           </section>
 
-          {/* Bảng nhóm máu */}
-          <section className="container mx-auto px-4 mt-12" data-aos="fade-up">
-            <h4 className="text-[26px] text-[#D32F2F] text-center font-semibold mb-4">
+          {/* Compatibility Table */}
+          <section data-aos="fade-up" className="mt-12">
+            <h4 className="text-center text-xl text-[#D32F2F] mb-4 animate-slidein">
               Bảng tương thích nhóm máu
             </h4>
-            <div className="bg-white rounded-[5px] shadow-md overflow-x-auto max-w-4xl mx-auto">
-              <table className="min-w-full text-base text-center border-collapse">
-                <thead className="bg-[#FAFAFA] border-b">
+            <div className="overflow-x-auto rounded-md shadow transition-all duration-500 hover:shadow-lg animate-fadein">
+              <table className="w-full text-center">
+                <thead className="bg-[#FAFAFA]">
                   <tr>
-                    <th className="px-6 py-4 text-[#D32F2F] font-semibold text-[16px]">
-                      Nhóm máu
-                    </th>
-                    <th className="px-6 py-4 text-[#D32F2F] font-semibold text-[16px]">
-                      Nhóm máu có thể nhận
-                    </th>
+                    <th className="py-3">Nhóm máu</th>
+                    <th className="py-3">Có thể nhận</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    ["O", "O, A, B, AB", "(Người hiến máu toàn cầu)"],
+                    ["O", "O, A, B, AB"],
                     ["A", "A, AB"],
                     ["B", "B, AB"],
-                    ["AB", "AB", "(Người nhận máu toàn cầu)"],
-                  ].map(([type, receive, note], i) => (
+                    ["AB", "AB"],
+                  ].map(([t, r], i) => (
                     <tr
-                      key={type}
-                      className={i % 2 ? "bg-gray-50 border-b" : "border-b"}
+                      key={t}
+                      className={
+                        "transition-colors duration-200 hover:bg-[#fdeaea] " +
+                        (i % 2 ? "bg-gray-50" : "")
+                      }
                     >
-                      <td className="px-6 py-3 font-medium text-[15px]">
-                        {type}
-                      </td>
-                      <td className="px-6 py-3 text-[15px]">
-                        {receive}
-                        {note && (
-                          <>
-                            <br />
-                            <span className="text-gray-500 text-sm">
-                              {note}
-                            </span>
-                          </>
-                        )}
-                      </td>
+                      <td className="py-2 font-medium">{t}</td>
+                      <td className="py-2">{r}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -208,51 +211,48 @@ const Homepage = () => {
             </div>
           </section>
 
-          {/* Biểu đồ tương thích nhóm máu */}
-          <section
-            className="container mx-auto px-4 mt-12 mb-12"
-            data-aos="fade-up"
-          >
-            <h4 className="text-[26px] text-[#D32F2F] text-center font-semibold mb-6">
+          {/* Diagram */}
+          <section data-aos="fade-up" className="mt-12 mb-12">
+            <h4 className="text-center text-xl text-[#D32F2F] mb-6 animate-slidein">
               Sơ đồ tương thích nhóm máu
             </h4>
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white p-6 rounded-lg shadow transition-all duration-500 hover:shadow-lg animate-fadein">
               <BloodCompatibilityDiagram />
             </div>
           </section>
 
-          {/* Image grid */}
-          <section className="py-12" data-aos="fade-up">
-            <h4 className="text-[22px] text-[#D32F2F] text-center mb-6">
-              Hiến máu nhân đạo – Lan tỏa yêu thương, cứu sống những cuộc đời.
+          {/* Image Grid */}
+          <section data-aos="fade-up" className="py-12">
+            <h4 className="text-center text-xl text-[#D32F2F] mb-6 animate-slidein">
+              Hiến máu nhân đạo – Lan tỏa yêu thương
             </h4>
-            <div className="flex justify-center">
-              <div className="grid md:grid-cols-4 grid-cols-2 gap-5">
-                {["Gruop", "mobile", "emergency", "thanks"].map((img) => (
-                  <div
-                    key={img}
-                    className="tilt-card overflow-hidden rounded-[5px] shadow sm:h-[160px] h-[130px] sm:w-[270px] w-[180px] transition-transform duration-200 hover:scale-105"
-                  >
-                    <img
-                      src={`/image/${img}.png`}
-                      alt="DaiVietBlood"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
+            <div className="grid md:grid-cols-4 grid-cols-2 gap-5">
+              {["Gruop", "mobile", "emergency", "thanks"].map((img) => (
+                <div
+                  key={img}
+                  className="tilt-card rounded-md overflow-hidden shadow transition-transform duration-300 hover:scale-110 animate-fadein"
+                >
+                  <img
+                    src={`/image/${img}.png`}
+                    alt={img}
+                    className="w-full h-full object-cover transition-all duration-500 hover:scale-105"
+                  />
+                </div>
+              ))}
             </div>
           </section>
 
           {/* FAQ link */}
-          <h2 className="text-[22px] text-center hover:underline text-[#D32F2F] mb-10">
-            <Link to="/faq">
-              Bạn đang thắc mắc? Chúng tôi sẵn sàng giải đáp! FAQ
-            </Link>
+          <h2 className="text-center text-lg text-[#D32F2F] hover:underline mb-10 animate-fadein">
+            <Link to="/faq">Bạn đang thắc mắc? Xem FAQ tại đây!</Link>
           </h2>
         </div>
       </div>
+
+      {/* Scroll To Top Button */}
+      <ScrollToTopButton />
     </div>
   );
 };
+
 export default Homepage;

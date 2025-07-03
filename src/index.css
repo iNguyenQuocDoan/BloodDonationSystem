@@ -3,3 +3,53 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fadein-slow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slidein {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-fadein {
+  animation: fadein 0.8s both;
+}
+.animate-fadein-slow {
+  animation: fadein-slow 1.5s both;
+}
+.animate-slidein {
+  animation: slidein 1s both;
+}
+.hover\:animate-bounce:hover {
+  animation: bounce 1s infinite;
+}
