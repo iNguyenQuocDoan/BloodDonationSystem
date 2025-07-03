@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
 import useApi from "../../hooks/useApi";
+import Swal from "sweetalert2";
 
 const ProtectedRoute = ({ 
   allowedRoles = null, 
@@ -11,6 +12,7 @@ const ProtectedRoute = ({
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { getCurrentUser, logout } = useApi();
@@ -23,14 +25,40 @@ const ProtectedRoute = ({
         await logout();
       }
       localStorage.removeItem("isLoggedIn");
+      
+      // Hiển thị toast trước
       toast.error(message, {
         position: "top-center",
         autoClose: 3000
       });
-      navigate("/login", { replace: true });
+      
+      // Delay một chút để toast có thể hiển thị
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 100);
     } catch (error) {
       localStorage.removeItem("isLoggedIn");
       navigate("/login", { replace: true });
+    }
+  };
+
+  // Hàm hiển thị popup đăng nhập
+  const showLoginPopup = async () => {
+    const result = await Swal.fire({
+      title: 'Lưu ý',
+      text: 'Vui lòng đăng nhập để sử dụng chức năng này.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Xác nhận',
+      cancelButtonText: 'Hủy'
+    });
+    
+    if (result.isConfirmed) {
+      navigate("/login", { state: { from: location }, replace: true });
+    }else if (!result.isConfirmed){
+      navigate("/")
     }
   };
 
@@ -66,7 +94,9 @@ const ProtectedRoute = ({
 
         // Route cần xác thực nhưng chưa đăng nhập
         if (requireAuth && !isLoggedIn) {
-          setIsAuthorized(false);
+          // Cho phép render trang và hiển thị popup
+          setIsAuthorized(true);
+          setShowLoginPrompt(true);
           setIsLoading(false);
           return;
         }
@@ -109,6 +139,14 @@ const ProtectedRoute = ({
     // eslint-disable-next-line
   }, [allowedRoles, requireAuth, restricted, getCurrentUser]);
 
+  // Effect để hiển thị popup khi cần
+  useEffect(() => {
+    if (showLoginPrompt) {
+      showLoginPopup();
+      setShowLoginPrompt(false);
+    }
+  }, [showLoginPrompt]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -130,10 +168,6 @@ const ProtectedRoute = ({
         default:
           return <Navigate to="/" replace />;
       }
-    }
-    // Trang yêu cầu đăng nhập nhưng user chưa đăng nhập
-    if (requireAuth && localStorage.getItem("isLoggedIn") !== "true") {
-      return <Navigate to="/login" state={{ from: location }} replace />;
     }
     // Các trường hợp khác đã được handleLogoutAndRedirect xử lý
   }
