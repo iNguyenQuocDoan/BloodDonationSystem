@@ -19,16 +19,19 @@ const ProfilePage = () => {
       <div className="bg-[#D32F2F] p-8 flex flex-col items-center relative">
         <h2 className="text-3xl font-bold text-white mb-2">{user.user_name}</h2>
         <p className="text-white mb-4">
-          Nhóm máu: {user.bloodtype_id || "Chưa cập nhật"}
+          Nhóm máu: {user.blood_group || "Chưa cập nhật"}
         </p>
-        <div className="w-28 h-28 rounded-full border-4 border-white bg-gray-200 overflow-hidden absolute left-1/2 -bottom-14 -translate-x-1/2">
-          {/* Ảnh đại diện, thay src bằng user.avatar nếu có */}
-          <img
-            src={user.avatar || "https://i.pravatar.cc/150?u=" + user.email}
-            alt="avatar"
-            className="w-full h-full object-cover"
-          />
-        </div>
+        <p className="text-white mb-4">
+          Tương thích truyền máu đến:{" "}
+          {user.rbc_compatible_to || "Chưa cập nhật"}
+        </p>
+
+        {/* <Field
+          label="Cho hồng cầu được"
+          value={user.rbc_compatible_to || "Chưa xác định"}
+        /> */}
+
+        {/*  */}
       </div>
       <div className="pt-20 pb-8 px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
