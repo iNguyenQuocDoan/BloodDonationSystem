@@ -61,7 +61,14 @@ const Homepage = () => {
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    navigate("/donate", { state: { startDate, endDate } });
+    // Chuyển sang trang DonateBlood với startDate và endDate
+    navigate("/donate", {
+      state: {
+        startDate: startDate,
+        endDate: endDate,
+        shouldFilter: true, // Flag để tự động filter
+      },
+    });
   };
 
   return (
@@ -102,13 +109,16 @@ const Homepage = () => {
               <p className="mt-4 animate-fadein-slow">
                 Chung tay hiến máu – Trao sự sống, gieo hy vọng cho cộng đồng.
               </p>
-              <div className="mt-6 mx-auto max-w-xl">
-                <DateFilter
-                  onSearch={handleSearch}
-                  onDateChange={setDateRange}
-                  startDate={startDate}
-                  endDate={endDate}
-                />
+              <div className="flex justify-center mt-4">
+                <div className="w-full max-w-xl">
+                  <DateFilter
+                    onSearch={handleSearch}
+                    onDateChange={setDateRange}
+                    startDate={startDate}
+                    endDate={endDate}
+                    modernStyle={true}
+                  />
+                </div>
               </div>
             </div>
           </div>

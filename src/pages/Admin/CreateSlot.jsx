@@ -3,30 +3,41 @@ import { AnimatePresence, motion } from "framer-motion";
 import useApi from "../../hooks/useApi";
 
 /**
- * CreateSlot –form + modal confirm (hiệu ứng Framer Motion)
+ * CreateSlot – form + modal confirm (hiệu ứng Framer Motion),
+ * kết hợp validate ngày, validate giờ, tạo bulk slots
  */
 export default function CreateSlot() {
+  const { loading, createSlot } = useApi();
+
+  // form data
   const [formData, setFormData] = useState({
-    Slot_Date: "",
+    Start_Date: "",
+    End_Date: "",
     Start_Time: "",
     End_Time: "",
     Max_Volume: "",
   });
 
-  const { loading, createSlot } = useApi();
+  // trạng thái hiển thị và feedback
   const [message, setMessage] = useState({ text: "", type: "" });
   const [timeError, setTimeError] = useState("");
+  const [dateError, setDateError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+  const [creatingSlots, setCreatingSlots] = useState(false);
 
   // HANDLERS
+
+  // Xử lý khi thay đổi input
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    // --- Validate thời gian ---
     if (name === "Start_Time") {
       setFormData((prev) => {
         const updated = { ...prev, Start_Time: value };
         if (prev.End_Time && prev.End_Time <= value) {
           setTimeError("Giờ kết thúc phải sau giờ bắt đầu");
+          // reset End_Time nếu không hợp lệ
           return { ...updated, End_Time: "" };
         }
         setTimeError("");
@@ -34,75 +45,159 @@ export default function CreateSlot() {
       });
       return;
     }
-
     if (name === "End_Time") {
       if (formData.Start_Time && value <= formData.Start_Time) {
         setTimeError("Giờ kết thúc phải sau giờ bắt đầu");
       } else {
         setTimeError("");
       }
-      setFormData({ ...formData, End_Time: value });
+      setFormData((prev) => ({ ...prev, End_Time: value }));
       return;
     }
 
-    setFormData({ ...formData, [name]: value });
+    // --- Validate ngày ---
+    if (name === "Start_Date" || name === "End_Date") {
+      const startDate = name === "Start_Date" ? value : formData.Start_Date;
+      const endDate = name === "End_Date" ? value : formData.End_Date;
+
+      if (startDate && endDate && endDate < startDate) {
+        setDateError("Ngày kết thúc phải sau ngày bắt đầu");
+      } else {
+        setDateError("");
+      }
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      return;
+    }
+
+    // --- Các field còn lại ---
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Chọn khung giờ nhanh
   const handleTimeRangeChange = (e) => {
-    const range = e.target.value;
-    if (!range) {
-      setFormData({ ...formData, Start_Time: "", End_Time: "" });
+    const timeRange = e.target.value;
+    if (!timeRange) {
+      setFormData((prev) => ({
+        ...prev,
+        Start_Time: "",
+        End_Time: "",
+      }));
+      setTimeError("");
       return;
     }
-    const [start, end] = range.split("-");
-    setFormData({ ...formData, Start_Time: start, End_Time: end });
+    const [startTime, endTime] = timeRange.split("-");
+    setFormData((prev) => ({
+      ...prev,
+      Start_Time: startTime,
+      End_Time: endTime,
+    }));
     setTimeError("");
   };
 
-  const validateTimes = () =>
-    !(
-      formData.Start_Time &&
-      formData.End_Time &&
-      formData.End_Time <= formData.Start_Time
-    );
+  // Sinh mảng các ngày từ Start_Date đến End_Date
+  const generateDateRange = (startDate, endDate) => {
+    const dates = [];
+    const curr = new Date(startDate);
+    const last = new Date(endDate);
+    while (curr <= last) {
+      dates.push(curr.toISOString().split("T")[0]);
+      curr.setDate(curr.getDate() + 1);
+    }
+    return dates;
+  };
 
-  // CALL API
-  const submitSlot = async () => {
-    if (!validateTimes()) {
-      setMessage({ text: "Giờ kết thúc phải sau giờ bắt đầu", type: "error" });
+  // Gọi API tạo slot cho từng ngày sau khi confirm
+  const handleSubmit = async () => {
+    // validate bắt buộc
+    if (!formData.Start_Date || !formData.End_Date) {
+      setMessage({
+        text: "Vui lòng chọn ngày bắt đầu và ngày kết thúc",
+        type: "error",
+      });
+      setShowConfirm(false);
+      return;
+    }
+    if (dateError) {
+      setMessage({ text: dateError, type: "error" });
+      setShowConfirm(false);
+      return;
+    }
+    if (!formData.Start_Time || !formData.End_Time) {
+      setMessage({
+        text: "Vui lòng chọn khung giờ",
+        type: "error",
+      });
+      setShowConfirm(false);
+      return;
+    }
+    if (timeError) {
+      setMessage({ text: timeError, type: "error" });
       setShowConfirm(false);
       return;
     }
 
-    try {
-      const payload = {
-        Slot_Date: formData.Slot_Date,
-        Start_Time: formData.Start_Time,
-        End_Time: formData.End_Time,
-        Max_Volume: parseInt(formData.Max_Volume, 10),
-      };
-      await createSlot(payload);
-      setMessage({ text: "Tạo ca hiến máu thành công!", type: "success" });
+    setMessage({ text: "", type: "" });
+    setCreatingSlots(true);
+
+    const datesInRange = generateDateRange(
+      formData.Start_Date,
+      formData.End_Date
+    );
+
+    let successCount = 0,
+      errorCount = 0;
+
+    for (const date of datesInRange) {
+      try {
+        await createSlot({
+          Slot_Date: date,
+          Start_Time: formData.Start_Time,
+          End_Time: formData.End_Time,
+          Max_Volume: parseInt(formData.Max_Volume, 10),
+        });
+        successCount++;
+      } catch (err) {
+        console.error(`Error on ${date}:`, err);
+        errorCount++;
+      }
+    }
+
+    // Thông báo kết quả
+    if (successCount && !errorCount) {
+      setMessage({
+        text: `Tạo thành công ${successCount} ca hiến máu`,
+        type: "success",
+      });
+    } else if (successCount && errorCount) {
+      setMessage({
+        text: `Thành công: ${successCount}, thất bại: ${errorCount} ca`,
+        type: "warning",
+      });
+    } else {
+      setMessage({
+        text: "Tạo thất bại tất cả ca hiến máu",
+        type: "error",
+      });
+    }
+
+    // reset form nếu có ít nhất 1 thành công
+    if (successCount) {
       setFormData({
-        Slot_Date: "",
+        Start_Date: "",
+        End_Date: "",
         Start_Time: "",
         End_Time: "",
         Max_Volume: "",
       });
-    } catch (err) {
-      setMessage({
-        text: err.message || "Đã xảy ra lỗi khi tạo ca hiến máu",
-        type: "error",
-      });
-    } finally {
-      setShowConfirm(false);
     }
+
+    setCreatingSlots(false);
+    setShowConfirm(false);
   };
 
-  // UI
   return (
     <div className="max-w-md mx-auto mt-10 bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-center text-lg font-semibold text-blue-600 mb-6">
+      <h2 className="text-center text-lg font-semibold text-red-600 mb-6">
         Tạo Ca Hiến Máu
       </h2>
 
@@ -111,6 +206,8 @@ export default function CreateSlot() {
           className={`mb-4 p-3 rounded text-center ${
             message.type === "success"
               ? "bg-green-100 text-green-700"
+              : message.type === "warning"
+              ? "bg-yellow-100 text-yellow-700"
               : "bg-red-100 text-red-700"
           }`}
         >
@@ -118,21 +215,49 @@ export default function CreateSlot() {
         </div>
       )}
 
-      {/* FORM */}
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setShowConfirm(true);
+        }}
+        className="space-y-4"
+      >
+        {/* Ngày Bắt Đầu */}
         <div>
-          <label className="block text-sm font-medium mb-1">Ngày</label>
+          <label className="block text-sm font-medium mb-1">Ngày Bắt Đầu</label>
           <input
             type="date"
-            name="Slot_Date"
-            value={formData.Slot_Date}
+            name="Start_Date"
+            value={formData.Start_Date}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded px-3 py-2"
             required
-            min={new Date().toLocaleDateString("en-CA")}
+            min={new Date().toISOString().split("T")[0]}
           />
         </div>
 
+        {/* Ngày Kết Thúc */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Ngày Kết Thúc
+          </label>
+          <input
+            type="date"
+            name="End_Date"
+            value={formData.End_Date}
+            onChange={handleChange}
+            className={`w-full border ${
+              dateError ? "border-red-500" : "border-gray-300"
+            } rounded px-3 py-2`}
+            required
+            min={formData.Start_Date || new Date().toISOString().split("T")[0]}
+          />
+          {dateError && (
+            <p className="text-red-500 text-xs mt-1">{dateError}</p>
+          )}
+        </div>
+
+        {/* Khung Giờ */}
         <div>
           <label className="block text-sm font-medium mb-1">Khung Giờ</label>
           <select
@@ -143,6 +268,7 @@ export default function CreateSlot() {
             }
             onChange={handleTimeRangeChange}
             className="w-full border border-gray-300 rounded px-3 py-2"
+            required
           >
             <option value="">Chọn khung giờ hiến máu</option>
             <option value="07:00-11:00">07:00 - 11:00</option>
@@ -150,36 +276,7 @@ export default function CreateSlot() {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Giờ Bắt Đầu</label>
-          <input
-            type="time"
-            name="Start_Time"
-            value={formData.Start_Time}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Giờ Kết Thúc</label>
-          <input
-            type="time"
-            name="End_Time"
-            value={formData.End_Time}
-            onChange={handleChange}
-            className={`w-full border ${
-              timeError ? "border-red-500" : "border-gray-300"
-            } rounded px-3 py-2`}
-            required
-            disabled={!formData.Start_Time}
-          />
-          {timeError && (
-            <p className="text-red-500 text-xs mt-1">{timeError}</p>
-          )}
-        </div>
-
+        {/* Sức Chứa Tối Đa */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Sức Chứa Tối Đa (Người)
@@ -196,35 +293,46 @@ export default function CreateSlot() {
           />
         </div>
 
+        {/* Nút Tạo */}
         <button
-          type="button"
-          onClick={() => setShowConfirm(true)}
-          disabled={loading || !!timeError}
+          type="submit"
+          disabled={loading || creatingSlots || !!dateError || !!timeError}
           className={`w-full ${
-            loading || timeError
-              ? "bg-blue-400"
-              : "bg-blue-600 hover:bg-blue-700"
+            loading || creatingSlots || dateError || timeError
+              ? "bg-red-400 cursor-not-allowed"
+              : "bg-red-600 hover:bg-red-700"
           } text-white py-2 rounded transition`}
         >
-          {loading ? "Đang xử lý..." : "Tạo Ca Hiến Máu"}
+          {creatingSlots ? "Đang tạo ca hiến máu..." : "Tạo Ca Hiến Máu"}
         </button>
+
+        {/* Thông báo khoảng ngày sẽ tạo */}
+        {formData.Start_Date && formData.End_Date && !dateError && (
+          <p className="text-sm text-gray-600 text-center">
+            Sẽ tạo ca hiến máu từ{" "}
+            {new Date(formData.Start_Date).toLocaleDateString("vi-VN")} đến{" "}
+            {new Date(formData.End_Date).toLocaleDateString("vi-VN")}
+          </p>
+        )}
       </form>
 
-      {/* MODAL XÁC NHẬN */}
+      {/* Modal Xác Nhận */}
       <AnimatePresence>
         {showConfirm && (
           <>
             {/* Overlay */}
             <motion.div
               className="fixed inset-0 bg-black/40 z-40"
-              onClick={() => !loading && setShowConfirm(false)}
+              onClick={() =>
+                !(loading || creatingSlots) && setShowConfirm(false)
+              }
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
             />
 
-            {/* Wrapper center */}
+            {/* Modal */}
             <motion.div
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
               initial={{ opacity: 0 }}
@@ -243,27 +351,31 @@ export default function CreateSlot() {
                   Xác nhận tạo ca?
                 </h3>
                 <p className="text-sm text-gray-600 mb-6">
-                  Tạo ca hiến máu ngày <b>{formData.Slot_Date || "--"}</b> từ{" "}
-                  <b>{formData.Start_Time || "--:--"}</b> đến{" "}
-                  <b>{formData.End_Time || "--:--"}</b>?
+                  Tạo ca hiến máu từ ngày <b>{formData.Start_Date}</b> đến{" "}
+                  <b>{formData.End_Date}</b>, khung giờ{" "}
+                  <b>
+                    {formData.Start_Time} - {formData.End_Time}
+                  </b>
+                  ?
                 </p>
-
                 <div className="flex justify-end gap-3">
                   <button
                     className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800"
                     onClick={() => setShowConfirm(false)}
-                    disabled={loading}
+                    disabled={loading || creatingSlots}
                   >
                     Huỷ
                   </button>
                   <button
                     className={`px-4 py-2 text-white rounded ${
-                      loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
+                      loading || creatingSlots
+                        ? "bg-blue-400"
+                        : "bg-blue-600 hover:bg-blue-700"
                     }`}
-                    onClick={submitSlot}
-                    disabled={loading}
+                    onClick={handleSubmit}
+                    disabled={loading || creatingSlots}
                   >
-                    {loading ? "Đang tạo..." : "Xác nhận"}
+                    {loading || creatingSlots ? "Đang tạo..." : "Xác nhận"}
                   </button>
                 </div>
               </motion.div>

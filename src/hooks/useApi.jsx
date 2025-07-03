@@ -116,6 +116,17 @@ const useApi = () => {
     });
   }, [callApi]);
 
+  const getAppointments = useCallback(async () => {
+    return callApi('/appointment');
+  }, [callApi]);
+
+  const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
+    return callApi(`/appointment/${appointmentId}/addVolume`, {
+      method: 'POST',
+      body: JSON.stringify({ volume })
+    });
+  }, [callApi]);
+
   return {
     loading,
     error,
@@ -127,7 +138,9 @@ const useApi = () => {
     getSlotList,
     registerSlot,
     createSlot,
-    isLoggedIn: isLoggedIn()
+    isLoggedIn: isLoggedIn(),
+    getAppointments,
+    addAppointmentVolume
   };
 };
 
