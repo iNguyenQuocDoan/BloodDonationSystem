@@ -117,7 +117,7 @@ const useApi = () => {
   }, [callApi]);
 
   const getAppointments = useCallback(async () => {
-    return callApi('/appointment');
+    return callApi('/getAppointmentList');
   }, [callApi]);
 
   const addAppointmentVolume = useCallback(async (appointmentId, volume) => {

@@ -13,7 +13,7 @@ const DonateBlood = () => {
   const [startDate, endDate] = dateRange;
   const [isSearching, setIsSearching] = useState(false);
   const [myRegistrations, setMyRegistrations] = useState([]);
-  
+
   const { loading, error, getSlotList, registerSlot, getCurrentUser } = useApi();
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,17 +22,17 @@ const DonateBlood = () => {
   useEffect(() => {
     if (location.state?.startDate || location.state?.endDate) {
       const { startDate: navStartDate, endDate: navEndDate, shouldFilter } = location.state;
-      
+
       console.log("Received from homepage:", { navStartDate, navEndDate, shouldFilter });
-      
+
       // Set date range từ homepage
       setDateRange([navStartDate, navEndDate]);
-      
+
       // Nếu có flag shouldFilter và đã có slots, tự động filter
       if (shouldFilter && slots.length > 0) {
         filterSlotsByDateWithParams(navStartDate, navEndDate);
       }
-      
+
       // Clear navigation state sau khi sử dụng
       window.history.replaceState({}, document.title);
     }
@@ -47,7 +47,7 @@ const DonateBlood = () => {
           const userRes = await getCurrentUser();
           setUser(userRes.data);
         }
-        
+
         const slotsRes = await getSlotList();
         setSlots(slotsRes.data);
         setFilteredSlots(slotsRes.data);
@@ -118,14 +118,14 @@ const DonateBlood = () => {
         confirmButtonText: 'Xác nhận',
         cancelButtonText: 'Hủy'
       });
-      
+
       if (result.isConfirmed) {
         navigate("/login");
       }
       return;
     }
     if (user.user_role !== "member") {
-      toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu"),{
+      toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu"), {
         position: "top-right",
         autoClose: 3000
       }
@@ -150,9 +150,104 @@ const DonateBlood = () => {
         return;
       }
     }
-    await registerSlot(slotId, user.user_id);
-    toast.success("Đăng ký hiến máu thành công!");
-    fetchSlots(); // Refresh slots after successful registration
+    try {
+      const selectedSlot = slots.find(slot => slot.Slot_ID === slotId);
+      if (!selectedSlot) {
+        toast.error("Không tìm thấy thông tin ca hiến máu!");
+        return;
+      }
+
+      // Custom confirmation popup
+      const result = await Swal.fire({
+        title: '<span style="color: #dc2626;">🩸 Xác nhận đăng ký hiến máu</span>',
+        html: `
+          <div style="text-align: left; padding: 20px;">
+            <!-- Thông tin người dùng -->
+            <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                  <span style="color: white; font-size: 20px; font-weight: bold;">${(user.full_name || 'U').charAt(0).toUpperCase()}</span>
+                </div>
+                <div>
+                  <h4 style="color: #16a34a; margin: 0; font-size: 18px;">👤 ${user.full_name || 'Người dùng'}</h4>
+                  <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">${user.email || 'Chưa cập nhật email'}</p>
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                <div><strong>📱 SĐT:</strong> ${user.phone || 'Chưa cập nhật'}</div>
+                <div><strong>🎂 Tuổi:</strong> ${user.date_of_birth ? new Date().getFullYear() - new Date(user.date_of_birth).getFullYear() : 'Chưa rõ'}</div>
+                <div><strong>⚧ Giới tính:</strong> ${user.gender === 'M' ? 'Nam' : user.gender === 'F' ? 'Nữ' : 'Chưa rõ'}</div>
+                <div><strong>🏠 Địa chỉ:</strong> ${user.address ? (user.address.length > 20 ? user.address.substring(0, 20) + '...' : user.address) : 'Chưa cập nhật'}</div>
+              </div>
+            </div>
+            
+            <!-- Thông tin ca hiến máu -->
+            <div style="background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <h4 style="color: #dc2626; margin: 0 0 15px 0; font-size: 16px;">📅 Chi tiết ca hiến máu</h4>
+              <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
+                <p style="margin: 8px 0; font-size: 15px;"><strong>📆 Ngày:</strong> <span style="color: #dc2626;">${formatDateVN(selectedSlot.Slot_Date)}</span></p>
+                <p style="margin: 8px 0; font-size: 15px;"><strong>🕐 Thời gian:</strong> <span style="color: #dc2626;">${formatTimeVN(selectedSlot.Start_Time)} - ${formatTimeVN(selectedSlot.End_Time)}</span></p>
+                <p style="margin: 8px 0; font-size: 15px;"><strong>👥 Lượt đăng ký:</strong> <span style="color: ${parseInt(selectedSlot.Volume || 0) >= parseInt(selectedSlot.Max_Volume || 0) * 0.8 ? '#dc2626' : '#16a34a'};">${selectedSlot.Volume || 0}/${selectedSlot.Max_Volume || 0} người</span></p>
+              </div>
+            </div>
+            
+            <!-- Lưu ý quan trọng -->
+            <div style="background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+              <h4 style="color: #1d4ed8; margin: 0 0 15px 0; display: flex; align-items: center;">
+                <span style="margin-right: 8px;">⚠️</span> Điều kiện hiến máu
+              </h4>
+              <div style="background: white; padding: 15px; border-radius: 8px;">
+                <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                  <li>Đến đúng giờ, muộn nhất 30 phút sau giờ bắt đầu</li>
+                  <li>Không uống rượu bia, thuốc lá trong 24h trước</li>
+                  <li>Ăn uống đầy đủ, uống nhiều nước trước khi đến</li>
+                  <li>Nghỉ ngơi đầy đủ, không thức khuya</li>
+
+                </ul>
+              </div>
+            </div>
+            
+            ${!user.phone || !user.address || !user.full_name ? `
+              <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                <p style="margin: 0; font-size: 14px; color: #92400e;">
+                  <strong>📋 Lưu ý:</strong> Một số thông tin cá nhân chưa được cập nhật. 
+                  Vui lòng hoàn thiện hồ sơ để quá trình hiến máu được thuận lợi hơn.
+                </p>
+              </div>
+            ` : ''}
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '✅ Xác nhận đăng ký',
+        cancelButtonText: '❌ Hủy bỏ',
+        width: '700px',
+        padding: '0'
+      });
+
+      if (result.isConfirmed) {
+        await registerSlot(slotId, user.user_id);
+        toast.success("Đăng ký hiến máu thành công!");
+
+        // Refresh data sau khi đăng ký thành công
+        const slotsRes = await getSlotList();
+        setSlots(slotsRes.data);
+        setFilteredSlots(slotsRes.data);
+
+        // Cập nhật lại registration data nếu cần
+        if (user?.user_id) {
+          // Gọi API để lấy lại danh sách đăng ký của user
+          // const userRegistrations = await getUserRegistrations(user.user_id);
+          // setMyRegistrations(userRegistrations.data);
+        }
+      }
+
+    } catch (error) {
+      console.error("Error registering slot:", error);
+      toast.error("Đăng ký thất bại. Vui lòng thử lại!");
+    }
   };
 
   // Helper kiểm tra user đã đăng ký hiến máu trong vòng 1 tháng gần nhất chưa
