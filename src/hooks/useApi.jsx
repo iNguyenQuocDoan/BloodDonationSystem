@@ -127,6 +127,14 @@ const useApi = () => {
     });
   }, [callApi]);
 
+  //Emergency Request API
+  const addEmergencyRequest = useCallback(async (requestData) => {
+    return callApi('/addEmergencyRequest', {
+      method: 'POST',
+      body: JSON.stringify(requestData)
+    });
+  }, [callApi]);
+
   return {
     loading,
     error,
@@ -140,7 +148,8 @@ const useApi = () => {
     createSlot,
     isLoggedIn: isLoggedIn(),
     getAppointments,
-    addAppointmentVolume
+    addAppointmentVolume,
+    addEmergencyRequest
   };
 };
 

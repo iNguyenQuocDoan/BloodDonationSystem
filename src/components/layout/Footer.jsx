@@ -17,7 +17,7 @@ const Footer = () => {
             <h3 className="font-semibold text-xl mb-2">Địa chỉ của chúng tôi</h3>
             <p className="text-base">Địa chỉ: 123 A Street, District B, HCMC</p>
             <p className="text-base">Hotline: 0123 456 789</p>
-            <p className="text-base">Email: support@bloodshare.vn</p>
+            <p className="text-base">Email: daivietblood@gmail.com</p>
           </div>
           {/* Box 2: Lịch khám */}
           <div className="bg-[#23272f] rounded-lg p-6 flex flex-col items-center justify-center text-white min-h-[180px] h-full text-center">
