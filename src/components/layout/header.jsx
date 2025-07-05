@@ -55,19 +55,26 @@ export default function Header() {
    * --------------------------------------------------------- */
   return (
     <header className="w-full bg-white shadow">
-      <div className="container mx-auto">
-        <div className="flex justify-between items-center px-[20px] py-[8px]">
+      <div className="max-w-screen-xl mx-auto w-full px-1 sm:px-2 md:px-4">
+        <div className="flex justify-between items-center py-2 md:py-3">
           {/* Logo */}
           <NavLink
             to="/"
-            className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[23px] text-[22px]"
+            className="font-[900] flex items-center text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[22px] sm:text-[18px] text-[15px] min-w-[80px]"
           >
-            DaiVietBlood
+            <img
+              src="/image.png"
+              alt="DaiVietBlood"
+              className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 object-contain mr-1 sm:mr-2"
+            />
+            <span className="ml-1 xl:text-[31px] lg:text-[27px] md:text-[22px] sm:text-[18px] text-[15px]">
+              DaiVietBlood
+            </span>
           </NavLink>
 
           {/* ----- NAVBAR DESKTOP (căn giữa) ----- */}
           <nav className="hidden md:flex flex-1 justify-center">
-            <ul className="flex xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
+            <ul className="flex xl:gap-x-[24px] lg:gap-x-[15px] md:gap-x-[10px] sm:gap-x-[8px] gap-x-[6px] xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[12px] text-[11px]">
               <li>
                 <NavLink to="/" end className={navItemClass}>
                   Trang chủ
@@ -92,7 +99,7 @@ export default function Header() {
           </nav>
 
           {/* ----- AVATAR / AUTH DESKTOP ----- */}
-          <div className="hidden md:flex items-center xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px]">
+          <div className="hidden md:flex items-center gap-1 xl:text-[20px] lg:text-[19px] md:text-[14px] sm:text-[12px] text-[11px]">
             {isLoggedIn && role === "member" ? (
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -140,17 +147,18 @@ export default function Header() {
 
           {/* ----- BURGER ICON (MOBILE) ----- */}
           <button
-            className="md:hidden text-[#D32F2F] text-2xl"
+            className="md:hidden text-[#D32F2F] text-2xl p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F]"
             onClick={() => setIsOpen(!isOpen)}
+            aria-label="Mở menu"
           >
-            ☰
+            <span className="sr-only">Mở menu</span>☰
           </button>
         </div>
 
         {/* ----- MENU MOBILE ----- */}
         {isOpen && (
-          <nav className="md:hidden bg-white border-t">
-            <ul className="flex flex-col px-[26px] py-[12px] gap-y-2 text-[14px]">
+          <nav className="md:hidden bg-white border-t animate-fade-in-down">
+            <ul className="flex flex-col px-4 py-3 gap-y-2 text-[15px]">
               {[
                 { to: "/", label: "Trang chủ", exact: true },
                 { to: "/faq", label: "FAQ" },
@@ -164,7 +172,7 @@ export default function Header() {
                     onClick={() => setIsOpen(false)}
                     className={({ isActive }) =>
                       [
-                        "block rounded-md px-3 py-2 font-medium",
+                        "block rounded-md px-3 py-2 font-medium transition-colors duration-150",
                         isActive
                           ? "bg-[#D32F2F]/10 text-[#D32F2F] border-b-2 border-b-red-500"
                           : "hover:bg-gray-100/40",
