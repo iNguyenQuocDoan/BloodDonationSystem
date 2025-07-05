@@ -108,7 +108,7 @@ export default function CreateSlot() {
 
   // Gọi API tạo slot cho từng ngày sau khi confirm
   const handleSubmit = async () => {
-    // validate bắt buộc
+    // validate bắt buộc (giữ nguyên)
     if (!formData.Start_Date || !formData.End_Date) {
       setMessage({
         text: "Vui lòng chọn ngày bắt đầu và ngày kết thúc",
@@ -144,9 +144,11 @@ export default function CreateSlot() {
       formData.End_Date
     );
 
-    let successCount = 0,
-      errorCount = 0;
+    let successCount = 0;
+    const errorDetails = [];
+    const totalSlots = datesInRange.length;
 
+    // Dừng ngay khi gặp lỗi đầu tiên
     for (const date of datesInRange) {
       try {
         await createSlot({
@@ -158,38 +160,36 @@ export default function CreateSlot() {
         successCount++;
       } catch (err) {
         console.error(`Error on ${date}:`, err);
-        errorCount++;
+
+        // Lưu lỗi đầu tiên và DỪNG
+        const errorMessage =
+          err.response?.data?.message || err.message || "Lỗi không xác định";
+        
+        setMessage({
+          text: `❌ Tạo ca thất bại!\n\nLỗi tại ngày ${new Date(date).toLocaleDateString("vi-VN")} (${formData.Start_Time} - ${formData.End_Time}):\n${errorMessage}\n\n⚠️ Đã tạo thành công ${successCount} ca trước đó.`,
+          type: "error",
+        });
+        
+        setCreatingSlots(false);
+        setShowConfirm(false);
+        return; // DỪNG TẠI ĐÂY
       }
     }
 
-    // Thông báo kết quả
-    if (successCount && !errorCount) {
-      setMessage({
-        text: `Tạo thành công ${successCount} ca hiến máu`,
-        type: "success",
-      });
-    } else if (successCount && errorCount) {
-      setMessage({
-        text: `Thành công: ${successCount}, thất bại: ${errorCount} ca`,
-        type: "warning",
-      });
-    } else {
-      setMessage({
-        text: "Tạo thất bại tất cả ca hiến máu",
-        type: "error",
-      });
-    }
-
-    // reset form nếu có ít nhất 1 thành công
-    if (successCount) {
-      setFormData({
-        Start_Date: "",
-        End_Date: "",
-        Start_Time: "",
-        End_Time: "",
-        Max_Volume: "",
-      });
-    }
+    // Chỉ đến đây khi TẤT CẢ thành công
+    setMessage({
+      text: `✅ Tạo thành công tất cả ${successCount} ca hiến máu`,
+      type: "success",
+    });
+    
+    // Reset form khi thành công hoàn toàn
+    setFormData({
+      Start_Date: "",
+      End_Date: "",
+      Start_Time: "",
+      End_Time: "",
+      Max_Volume: "",
+    });
 
     setCreatingSlots(false);
     setShowConfirm(false);
@@ -201,9 +201,10 @@ export default function CreateSlot() {
         Tạo Ca Hiến Máu
       </h2>
 
+      {/* Sửa phần hiển thị message để hỗ trợ nhiều dòng */}
       {message.text && (
         <div
-          className={`mb-4 p-3 rounded text-center ${
+          className={`mb-4 p-3 rounded text-left whitespace-pre-line ${
             message.type === "success"
               ? "bg-green-100 text-green-700"
               : message.type === "warning"
@@ -250,7 +251,9 @@ export default function CreateSlot() {
               dateError ? "border-red-500" : "border-gray-300"
             } rounded px-3 py-2`}
             required
-            min={formData.Start_Date || new Date().toISOString().split("T")[0]}
+            min={
+              formData.Start_Date || new Date().toISOString().split("T")[0]
+            }
           />
           {dateError && (
             <p className="text-red-500 text-xs mt-1">{dateError}</p>
