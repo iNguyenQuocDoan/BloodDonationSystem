@@ -99,12 +99,13 @@ const useApi = () => {
     return callApi('/getSlotList');
   }, [callApi]);
 
-  const registerSlot = useCallback(async (slotId, user_id) => {
+  const registerSlot = useCallback(async (slotId, user_id, extraData = {}) => {
     return callApi('/registerSlot', {
       method: 'POST',
       body: JSON.stringify({
         Slot_ID: slotId,
-        User_ID: user_id
+        User_ID: user_id,
+        ...extraData
       })
     });
   }, [callApi]);
@@ -116,11 +117,22 @@ const useApi = () => {
     });
   }, [callApi]);
 
+  const updateUser = useCallback(async (userData) => {
+    return callApi('/updateUser', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  }, [callApi]);
+
+  const getBloodTypes = useCallback(async () => {
+    return callApi('/bloodtypes');
+  }, [callApi]);
+
   const getAppointments = useCallback(async () => {
     return callApi('/getAppointmentList');
   }, [callApi]);
 
-  const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
+   const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
     return callApi(`/appointment/${appointmentId}/addVolume`, {
       method: 'POST',
       body: JSON.stringify({ volume })
@@ -146,8 +158,10 @@ const useApi = () => {
     getSlotList,
     registerSlot,
     createSlot,
-    isLoggedIn: isLoggedIn(),
+    updateUser,
+    getBloodTypes,
     getAppointments,
+    isLoggedIn: isLoggedIn(),
     addAppointmentVolume,
     addEmergencyRequest
   };

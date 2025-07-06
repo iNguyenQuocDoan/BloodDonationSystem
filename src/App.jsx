@@ -68,7 +68,7 @@ function App() {
           </Route>
 
           {/* Các route yêu cầu đăng nhập */}
-          <Route element={<ProtectedRoute requireAuth={true} />}>
+          <Route element={<ProtectedRoute requireAuth={true} allowedRoles={["member"]} />}>
             <Route element={<LayoutDeFault />}>
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/emergency" element={<EmergencyRequest />} />
@@ -89,6 +89,7 @@ function App() {
                 path="/manage-emergency"
                 element={<ManageEmergencyPage />}
               />
+              <Route path="/staff/profile" element={<ProfilePage />} />
             </Route>
           </Route>
 

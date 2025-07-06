@@ -59,6 +59,12 @@ const DonateBlood = () => {
     fetchData();
   }, [getCurrentUser, getSlotList]);
 
+  // useEffect(() => {
+  //   if (user && user.user_id) {
+  //     fetchMyRegistrations();
+  //   }
+  // }, [user]);
+
   // Auto-filter khi có slots và có date từ homepage
   useEffect(() => {
     if (location.state?.shouldFilter && slots.length > 0 && (location.state?.startDate || location.state?.endDate)) {
@@ -67,7 +73,19 @@ const DonateBlood = () => {
     }
   }, [slots, location.state]);
 
-  // Existing functions...
+  // const fetchMyRegistrations = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `/api/appointments/history?userId=${user.user_id}`
+  //     );
+  //     const data = await response.json();
+  //     setMyRegistrations(data.data || []);
+  //   } catch (err) {
+  //     setMyRegistrations([]);
+  //   }
+  // };
+
+  // Logic tìm kiếm từ code đầu
   const filterSlotsByDateWithParams = useCallback((startDateStr, endDateStr) => {
     if (!startDateStr && !endDateStr) {
       setFilteredSlots(slots);
@@ -237,11 +255,9 @@ const DonateBlood = () => {
         setFilteredSlots(slotsRes.data);
 
         // Cập nhật lại registration data nếu cần
-        if (user?.user_id) {
-          // Gọi API để lấy lại danh sách đăng ký của user
-          // const userRegistrations = await getUserRegistrations(user.user_id);
-          // setMyRegistrations(userRegistrations.data);
-        }
+        // if (user?.user_id) {
+        //   fetchMyRegistrations();
+        // }
       }
 
     } catch (error) {
@@ -338,6 +354,13 @@ const DonateBlood = () => {
     return myRegistrations && myRegistrations.length > 0;
   }, [myRegistrations]);
 
+  // Sắp xếp slot theo ngày tăng dần
+  const sortedFilteredSlots = [...filteredSlots].sort((a, b) => {
+    const dateA = new Date((a.Slot_Date || '').slice(0, 10) + 'T00:00:00').getTime();
+    const dateB = new Date((b.Slot_Date || '').slice(0, 10) + 'T00:00:00').getTime();
+    return dateA - dateB;
+  });
+
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold text-center mb-8 text-red-600">
@@ -372,10 +395,8 @@ const DonateBlood = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSlots.map((slot) => {
-            const isSlotFull =
-              slot.Status !== "A" ||
-              parseInt(slot.Volume) >= parseInt(slot.Max_Volume);
+          {sortedFilteredSlots.map((slot) => {
+            const isSlotFull = slot.Status !== 'A' || (parseInt(slot.Volume) >= parseInt(slot.Max_Volume));
 
             // Kiểm tra user đã đăng ký slot này chưa
             const isRegistered =
@@ -399,6 +420,7 @@ const DonateBlood = () => {
                 slot.End_Time
               );
             }
+
             // Tìm ca đăng ký gần nhất
             const isLatestSlot =
               latestRegistration && slot.Slot_ID === latestRegistration.Slot_ID;
@@ -508,68 +530,51 @@ const DonateBlood = () => {
         </div>
       )}
 
-      {/* Hiển thị danh sách ca đã đăng ký của tôi */}
-      {/* PHẦN NÀY ĐÃ ĐƯỢC LÀM ĐẸP Ở DƯỚI, XÓA HOÀN TOÀN ĐỂ KHÔNG BỊ THỪA */}
-
       {/* Hiển thị lịch sử đăng ký hiến máu của bạn */}
       {user && (
         <div className="mt-10 mb-8">
-          <h2 className="text-2xl font-bold text-red-600 mb-4 text-center">
-            Lịch sử đăng ký hiến máu của bạn
-          </h2>
+          <h2 className="text-2xl font-bold text-red-600 mb-6 text-center uppercase tracking-wide drop-shadow">Lịch sử đăng ký hiến máu của bạn</h2>
           {myRegistrations && myRegistrations.length === 0 ? (
-            <div className="text-center text-gray-500">
-              Bạn chưa đăng ký hiến máu nào.
-            </div>
+            <div className="text-center text-gray-500 py-8 bg-white rounded-lg shadow-md">Bạn chưa đăng ký hiến máu nào.</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white rounded shadow">
+              <table className="min-w-full bg-white rounded-xl shadow-lg border border-gray-200">
                 <thead className="bg-red-100">
                   <tr>
-                    <th className="px-4 py-2">Ngày</th>
-                    <th className="px-4 py-2">Khung giờ</th>
-                    <th className="px-4 py-2">Trạng thái</th>
-                    <th className="px-4 py-2">Lý do từ chối</th>
+                    <th className="px-6 py-3 text-center text-base font-semibold">Ngày</th>
+                    <th className="px-6 py-3 text-center text-base font-semibold">Khung giờ</th>
+                    <th className="px-6 py-3 text-center text-base font-semibold">Trạng thái</th>
+                    <th className="px-6 py-3 text-center text-base font-semibold">Lý do từ chối</th>
                   </tr>
                 </thead>
                 <tbody>
                   {myRegistrations &&
-                    myRegistrations.map((reg) => (
-                      <tr
-                        key={reg.Appointment_ID}
-                        className="border-b hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-2">
-                          {formatDateVN(reg.Slot_Date)}
-                        </td>
-                        <td className="px-4 py-2">
-                          {formatTimeVN(reg.Start_Time)} -{" "}
-                          {formatTimeVN(reg.End_Time)}
-                        </td>
-                        <td className="px-4 py-2">
-                          {reg.Status === "P" && (
-                            <span className="text-yellow-600 font-semibold">
-                              Chờ xác nhận
-                            </span>
-                          )}
-                          {reg.Status === "A" && (
-                            <span className="text-green-600 font-semibold">
-                              Được hiến
-                            </span>
-                          )}
-                          {reg.Status === "R" && (
-                            <span className="text-red-600 font-semibold">
-                              Từ chối
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-2">
-                          {reg.Status === "R" && reg.Reject_Reason
-                            ? reg.Reject_Reason
-                            : "-"}
-                        </td>
-                      </tr>
-                    ))}
+                    myRegistrations.map((reg) => {
+                      // Tìm slot tương ứng
+                      const slot = slots.find(s => s.Slot_ID === reg.Slot_ID);
+                      const startTime = slot ? slot.Start_Time : reg.Start_Time;
+                      const endTime = slot ? slot.End_Time : reg.End_Time;
+                      return (
+                        <tr key={reg.Appointment_ID} className="border-b hover:bg-gray-50 text-center">
+                          <td className="px-6 py-3">{formatDateVN(reg.Slot_Date)}</td>
+                          <td className="px-6 py-3 font-mono text-sm text-blue-700">
+                            {formatTimeVN(startTime)}{formatTimeVN(endTime) ? ` - ${formatTimeVN(endTime)}` : ""}
+                          </td>
+                          <td className="px-6 py-3">
+                            {reg.Status === "P" && (
+                              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Chờ xác nhận</span>
+                            )}
+                            {reg.Status === "A" && (
+                              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Được hiến</span>
+                            )}
+                            {reg.Status === "R" && (
+                              <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Từ chối</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-3 text-gray-700">{reg.Status === "R" && reg.Reject_Reason ? reg.Reject_Reason : "-"}</td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
