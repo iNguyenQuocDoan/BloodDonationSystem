@@ -27,7 +27,11 @@ const Homepage = () => {
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    navigate("/donate", { state: { startDate, endDate } });
+    // Lưu vào localStorage để /donate lấy lại đúng khoảng
+    if (startDate && endDate) {
+      localStorage.setItem('donate_date_range', JSON.stringify([startDate, endDate]));
+    }
+    navigate('/donate', { state: { startDate, endDate } });
   };
 
   return (

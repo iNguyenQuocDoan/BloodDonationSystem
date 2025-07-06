@@ -5,7 +5,7 @@ import useApi from "../../hooks/useApi";
 // nav item classes for staff: maintain border and font to prevent shift
 const staffNavItemClass = ({ isActive }) =>
   [
-    "px-3 py-2 rounded-md transition-colors duration-200 font-medium border-b-2 border-b-transparent",
+    "px-4 py-2 rounded-md transition-colors duration-200 font-medium border-b-2 border-b-transparent whitespace-nowrap min-w-[150px] text-center",
     isActive
       ? "border-b-red-500 text-[#D32F2F] bg-[#FDE8E8]"
       : "text-black hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40",
@@ -54,85 +54,83 @@ const HeaderStaff = () => {
       </div>
 
       <header className="w-full bg-white shadow">
-        <div className="mx-auto">
-          <div className="flex justify-between items-center px-[20px] py-[8px]">
+        <div className="mx-auto max-w-full">
+          <div className="flex items-center px-[20px] py-[10px]">
             <NavLink
               to="/"
-              className="font-[900] text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[23px] text-[22px]"
+              className="font-[900] text-[#D32F2F] xl:text-[28px] lg:text-[26px] md:text-[24px] text-[22px] whitespace-nowrap mr-8"
             >
               DaiVietBlood
             </NavLink>
-
-            {/* Desktop nav for staff */}
-            <nav className="hidden md:flex">
-              <ul className="flex xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
-                <li>
-                  <NavLink to="/dashboard" className={staffNavItemClass}>
-                    Báo cáo thống kê
+            <div className="flex flex-1 items-center justify-center">
+              <nav className="hidden md:flex">
+                <ul className="flex gap-x-[18px] xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] items-center">
+                  <li>
+                    <NavLink to="/dashboard" className={staffNavItemClass + ' whitespace-nowrap'}>
+                      Báo cáo thống kê
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/confirm-blood" className={staffNavItemClass + ' whitespace-nowrap'}>
+                      Xác nhận nhóm máu
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/manage-emergency" className={staffNavItemClass + ' whitespace-nowrap'}>
+                      Yêu cầu khẩn cấp
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/edit-blood" className={staffNavItemClass + ' whitespace-nowrap'}>
+                      Quản lý danh sách hiến máu
+                    </NavLink>
+                  </li>
+                </ul>
+              </nav>
+              {/* Avatar staff luôn sát menu */}
+              <div className="hidden md:flex items-center ml-4">
+                {isLoggedIn && role === "staff" ? (
+                  <div className="relative flex items-center">
+                    <button
+                      onClick={() => setDropdown(!dropdown)}
+                      className="w-9 h-9 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg"
+                    >
+                      ST
+                    </button>
+                    {dropdown && (
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+                        <ul className="py-2 text-[18px]">
+                          <li>
+                            <NavLink
+                              to="/update-profile"
+                              className="block px-4 py-2 hover:bg-gray-100"
+                              onClick={() => setDropdown(false)}
+                            >
+                              Cập nhật trang cá nhân
+                            </NavLink>
+                          </li>
+                          <li>
+                            <button
+                              onClick={logout}
+                              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F]"
+                            >
+                              Đăng xuất
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <NavLink to="/login" className="hover:underline ml-2">
+                    Đăng nhập
                   </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/confirm-blood" className={staffNavItemClass}>
-                    Xác nhận nhóm máu
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/manage-emergency" className={staffNavItemClass}>
-                    Yêu cầu khẩn cấp
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/edit-blood" className={staffNavItemClass}>
-                    Quản lý danh sách hiến máu
-                  </NavLink>
-                </li>
-              </ul>
-            </nav>
-
-            {/* Desktop auth/avatar */}
-            <div className="hidden md:flex items-center xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px]">
-              {isLoggedIn && role === "staff" ? (
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setDropdown(!dropdown)}
-                    className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg"
-                  >
-                    ST
-                  </button>
-                  {dropdown && (
-                    <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
-                      <ul className="py-2 text-[14px]">
-                        <li>
-                          <NavLink
-                            to="/update-profile"
-                            className="block px-4 py-2 hover:bg-gray-100"
-                            onClick={() => setDropdown(false)}
-                          >
-                            Cập nhật trang cá nhân
-                          </NavLink>
-                        </li>
-                        <li>
-                          <button
-                            onClick={logout}
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F]"
-                          >
-                            Đăng xuất
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <NavLink to="/login" className="hover:underline mr-[12px]">
-                  Đăng nhập
-                </NavLink>
-              )}
+                )}
+              </div>
             </div>
-
             {/* Mobile burger */}
             <button
-              className="md:hidden text-[#D32F2F] text-2xl"
+              className="md:hidden text-[#D32F2F] text-xl"
               onClick={() => setIsOpen(!isOpen)}
             >
               ☰

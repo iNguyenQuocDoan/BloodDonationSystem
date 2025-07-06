@@ -99,12 +99,13 @@ const useApi = () => {
     return callApi('/getSlotList');
   }, [callApi]);
 
-  const registerSlot = useCallback(async (slotId, user_id) => {
+  const registerSlot = useCallback(async (slotId, user_id, extraData = {}) => {
     return callApi('/registerSlot', {
       method: 'POST',
       body: JSON.stringify({
         Slot_ID: slotId,
-        User_ID: user_id
+        User_ID: user_id,
+        ...extraData
       })
     });
   }, [callApi]);
@@ -114,6 +115,21 @@ const useApi = () => {
       method: 'POST',
       body: JSON.stringify(slotData)
     });
+  }, [callApi]);
+
+  const updateUser = useCallback(async (userData) => {
+    return callApi('/updateUser', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  }, [callApi]);
+
+  const getBloodTypes = useCallback(async () => {
+    return callApi('/bloodtypes');
+  }, [callApi]);
+
+  const getAllAppointments = useCallback(async () => {
+    return callApi('/getAllAppointments');
   }, [callApi]);
 
   return {
@@ -127,6 +143,9 @@ const useApi = () => {
     getSlotList,
     registerSlot,
     createSlot,
+    updateUser,
+    getBloodTypes,
+    getAllAppointments,
     isLoggedIn: isLoggedIn()
   };
 };

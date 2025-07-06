@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, Link } from "react-router-dom";
 import useApi from "../../hooks/useApi";
 
 /* -----------------------------------------------------------
@@ -65,78 +65,76 @@ export default function Header() {
             DaiVietBlood
           </NavLink>
 
-          {/* ----- NAVBAR DESKTOP (căn giữa) ----- */}
-          <nav className="hidden md:flex flex-1 justify-center">
-            <ul className="flex xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
-              <li>
-                <NavLink to="/" end className={navItemClass}>
-                  Trang chủ
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/faq" className={navItemClass}>
-                  FAQ
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/news" className={navItemClass}>
-                  Tin tức
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/contact" className={navItemClass}>
-                  Liên hệ
-                </NavLink>
-              </li>
-            </ul>
-          </nav>
-
-          {/* ----- AVATAR / AUTH DESKTOP ----- */}
-          <div className="hidden md:flex items-center xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px]">
-            {isLoggedIn && role === "member" ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdown(!dropdown)}
-                  className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg"
-                >
-                  {user?.name?.[0]?.toUpperCase() || "U"}
-                </button>
-
-                {dropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
-                    <ul className="py-2 text-[14px]">
-                      <li>
-                        <NavLink
-                          to="/profile"
-                          className="block px-4 py-2 hover:bg-gray-100"
-                          onClick={() => setDropdown(false)}
-                        >
-                          Cập nhật trang cá nhân
-                        </NavLink>
-                      </li>
-                      <li>
-                        <button
-                          onClick={logout}
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F]"
-                        >
-                          Đăng xuất
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <NavLink to="/login" className={navItemClass}>
-                  Đăng nhập
-                </NavLink>
-                <div className="ml-2 bg-[#D32F2F] text-white rounded-[3px] md:px-[12px] px-[8px] py-[1px]">
-                  <NavLink to="/register">Đăng kí</NavLink>
+            <nav className="hidden md:flex ">
+              <ul className="flex flex-1 xl:gap-x-[24px] lg:gap-x-[15px] gap-x-[12px] xl:text-[20px] lg:text-[19px] md:text-[16px] sm:text-[13px] text-[12px]">
+                <li>
+                  <Link to="/" className="hover:underline">
+                    Trang chủ
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/faq" className="hover:underline">
+                    Câu hỏi thường gặp
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/news" className="hover:underline">
+                    Tin tức
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:underline">
+                    Liên hệ
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+            <div className="md:flex hidden xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[13px] text-[12px] items-center">
+              {(isLoggedIn && role === "member") ? (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setDropdown((prev) => !prev)}
+                    className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center font-bold text-lg focus:outline-none"
+                  >
+                    {user?.name?.[0]?.toUpperCase() || "U"}
+                  </button>
+                  {dropdown && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
+                      <ul className="py-2">
+                        <li>
+                          <Link
+                            to="/update-profile"
+                            className="block px-4 py-2 hover:bg-gray-100"
+                            onClick={() => setDropdown(false)}
+                          >
+                            Cập nhật trang cá nhân
+                          </Link>
+                        </li>
+                        <li>
+                          <button
+                            onClick={logout}
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F]"
+                          >
+                            Đăng xuất
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              </>
-            )}
-          </div>
+              ) : (
+                <>
+                  <div>
+                    <Link to="/login" className="hover:underline mr-[12px] ">
+                      Đăng nhập
+                    </Link>
+                  </div>
+                  <div className="rounded-[3px] md:px-[12px] px-[8px] py-[1px] text-white bg-[#D32F2F]">
+                    <Link to="/register">Đăng kí</Link>
+                  </div>
+                </>
+              )}
+            </div>
 
           {/* ----- BURGER ICON (MOBILE) ----- */}
           <button

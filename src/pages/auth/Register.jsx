@@ -12,7 +12,7 @@ export const RegisterPage = () => {
     confirm_password: "",
     telephone: "",
     address: "",
-    dob: "",
+    dob: ""
   });
   const { loading, register } = useApi();
   const navigate = useNavigate();
@@ -32,8 +32,9 @@ export const RegisterPage = () => {
         email: form.email,
         password: form.password,
         confirm_password: form.confirm_password,
-        name: form.user_name, // Đúng tên trường BE yêu cầu
+        name: form.user_name,
         date_of_birth: form.dob,
+        phone: form.telephone
       });
 
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {
@@ -115,7 +116,7 @@ export const RegisterPage = () => {
             </div>
           </div>
 
-          {/* <div>
+          <div>
             <label className="block text-[#555555] mb-1">Số điện thoại:</label>
             <input
               type="tel"
@@ -124,10 +125,11 @@ export const RegisterPage = () => {
               onChange={handleChange}
               placeholder="Nhập số điện thoại của bạn"
               className="w-full px-4 py-2 border rounded"
+              required
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-[#555555] mb-1">Địa chỉ:</label>
             <input
               type="text"

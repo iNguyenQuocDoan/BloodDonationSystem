@@ -71,11 +71,19 @@ const CreateSlot = () => {
     setMessage({ text: "", type: "" });
 
     try {
-      // Format the data according to backend requirements
+      // Chuẩn hóa giờ về HH:mm:ss nếu chỉ có HH:mm
+      const pad = (n) => n.toString().padStart(2, '0');
+      const normalizeTime = (t) => {
+        if (!t) return '';
+        const parts = t.split(':');
+        if (parts.length === 2) return `${pad(parts[0])}:${pad(parts[1])}:00`;
+        if (parts.length === 3) return `${pad(parts[0])}:${pad(parts[1])}:${pad(parts[2])}`;
+        return t;
+      };
       const slotData = {
-        Slot_Date: formData.Slot_Date,
-        Start_Time: formData.Start_Time,
-        End_Time: formData.End_Time,
+        ...formData,
+        Start_Time: normalizeTime(formData.Start_Time),
+        End_Time: normalizeTime(formData.End_Time),
         Max_Volume: parseInt(formData.Max_Volume)
       };
 
