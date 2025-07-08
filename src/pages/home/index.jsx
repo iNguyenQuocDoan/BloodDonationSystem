@@ -451,7 +451,10 @@ const Homepage = () => {
 
               {/* Container cho sơ đồ với overflow hidden */}
               <div className="w-full overflow-hidden rounded-lg">
-                <BloodCompatibilityDiagram withRh={diagramWithRh} />
+                <BloodCompatibilityDiagram
+                  key={diagramWithRh ? "rh-mode" : "basic-mode"}
+                  withRh={diagramWithRh}
+                />
               </div>
             </div>
           </section>
