@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AiFillCaretDown } from "react-icons/ai";
 
 export const FAQPage = () => {
@@ -158,6 +158,11 @@ export const FAQPage = () => {
   ]);
 
   const [openFAQs, setOpenFAQs] = useState([]);
+
+  // Scroll to top khi component mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const toggleFAQ = (id) => {
     setOpenFAQs(
