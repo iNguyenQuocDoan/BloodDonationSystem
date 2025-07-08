@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import VanillaTilt from "vanilla-tilt";
-import BloodCompatibilityDiagram from "../../components/custom/BloodCompatibilityDiagram";
+// import BloodCompatibilityDiagram from "../../components/custom/BloodCompatibilityDiagram";
 import DonateBlood from "./DonateBlood";
 import { DateFilter } from "../../components/DateFilter";
 import { FAQPage } from "./FAQ";

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import useApi from "../../hooks/useApi";
+// import { getCoordinatesFromAddress } from "../../components/CoordinatesFromAddress";
 
 export const RegisterPage = () => {
   const [form, setForm] = useState({
@@ -14,9 +15,11 @@ export const RegisterPage = () => {
     dob: ""
   });
   const [errors, setErrors] = useState({});
+  const [coords, setCoords] = useState({ latitude: "", longitude: "" });
+  const [addressLoading, setAddressLoading] = useState(false);
   const { loading, register } = useApi();
   const navigate = useNavigate();
-
+  // const [locationReady, setLocationReady] = useState(false)
   // Tính toán ngày tối thiểu và tối đa cho độ tuổi 18-60
   const calculateAgeLimit = () => {
     const today = new Date();
@@ -46,7 +49,7 @@ export const RegisterPage = () => {
     // Điều chỉnh tuổi nếu chưa đến sinh nhật trong năm
     const actualAge =
       monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
         ? age - 1
         : age;
 
@@ -59,7 +62,7 @@ export const RegisterPage = () => {
     return "";
   };
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
 
@@ -73,6 +76,21 @@ export const RegisterPage = () => {
       const ageError = validateAge(value);
       setErrors({ ...errors, dob: ageError });
     }
+
+    // // Nếu nhập địa chỉ, tự động lấy tọa độ
+    // if (name === "address") {
+    //   setAddressLoading(true);
+    //   setCoords({ latitude: "", longitude: "" });
+    //   try {
+    //     if (value.length > 5) {
+    //       const result = await getCoordinatesFromAddress(value);
+    //       setCoords({ latitude: result.latitude, longitude: result.longitude });
+    //     }
+    //   } catch {
+    //     setCoords({ latitude: "", longitude: "" });
+    //   }
+    //   setAddressLoading(false);
+    // }
   };
 
   const handleSubmit = async (e) => {
@@ -105,6 +123,13 @@ export const RegisterPage = () => {
     if (!form.dob) {
       newErrors.dob = "Ngày sinh là bắt buộc";
     }
+    // Validate địa chỉ và tọa độ
+    if (!form.address.trim()) {
+      newErrors.address = "Địa chỉ là bắt buộc";
+    }
+    if (!coords.latitude || !coords.longitude) {
+      newErrors.address = "Không xác định được tọa độ từ địa chỉ";
+    }
 
     // Nếu có lỗi, hiển thị và không submit
     if (Object.keys(newErrors).length > 0) {
@@ -118,9 +143,11 @@ export const RegisterPage = () => {
         password: form.password,
         confirm_password: form.confirm_password,
         name: form.user_name,
-        name: form.user_name,
         date_of_birth: form.dob,
-        phone: form.telephone
+        phone: form.telephone,
+        address: form.address,
+        // // Gộp thành chuỗi "latitude,longitude"
+        // location: `${coords.latitude},${coords.longitude}`
       });
 
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {
@@ -139,6 +166,15 @@ export const RegisterPage = () => {
     }
   };
 
+  // Sau khi lấy được tọa độ từ địa chỉ:
+  // useEffect(() => {
+  //   if (coords.latitude && coords.longitude) {
+  //     setLocationReady(true);
+  //   } else {
+  //     setLocationReady(false);
+  //   }
+  // }, [coords]);
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF] py-8">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
@@ -154,9 +190,8 @@ export const RegisterPage = () => {
               value={form.user_name}
               onChange={handleChange}
               placeholder="Nhập họ và tên của bạn"
-              className={`w-full px-4 py-2 border rounded ${
-                errors.user_name ? "border-red-500" : ""
-              }`}
+              className={`w-full px-4 py-2 border rounded ${errors.user_name ? "border-red-500" : ""
+                }`}
               required
             />
             {errors.user_name && (
@@ -172,9 +207,8 @@ export const RegisterPage = () => {
               value={form.email}
               onChange={handleChange}
               placeholder="Nhập email của bạn"
-              className={`w-full px-4 py-2 border rounded ${
-                errors.email ? "border-red-500" : ""
-              }`}
+              className={`w-full px-4 py-2 border rounded ${errors.email ? "border-red-500" : ""
+                }`}
               required
             />
             {errors.email && (
@@ -191,9 +225,8 @@ export const RegisterPage = () => {
                 value={form.password}
                 onChange={handleChange}
                 placeholder="Nhập mật khẩu của bạn"
-                className={`w-full px-4 py-2 border rounded ${
-                  errors.password ? "border-red-500" : ""
-                }`}
+                className={`w-full px-4 py-2 border rounded ${errors.password ? "border-red-500" : ""
+                  }`}
                 required
               />
             </div>
@@ -211,9 +244,8 @@ export const RegisterPage = () => {
                 value={form.confirm_password}
                 onChange={handleChange}
                 placeholder="Nhập lại mật khẩu của bạn"
-                className={`w-full px-4 py-2 border rounded ${
-                  errors.confirm_password ? "border-red-500" : ""
-                }`}
+                className={`w-full px-4 py-2 border rounded ${errors.confirm_password ? "border-red-500" : ""
+                  }`}
                 required
               />
             </div>
@@ -233,9 +265,8 @@ export const RegisterPage = () => {
               onChange={handleChange}
               min={ageLimit.min}
               max={ageLimit.max}
-              className={`w-full px-4 py-2 border rounded ${
-                errors.dob ? "border-red-500" : ""
-              }`}
+              className={`w-full px-4 py-2 border rounded ${errors.dob ? "border-red-500" : ""
+                }`}
               required
             />
             <p className="text-gray-500 text-xs mt-1">
@@ -247,12 +278,39 @@ export const RegisterPage = () => {
           </div>
 
           <div>
+            <label className="block text-[#555555] mb-1">Địa chỉ:</label>
+            <input
+              type="text"
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              placeholder="Nhập địa chỉ của bạn"
+              className={`w-full px-4 py-2 border rounded ${errors.address ? "border-red-500" : ""}`}
+              required
+            />
+            {addressLoading && (
+              <p className="text-blue-500 text-xs">Đang xác định tọa độ...</p>
+            )}
+            {!addressLoading && coords.latitude && coords.longitude && (
+              <>
+                <p className="text-green-600 text-xs">
+                  Tọa độ: {coords.latitude}, {coords.longitude}
+                </p>
+                <div style={{ color: "green", marginTop: 4 }}>
+                  Đã lấy được vị trí từ địa chỉ!
+                </div>
+              </>
+            )}
+            {errors.address && (
+              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+            )}
+          </div>
+
+          <div>
             <button
               type="submit"
               className="w-full py-2 px-4 bg-[#D32F2F] text-white font-semibold rounded transition duration-200 disabled:bg-gray-400"
-              disabled={
-                loading || Object.keys(errors).some((key) => errors[key])
-              }
+              // disabled={!locationReady || loading}
             >
               {loading ? "Đang đăng ký..." : "Đăng ký"}
             </button>

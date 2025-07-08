@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { FaMapMarkerAlt } from "react-icons/fa";
+import GeminiChatbot from "../chatbot/Chatbot";
 
 const Footer = () => {
   return (
@@ -50,8 +51,13 @@ const Footer = () => {
             </svg>
             Hiến máu khẩn cấp
           </a>
+          {/* Đặt chatbot ở đây để nó nằm trên nút khẩn cấp */}
+          <div style={{position: 'absolute', bottom: '70px', right: 0}}>
+            <GeminiChatbot />
+          </div>
         </div>
       </footer>
+      
     </>
   );
 };

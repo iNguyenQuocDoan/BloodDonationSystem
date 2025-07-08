@@ -3,7 +3,7 @@ import useApi from "../../hooks/useApi";
 import Swal from 'sweetalert2';
 
 const EditBloodPage = () => {
-    const { getAllAppointments, getSlotList, loading, error, addAppointmentVolume } = useApi();
+    const { getAppointments, getSlotList, loading, error, addAppointmentVolume } = useApi();
     const [appointments, setAppointments] = useState([]);
     const [slotList, setSlotList] = useState([]);
     const [nameSearch, setNameSearch] = useState("");
@@ -16,7 +16,7 @@ const EditBloodPage = () => {
         const fetchData = async () => {
             try {
                 // Sử dụng getAllAppointments từ code sau
-                const data = await getAllAppointments();
+                const data = await getAppointments();
                 // Sort by Appointment_ID ascending (AP001, AP002, ...)
                 const sortedData = (data.data || []).slice().sort((a, b) => {
                     const numA = parseInt((a.Appointment_ID || '').replace(/\D/g, ''));
@@ -43,7 +43,7 @@ const EditBloodPage = () => {
             }
         };
         fetchData();
-    }, [getAllAppointments, getSlotList]);
+    }, [getAppointments, getSlotList]);
 
     const handleSearch = () => {
         let result = appointments;
