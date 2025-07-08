@@ -222,14 +222,14 @@ const Homepage = () => {
           </section>
 
           {/* Diagram */}
-          <section data-aos="fade-up" className="mt-12 mb-12">
+          {/* <section data-aos="fade-up" className="mt-12 mb-12">
             <h4 className="text-center text-xl text-[#D32F2F] mb-6 animate-slidein">
               Sơ đồ tương thích nhóm máu
             </h4>
             <div className="bg-white p-6 rounded-lg shadow transition-all duration-500 hover:shadow-lg animate-fadein">
               <BloodCompatibilityDiagram />
             </div>
-          </section>
+          </section> */}
 
           {/* Image Grid */}
           <section data-aos="fade-up" className="py-12">

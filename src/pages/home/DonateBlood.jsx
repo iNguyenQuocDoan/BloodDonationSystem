@@ -59,6 +59,12 @@ const DonateBlood = () => {
     fetchData();
   }, [getCurrentUser, getSlotList]);
 
+  // useEffect(() => {
+  //   if (user && user.user_id) {
+  //     fetchMyRegistrations();
+  //   }
+  // }, [user]);
+
   // Auto-filter khi có slots và có date từ homepage
   useEffect(() => {
     if (location.state?.shouldFilter && slots.length > 0 && (location.state?.startDate || location.state?.endDate)) {
@@ -67,7 +73,19 @@ const DonateBlood = () => {
     }
   }, [slots, location.state]);
 
-  // Existing functions...
+  // const fetchMyRegistrations = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `/api/appointments/history?userId=${user.user_id}`
+  //     );
+  //     const data = await response.json();
+  //     setMyRegistrations(data.data || []);
+  //   } catch (err) {
+  //     setMyRegistrations([]);
+  //   }
+  // };
+
+  // Logic tìm kiếm từ code đầu
   const filterSlotsByDateWithParams = useCallback((startDateStr, endDateStr) => {
     if (!startDateStr && !endDateStr) {
       setFilteredSlots(slots);
@@ -125,31 +143,20 @@ const DonateBlood = () => {
       return;
     }
     if (user.user_role !== "member") {
-      toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu"), {
+      toast.error("Tài khoản của bạn không có quyền đăng ký hiến máu", {
         position: "top-right",
         autoClose: 3000
-      }
+      });
       return;
     }
     if (!user.user_id) {
-      toast.error("Không tìm thấy ID người dùng"), {
+      toast.error("Không tìm thấy ID người dùng", {
         position: "top-right",
         autoClose: 3000
-      }
+      });
       return;
     }
-    // Nếu đã đăng ký 1 ca, chỉ cho phép đăng ký lại đúng ca đó
-    if (myRegistrations && myRegistrations.length > 0) {
-      const isRegistered = myRegistrations.some(
-        (reg) => reg.Slot_ID === slotId
-      );
-      if (!isRegistered) {
-        toast.info(
-          "Bạn chỉ được đăng ký hiến máu 1 lần trong 1 tháng kể từ lần đăng ký trước. Nếu muốn đổi ca, hãy liên hệ quản trị viên."
-        );
-        return;
-      }
-    }
+
     try {
       const selectedSlot = slots.find(slot => slot.Slot_ID === slotId);
       if (!selectedSlot) {
@@ -208,7 +215,7 @@ const DonateBlood = () => {
               </div>
             </div>
             
-            ${!user.phone || !user.address || !user.full_name ? `
+            ${!user.phone || !user.address ? `
               <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
                 <p style="margin: 0; font-size: 14px; color: #92400e;">
                   <strong>📋 Lưu ý:</strong> Một số thông tin cá nhân chưa được cập nhật. 
@@ -228,77 +235,51 @@ const DonateBlood = () => {
       });
 
       if (result.isConfirmed) {
-        await registerSlot(slotId, user.user_id);
-        toast.success("Đăng ký hiến máu thành công!");
+        try {
+          await registerSlot(slotId, user.user_id);
+          toast.success("Đăng ký hiến máu thành công!");
 
-        // Refresh data sau khi đăng ký thành công
-        const slotsRes = await getSlotList();
-        setSlots(slotsRes.data);
-        setFilteredSlots(slotsRes.data);
+          // Refresh data sau khi đăng ký thành công
+          const slotsRes = await getSlotList();
+          setSlots(slotsRes.data);
+          setFilteredSlots(slotsRes.data);
 
-        // Cập nhật lại registration data nếu cần
-        if (user?.user_id) {
-          // Gọi API để lấy lại danh sách đăng ký của user
-          // const userRegistrations = await getUserRegistrations(user.user_id);
-          // setMyRegistrations(userRegistrations.data);
+        } catch (registerError) {
+          console.error("Register slot error:", registerError);
+
+          // Hiển thị thông báo lỗi cụ thể từ backend
+          const errorMessage = registerError.message || "Đăng ký thất bại. Vui lòng thử lại!";
+
+          // Hiển thị toast với message từ backend
+          toast.error(errorMessage, {
+            position: "top-right",
+            autoClose: 10000, // Hiển thị lâu hơn vì message dài
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            style: {
+              whiteSpace: 'pre-wrap', // Giữ nguyên format từ backend
+              fontSize: '14px',
+              lineHeight: '1.5',
+              maxWidth: '450px'
+            }
+          });
+
+          // KHÔNG refresh data khi có lỗi
+          return;
         }
       }
 
     } catch (error) {
-      console.error("Error registering slot:", error);
-      toast.error("Đăng ký thất bại. Vui lòng thử lại!");
+      console.error("Error in handleRegister:", error);
+      // Fallback error nếu có lỗi khác
+      toast.error("Có lỗi xảy ra. Vui lòng thử lại!");
     }
   };
 
-  // Helper kiểm tra user đã đăng ký hiến máu trong vòng 1 tháng gần nhất chưa
-  const hasRecentRegistration = useMemo(() => {
-    if (!myRegistrations || myRegistrations.length === 0) return false;
-    // Lấy ngày đăng ký gần nhất
-    const latest = myRegistrations.reduce((max, reg) => {
-      const d = new Date(reg.Slot_Date);
-      return d > max ? d : max;
-    }, new Date("1970-01-01"));
-    // Kiểm tra nếu ngày gần nhất cách hiện tại < 30 ngày
-    const now = new Date();
-    const diffDays = (now - latest) / (1000 * 60 * 60 * 24);
-    return diffDays < 30;
-  }, [myRegistrations]);
 
-  // Helper: Tìm ca đăng ký gần nhất
-  const latestRegistration = useMemo(() => {
-    if (!myRegistrations || myRegistrations.length === 0) return null;
-    return myRegistrations.reduce((max, reg) => {
-      const d = new Date(reg.Slot_Date);
-      return d > new Date(max.Slot_Date) ? reg : max;
-    }, myRegistrations[0]);
-  }, [myRegistrations]);
 
-  // Helper: Cộng 1 tháng cho ngày
-  function addMonths(date, months) {
-    const d = new Date(date);
-    const day = d.getDate();
-    d.setMonth(d.getMonth() + months);
-    // Xử lý trường hợp tháng mới không có ngày đó (ví dụ 31/1 + 1 tháng = 28/2)
-    if (d.getDate() < day) {
-      d.setDate(0);
-    }
-    return d;
-  }
-
-  // Helper: Ngày có thể đăng ký lại
-  const nextRegisterDate = useMemo(() => {
-    if (!latestRegistration) return null;
-    return addMonths(new Date(latestRegistration.Slot_Date), 1);
-  }, [latestRegistration]);
-
-  // Helper: User chỉ được đăng ký ca có ngày >= ngày được phép đăng ký lại
-  const canRegisterSlot = useCallback(
-    (slotDate) => {
-      if (!nextRegisterDate) return true;
-      return new Date(slotDate) >= nextRegisterDate;
-    },
-    [nextRegisterDate]
-  );
 
   // Helper format ngày tiếng Việt
   const formatDateVN = (dateString) => {
@@ -326,17 +307,13 @@ const DonateBlood = () => {
     return `${parseInt(h, 10)}h${m}`;
   };
 
-  // Memoize the empty state message
-  const emptyStateMessage = useMemo(() => {
-    return slots.length === 0
-      ? "Hiện tại chưa có lịch hiến máu nào được mở."
-      : "Không tìm thấy lịch hiến máu nào trong khoảng thời gian đã chọn.";
-  }, [slots.length]);
 
-  // Helper: Kiểm tra user đã đăng ký bất kỳ ca nào chưa
-  const hasAnyRegistration = useMemo(() => {
-    return myRegistrations && myRegistrations.length > 0;
-  }, [myRegistrations]);
+  // Sắp xếp slot theo ngày tăng dần
+  const sortedFilteredSlots = [...filteredSlots].sort((a, b) => {
+    const dateA = new Date((a.Slot_Date || '').slice(0, 10) + 'T00:00:00').getTime();
+    const dateB = new Date((b.Slot_Date || '').slice(0, 10) + 'T00:00:00').getTime();
+    return dateA - dateB;
+  });
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -360,10 +337,6 @@ const DonateBlood = () => {
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
         </div>
-      ) : error ? (
-        <div className="text-center text-red-500 py-8 bg-white rounded-lg shadow p-4">
-          <p className="text-lg">{error}</p>
-        </div>
       ) : filteredSlots.length === 0 ? (
         <div className="text-center py-8 bg-white rounded-lg shadow p-4">
           <p className="text-lg text-gray-600">
@@ -372,42 +345,8 @@ const DonateBlood = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSlots.map((slot) => {
-            const isSlotFull =
-              slot.Status !== "A" ||
-              parseInt(slot.Volume) >= parseInt(slot.Max_Volume);
-
-            // Kiểm tra user đã đăng ký slot này chưa
-            const isRegistered =
-              myRegistrations &&
-              myRegistrations.some((reg) => reg.Slot_ID === slot.Slot_ID);
-            if (window && window.console) {
-              console.log(
-                "[DEBUG][FE] Slot:",
-                slot.Slot_ID,
-                "| isRegistered:",
-                isRegistered,
-                "| myRegistrations:",
-                myRegistrations
-              );
-              console.log(
-                "[DEBUG][FE] Slot:",
-                slot.Slot_ID,
-                "| Start_Time:",
-                slot.Start_Time,
-                "| End_Time:",
-                slot.End_Time
-              );
-            }
-            // Tìm ca đăng ký gần nhất
-            const isLatestSlot =
-              latestRegistration && slot.Slot_ID === latestRegistration.Slot_ID;
-            // Ngày có thể đăng ký lại
-            const canRegister = canRegisterSlot
-              ? canRegisterSlot(slot.Slot_Date)
-              : true;
-            // Disable nếu đã đăng ký, slot đầy, hoặc chưa đủ 1 tháng
-            const disableRegister = loading || isSlotFull || isRegistered;
+          {sortedFilteredSlots.map((slot) => {
+            const isSlotFull = slot.Status !== 'A' || (parseInt(slot.Volume) >= parseInt(slot.Max_Volume));
 
             return (
               <div
@@ -451,40 +390,18 @@ const DonateBlood = () => {
                   </div>
                   <button
                     onClick={() => handleRegister(slot.Slot_ID)}
-                    disabled={disableRegister}
                     className={`w-full py-2 px-4 rounded transition duration-300 flex items-center justify-center font-semibold
                       ${isSlotFull
                         ? "bg-yellow-200 text-yellow-700 cursor-not-allowed"
-                        : isRegistered
-                          ? "bg-blue-200 text-blue-700 cursor-not-allowed"
-                          : "bg-red-600 hover:bg-red-700 text-white"
+                        : "bg-red-600 hover:bg-red-700 text-white"
                       }`}
                     title={
-                      isRegistered
-                        ? "Bạn đã đăng ký ca này."
-                        : isSlotFull
-                          ? "Ca này đã đầy, vui lòng chọn ca khác."
-                          : ""
+                      isSlotFull
+                        ? "Ca này đã đầy, vui lòng chọn ca khác."
+                        : ""
                     }
                   >
-                    {isRegistered ? (
-                      <>
-                        <svg
-                          className="w-5 h-5 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                        Đã đăng ký
-                      </>
-                    ) : loading ? (
+                    {loading ? (
                       "Đang đăng ký..."
                     ) : isSlotFull ? (
                       "Đã đầy"
@@ -492,15 +409,6 @@ const DonateBlood = () => {
                       "Đăng ký"
                     )}
                   </button>
-                  {/* Chỉ hiển thị ngày có thể đăng ký lại ở ca gần nhất và chỉ khi ca đó là ca đã đăng ký gần nhất */}
-                  {!canRegister && isLatestSlot && nextRegisterDate && (
-                    <div className="text-center text-blue-700 mt-2 text-sm">
-                      Bạn có thể đăng ký lại sau ngày:{" "}
-                      <span className="font-semibold">
-                        {nextRegisterDate.toLocaleDateString("vi-VN")}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             );
@@ -508,72 +416,53 @@ const DonateBlood = () => {
         </div>
       )}
 
-      {/* Hiển thị danh sách ca đã đăng ký của tôi */}
-      {/* PHẦN NÀY ĐÃ ĐƯỢC LÀM ĐẸP Ở DƯỚI, XÓA HOÀN TOÀN ĐỂ KHÔNG BỊ THỪA */}
-
       {/* Hiển thị lịch sử đăng ký hiến máu của bạn */}
       {user && (
         <div className="mt-10 mb-8">
-          <h2 className="text-2xl font-bold text-red-600 mb-4 text-center">
-            Lịch sử đăng ký hiến máu của bạn
-          </h2>
-          {myRegistrations && myRegistrations.length === 0 ? (
-            <div className="text-center text-gray-500">
-              Bạn chưa đăng ký hiến máu nào.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white rounded shadow">
-                <thead className="bg-red-100">
-                  <tr>
-                    <th className="px-4 py-2">Ngày</th>
-                    <th className="px-4 py-2">Khung giờ</th>
-                    <th className="px-4 py-2">Trạng thái</th>
-                    <th className="px-4 py-2">Lý do từ chối</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myRegistrations &&
-                    myRegistrations.map((reg) => (
-                      <tr
-                        key={reg.Appointment_ID}
-                        className="border-b hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-2">
-                          {formatDateVN(reg.Slot_Date)}
+          <h2 className="text-2xl font-bold text-red-600 mb-6 text-center uppercase tracking-wide drop-shadow">Lịch sử đăng ký hiến máu của bạn</h2>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white rounded-xl shadow-lg border border-gray-200">
+              <thead className="bg-red-100">
+                <tr>
+                  <th className="px-6 py-3 text-center text-base font-semibold">Ngày</th>
+                  <th className="px-6 py-3 text-center text-base font-semibold">Khung giờ</th>
+                  <th className="px-6 py-3 text-center text-base font-semibold">Trạng thái</th>
+                  <th className="px-6 py-3 text-center text-base font-semibold">Lý do từ chối</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myRegistrations &&
+                  myRegistrations.map((reg) => {
+                    // Tìm slot tương ứng
+                    const slot = slots.find(s => s.Slot_ID === reg.Slot_ID);
+                    const startTime = slot ? slot.Start_Time : reg.Start_Time;
+                    const endTime = slot ? slot.End_Time : reg.End_Time;
+                    return (
+                      <tr key={reg.Appointment_ID} className="border-b hover:bg-gray-50 text-center">
+                        <td className="px-6 py-3">{formatDateVN(reg.Slot_Date)}</td>
+                        <td className="px-6 py-3 font-mono text-sm text-blue-700">
+                          {formatTimeVN(startTime)}{formatTimeVN(endTime) ? ` - ${formatTimeVN(endTime)}` : ""}
                         </td>
-                        <td className="px-4 py-2">
-                          {formatTimeVN(reg.Start_Time)} -{" "}
-                          {formatTimeVN(reg.End_Time)}
-                        </td>
-                        <td className="px-4 py-2">
+                        <td className="px-6 py-3">
                           {reg.Status === "P" && (
-                            <span className="text-yellow-600 font-semibold">
-                              Chờ xác nhận
-                            </span>
+                            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Chờ xác nhận</span>
                           )}
                           {reg.Status === "A" && (
-                            <span className="text-green-600 font-semibold">
-                              Được hiến
-                            </span>
+                            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Được hiến</span>
                           )}
                           {reg.Status === "R" && (
-                            <span className="text-red-600 font-semibold">
-                              Từ chối
-                            </span>
+                            <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Từ chối</span>
                           )}
                         </td>
-                        <td className="px-4 py-2">
-                          {reg.Status === "R" && reg.Reject_Reason
-                            ? reg.Reject_Reason
-                            : "-"}
-                        </td>
+                        <td className="px-6 py-3 text-gray-700">{reg.Status === "R" && reg.Reject_Reason ? reg.Reject_Reason : "-"}</td>
                       </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+
         </div>
       )}
     </div>

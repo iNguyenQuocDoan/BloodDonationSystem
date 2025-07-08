@@ -1,271 +1,141 @@
-import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
-import { motion } from "framer-motion";
+// import React, { useState } from "react";
+// import { motion } from "framer-motion";
+// import DonateMode from "./DonateMode";
+// import ReceiveMode from "./ReceiveMode";
 
-const bloodTypes = ["O", "A", "B", "AB"];
-const canDonateTo = {
-  O: ["O", "A", "B", "AB"],
-  A: ["A", "AB"],
-  B: ["B", "AB"],
-  AB: ["AB"],
-};
-const descriptions = {
-  O: "Nhóm O có thể hiến hồng cầu cho bất kỳ nhóm máu nào. Đó là nhóm hiến toàn cầu.",
-  A: "Nhóm A có thể hiến hồng cầu cho nhóm A và nhóm AB.",
-  B: "Nhóm B có thể hiến hồng cầu cho nhóm B và nhóm AB.",
-  AB: "Nhóm AB chỉ có thể hiến cho nhóm AB nhưng có thể nhận từ tất cả các nhóm khác.",
-};
+// export default function BloodCompatibilityDiagram() {
+//   const [showMode, setShowMode] = useState("donate");
 
-export default function BloodCompatibilityDiagram() {
-  const [active, setActive] = useState(null);
-  const [paths, setPaths] = useState([]);
-  const containerRef = useRef(null);
-  const donorRefs = useRef([]);
-  const recRefs = useRef([]);
-  const [resizeTrigger, setResizeTrigger] = useState(0);
+//   return (
+//     <div className="w-full max-w-6xl mx-auto p-6">
+//       {/* Header với gradient background */}
+//       <motion.div
+//         initial={{ opacity: 0, y: -20 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         transition={{ duration: 0.6 }}
+//         className="relative bg-gradient-to-r from-red-50 via-pink-50 to-blue-50 rounded-2xl p-8 mb-8 shadow-lg border border-gray-100"
+//       >
+//         {/* Decorative elements */}
+//         <div className="absolute top-4 left-4 w-12 h-12 bg-red-100 rounded-full opacity-60"></div>
+//         <div className="absolute bottom-4 right-4 w-8 h-8 bg-blue-100 rounded-full opacity-60"></div>
+//         <div className="absolute top-1/2 left-8 w-6 h-6 bg-pink-100 rounded-full opacity-40"></div>
+        
+//         <div className="relative z-10 text-center">
+//           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+//             🩸 Sơ đồ tương thích nhóm máu
+//           </h2>
+//           <p className="text-gray-600 text-base md:text-lg mb-6 max-w-3xl mx-auto leading-relaxed">
+//             Khám phá mối quan hệ tương thích giữa các nhóm máu ABO và yếu tố Rh. 
+//             Chọn chế độ và nhóm máu để xem chi tiết tương thích hiến máu.
+//           </p>
 
-  /* ---------- Helpers ------------------------------------------------ */
-  const highlightDonor = (dType) =>
-    active &&
-    ((active.role === "donor" && dType === active.type) ||
-      (active.role === "recipient" &&
-        canDonateTo[dType].includes(active.type)));
+//           {/* Mode Toggle Buttons */}
+//           <div className="flex justify-center gap-4">
+//             <motion.button
+//               onClick={() => setShowMode("donate")}
+//               className={`group relative px-8 py-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+//                 showMode === "donate"
+//                   ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-xl scale-105"
+//                   : "bg-white text-gray-700 hover:bg-gray-50 shadow-md border border-gray-200"
+//               }`}
+//               whileHover={{ scale: showMode === "donate" ? 1.05 : 1.02 }}
+//               whileTap={{ scale: 0.98 }}
+//             >
+//               <div className="flex items-center gap-3">
+//                 <span className="text-xl">🩸</span>
+//                 <div className="text-left">
+//                   <div className="font-bold">Chế độ hiến máu</div>
+//                   <div className="text-xs opacity-75">Xem ai có thể nhận</div>
+//                 </div>
+//               </div>
+//               {showMode === "donate" && (
+//                 <motion.div 
+//                   className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 rounded-xl -z-10"
+//                   initial={{ scale: 0 }}
+//                   animate={{ scale: 1 }}
+//                   transition={{ duration: 0.3 }}
+//                 />
+//               )}
+//             </motion.button>
 
-  const highlightRecipient = (rType) =>
-    active &&
-    ((active.role === "recipient" && rType === active.type) ||
-      (active.role === "donor" && canDonateTo[active.type].includes(rType)));
+//             <motion.button
+//               onClick={() => setShowMode("receive")}
+//               className={`group relative px-8 py-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+//                 showMode === "receive"
+//                   ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-xl scale-105"
+//                   : "bg-white text-gray-700 hover:bg-gray-50 shadow-md border border-gray-200"
+//               }`}
+//               whileHover={{ scale: showMode === "receive" ? 1.05 : 1.02 }}
+//               whileTap={{ scale: 0.98 }}
+//             >
+//               <div className="flex items-center gap-3">
+//                 <span className="text-xl">🫴</span>
+//                 <div className="text-left">
+//                   <div className="font-bold">Chế độ nhận máu</div>
+//                   <div className="text-xs opacity-75">Xem ai có thể cho</div>
+//                 </div>
+//               </div>
+//               {showMode === "receive" && (
+//                 <motion.div 
+//                   className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl -z-10"
+//                   initial={{ scale: 0 }}
+//                   animate={{ scale: 1 }}
+//                   transition={{ duration: 0.3 }}
+//                 />
+//               )}
+//             </motion.button>
+//           </div>
+//         </div>
+//       </motion.div>
 
-  const donorDrainPercent = (dType) =>
-    active && active.role === "donor" && active.type === dType
-      ? (canDonateTo[dType].length / bloodTypes.length) * 100
-      : 0;
+//       {/* Main Diagram */}
+//       <motion.div
+//         key={showMode}
+//         initial={{ opacity: 0, x: showMode === "donate" ? -20 : 20 }}
+//         animate={{ opacity: 1, x: 0 }}
+//         transition={{ duration: 0.5 }}
+//         className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+//       >
+//         {showMode === "donate" ? <DonateMode /> : <ReceiveMode />}
+//       </motion.div>
 
-  /* ---------- Draw bézier paths ------------------------------------- */
-  const calculatePaths = () => {
-    const cont = containerRef.current;
-    if (!cont) return;
-    const { left: cLeft, top: cTop } = cont.getBoundingClientRect();
-    const newPaths = [];
-
-    bloodTypes.forEach((dType, i) => {
-      const dEl = donorRefs.current[i];
-      if (!dEl) return;
-      const dRect = dEl.getBoundingClientRect();
-      const x1 = dRect.left + dRect.width / 2 - cLeft;
-      const y1 = dRect.top + dRect.height - cTop;
-
-      canDonateTo[dType].forEach((rType) => {
-        const j = bloodTypes.indexOf(rType);
-        const rEl = recRefs.current[j];
-        if (!rEl) return;
-        const rRect = rEl.getBoundingClientRect();
-        const x2 = rRect.left + rRect.width / 2 - cLeft;
-        const y2 = rRect.top - cTop;
-
-        const dx = x2 - x1;
-        const offsetX = Math.sign(dx) * Math.min(Math.abs(dx) * 0.3, 100);
-        const cy = (y1 + y2) / 2 - 50;
-
-        const isActive =
-          active &&
-          ((active.role === "donor" && active.type === dType) ||
-            (active.role === "recipient" && active.type === rType));
-
-        newPaths.push({
-          d: `M${x1},${y1} C${x1 + offsetX},${cy} ${
-            x2 - offsetX
-          },${cy} ${x2},${y2}`,
-          active: isActive,
-        });
-      });
-    });
-
-    setPaths(newPaths);
-  };
-
-  useLayoutEffect(calculatePaths, [active, resizeTrigger]);
-  useEffect(() => {
-    const onResize = () => setResizeTrigger(Date.now());
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  /* ---------- UI ----------------------------------------------------- */
-  return (
-    <>
-      {/* Chú thích hướng dẫn */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full text-center mb-4 px-2"
-      >
-        <span className="text-gray-700 text-sm sm:text-base md:text-lg font-medium">
-          “Chọn nhóm máu để xem bạn có thể hiến cho nhóm nào và nhận từ nhóm
-          nào.”
-        </span>
-      </motion.div>
-
-      {/* Khung sơ đồ */}
-      <div
-        ref={containerRef}
-        className="relative w-full h-[300px] sm:h-[340px] md:h-[400px] lg:h-[460px] bg-gray-50 px-1 sm:px-4"
-      >
-        {/* Donor row */}
-        <div className="absolute top-3 left-0 right-0 flex items-center z-10 px-1">
-          <div className="hidden sm:flex items-center justify-end w-35">
-            <span className="text-black font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap">
-              NHÓM MÁU CHO
-            </span>
-          </div>
-          <div className="flex-1 flex justify-around gap-x-1 sm:gap-x-3">
-            {bloodTypes.map((type, i) => {
-              const isDonor = highlightDonor(type);
-              const drain = donorDrainPercent(type);
-              return (
-                <motion.div
-                  key={type}
-                  ref={(el) => (donorRefs.current[i] = el)}
-                  onClick={() =>
-                    setActive((prev) =>
-                      prev?.type === type && prev.role === "donor"
-                        ? null
-                        : { type, role: "donor" }
-                    )
-                  }
-                  className="cursor-pointer z-10"
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <div className="relative w-12 h-16 sm:w-14 sm:h-20 border rounded-lg shadow-md overflow-hidden bg-white">
-                    <motion.div
-                      className="absolute bottom-0 left-0 w-full bg-red-500"
-                      initial={{ height: "100%" }}
-                      animate={{ height: isDonor ? `${100 - drain}%` : "100%" }}
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
-                    />
-                    <div className="relative flex items-center justify-center h-full">
-                      <span
-                        className={`font-bold text-base sm:text-lg ${
-                          isDonor ? "text-black" : "text-gray-700"
-                        }`}
-                      >
-                        {type}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Recipient row */}
-        <div className="absolute bottom-3 left-0 right-0 flex items-center z-10 px-1">
-          <div className="hidden sm:flex items-center justify-end w-35">
-            <span className="text-black font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap">
-              NHÓM MÁU NHẬN
-            </span>
-          </div>
-          <div className="flex-1 flex justify-around gap-x-1 sm:gap-x-3">
-            {bloodTypes.map((type, i) => {
-              const isRec = highlightRecipient(type);
-              return (
-                <div
-                  key={type}
-                  ref={(el) => (recRefs.current[i] = el)}
-                  className="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 overflow-hidden border rounded-full bg-white select-none"
-                >
-                  <motion.div
-                    className="absolute bottom-0 left-0 w-full bg-red-500"
-                    initial={{ height: 0 }}
-                    animate={{ height: isRec ? "100%" : "0%" }}
-                    transition={{ duration: 0.6, ease: "easeInOut" }}
-                  />
-                  <div className="relative flex items-center justify-center h-full">
-                    <span
-                      className={`font-bold text-xs sm:text-sm ${
-                        isRec ? "text-white" : "text-gray-600"
-                      }`}
-                    >
-                      {type}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Bézier connections + animation */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none">
-          {paths.map((p, i) => (
-            <motion.path
-              key={`path-${i}`}
-              d={p.d}
-              stroke={p.active ? "#EF4444" : "#D1D5DB"}
-              strokeWidth={p.active ? 3 : 1.5}
-              fill="none"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: p.active ? 1 : 0.2 }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          ))}
-          {active?.role === "donor" &&
-            paths.map(
-              (p, i) =>
-                p.active && (
-                  <motion.circle
-                    key={`drop-donor-${active.type}-${i}`}
-                    r={4}
-                    fill="#EF4444"
-                    style={{
-                      offsetPath: `path('${p.d}')`,
-                      offsetRotate: "auto",
-                    }}
-                    initial={{ offsetDistance: "0%" }}
-                    animate={{ offsetDistance: "100%" }}
-                    transition={{ duration: 1.2, ease: "easeInOut", repeat: 0 }}
-                  />
-                )
-            )}
-          {active?.role === "recipient" &&
-            paths.map(
-              (p, i) =>
-                p.active && (
-                  <motion.circle
-                    key={`drop-recipient-${active.type}-${i}`}
-                    r={4}
-                    fill="#EF4444"
-                    style={{
-                      offsetPath: `path('${p.d}')`,
-                      offsetRotate: "auto",
-                    }}
-                    initial={{ offsetDistance: "100%" }}
-                    animate={{ offsetDistance: "0%" }}
-                    transition={{ duration: 1.2, ease: "easeInOut", repeat: 0 }}
-                  />
-                )
-            )}
-        </svg>
-
-        {/* Mô tả nhóm máu */}
-        {active && (
-          <div
-            className="absolute left-0 right-0 bottom-1 px-2"
-            style={{ transform: "translateY(32px)" }}
-          >
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="text-center text-gray-600 text-sm sm:text-base md:text-lg"
-            >
-              {descriptions[active.type]}
-            </motion.p>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
+//       {/* Enhanced Legend */}
+//       <motion.div
+//         initial={{ opacity: 0, y: 20 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         transition={{ duration: 0.6, delay: 0.3 }}
+//         className="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200"
+//       >
+//         <h3 className="text-center text-lg font-semibold text-gray-800 mb-4">
+//           📋 Chú giải
+//         </h3>
+//         <div className="flex flex-wrap justify-center gap-6 text-sm">
+//           <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
+//             <div className="w-6 h-6 bg-gradient-to-br from-red-400 to-red-600 rounded-md border-2 border-red-300 shadow-sm"></div>
+//             <span className="font-medium text-gray-700">Rh+ (Dương tính)</span>
+//           </div>
+//           <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
+//             <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-md border-2 border-blue-300 shadow-sm"></div>
+//             <span className="font-medium text-gray-700">Rh- (Âm tính)</span>
+//           </div>
+//           <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-sm">
+//             <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-md border-2 border-yellow-300 shadow-sm"></div>
+//             <span className="font-medium text-gray-700">Tương thích</span>
+//           </div>
+//         </div>
+        
+//         {/* Quick facts */}
+//         <div className="mt-6 grid md:grid-cols-2 gap-4 text-sm">
+//           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+//             <h4 className="font-semibold text-red-800 mb-2">💡 Hiến máu toàn cầu</h4>
+//             <p className="text-red-700">Nhóm O- có thể hiến cho tất cả các nhóm máu khác</p>
+//           </div>
+//           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+//             <h4 className="font-semibold text-blue-800 mb-2">💡 Nhận máu toàn cầu</h4>
+//             <p className="text-blue-700">Nhóm AB+ có thể nhận máu từ tất cả các nhóm máu</p>
+//           </div>
+//         </div>
+//       </motion.div>
+//     </div>
+//   );
+// }

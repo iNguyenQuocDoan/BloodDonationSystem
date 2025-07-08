@@ -11,7 +11,7 @@ export const RegisterPage = () => {
     confirm_password: "",
     telephone: "",
     address: "",
-    dob: "",
+    dob: ""
   });
   const [errors, setErrors] = useState({});
   const { loading, register } = useApi();
@@ -118,7 +118,9 @@ export const RegisterPage = () => {
         password: form.password,
         confirm_password: form.confirm_password,
         name: form.user_name,
+        name: form.user_name,
         date_of_birth: form.dob,
+        phone: form.telephone
       });
 
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {
