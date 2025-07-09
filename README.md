@@ -26,7 +26,7 @@ Frontend cung cấp giao diện web tương tác cho người hiến máu, nhân
 * Đặt lịch hiến máu, xem lịch sử
 * Quản lý yêu cầu hiến máu khẩn cấp
 * Thống kê nhóm máu & tương thích
-* Đăng nhập Google Firebase + JWT
+* Đăng nhập + JWT
 * Hiệu ứng **Framer Motion**, responsive **Tailwind**
 
 ## Công nghệ
@@ -41,12 +41,6 @@ Frontend cung cấp giao diện web tương tác cho người hiến máu, nhân
 | Axios         | ^1.x               |
 | Framer Motion | ^11.x              |
 
-## Demo nhanh
-
-### ▶️ Live demo
-
-> Đã deploy sẵn tại **Vercel** → [https://bdss-frontend.vercel.app](https://bdss-frontend.vercel.app)
-> (Mỗi lần merge vào `main` sẽ auto‑build & auto‑deploy).
 
 ### 🎥 GIF Preview
 
@@ -90,12 +84,9 @@ Tạo file `.env` ở gốc dự án:
 
 ```env
 # URL của backend API
-VITE_API_URL=http://localhost:4000/api
+VITE_API_URL=http://localhost:0000/api
 
-# (Tuỳ chọn) cấu hình Firebase
-VITE_FIREBASE_API_KEY=<key>
-VITE_FIREBASE_AUTH_DOMAIN=<domain>
-```
+
 
 ## Scripts NPM
 

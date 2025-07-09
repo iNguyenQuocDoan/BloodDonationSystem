@@ -143,6 +143,7 @@ export const RegisterPage = () => {
         password: form.password,
         confirm_password: form.confirm_password,
         name: form.user_name,
+        name: form.user_name,
         date_of_birth: form.dob,
         phone: form.telephone,
         address: form.address,
