@@ -11,17 +11,100 @@ export default function GeminiChatbot() {
   const chatContentRef = useRef(null); // Ref cho phần chat content
   // eslint-disable-next-line no-unused-vars
   const [typingMessageId, setTypingMessageId] = useState(null); // ID của tin nhắn đang typing
+  const [isTyping, setIsTyping] = useState(false); // State để theo dõi typing
+  const [shouldStopTyping, setShouldStopTyping] = useState(false); // State để dừng typing
+  const [isExpanded, setIsExpanded] = useState(false); // State để phóng to chatbot
+  const typingTimeoutRef = useRef(null); // Ref để lưu timeout ID
 
   const { getCurrentUser } = useApi();
   const [showFAQ, setShowFAQ] = useState(false);
 
-  // Component TypewriterText
-  const TypewriterText = ({ text, onComplete, messageId }) => {
+  // Component để format text đẹp hơn
+  const FormattedText = ({ text }) => {
+    // Tách text thành các đoạn và format
+    const formatText = (rawText) => {
+      if (!rawText) return rawText;
+
+      // Tách theo dấu xuống dòng hoặc dấu chấm kết thúc câu
+      let formatted = rawText
+        // Xử lý các ký hiệu đặc biệt trước (để tránh conflict)
+        .replace(/\*\*\*/g, "\n")
+        .replace(/\*\*/g, "")
+        // Chỉ thay thế * thành bullet nếu nó ở đầu dòng hoặc sau khoảng trắng
+        .replace(/(^|\s)\*\s/gm, "$1• ")
+        // Thêm xuống dòng sau dấu chấm nếu theo sau là chữ hoa
+        .replace(
+          /\. ([A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯĂÂÊÔƠƯẮẰẲẴẶẤẦẨẪẬÉÈẺẼẸÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ])/g,
+          ".\n$1"
+        )
+        // Thêm xuống dòng trước các dấu hiệu liệt kê
+        .replace(/(\d+\.|•|-|\+)\s/g, "\n$1 ")
+        // Thêm xuống dòng sau dấu hai chấm nếu theo sau là chữ hoa
+        .replace(
+          /: ([A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯĂÂÊÔƠƯẮẰẲẴẶẤẦẨẪẬÉÈẺẼẸÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ])/g,
+          ":\n$1"
+        )
+        // Thêm xuống dòng trước các từ khóa quan trọng
+        .replace(/(Lưu ý|Chú ý|Quan trọng|Cần thiết|Khuyến cáo):/gi, "\n$1:")
+        // Loại bỏ dấu chấm thừa sau dấu hai chấm
+        .replace(/:\.(\s|$)/g, ":$1")
+        // Loại bỏ nhiều xuống dòng liên tiếp
+        .replace(/\n\s*\n\s*\n/g, "\n\n")
+        .trim();
+
+      return formatted;
+    };
+
+    const formattedText = formatText(text);
+
+    return (
+      <div style={{ whiteSpace: "pre-line", lineHeight: "1.6" }}>
+        {formattedText.split("\n").map((line, index) => {
+          // Nếu là dòng trống thì tạo khoảng cách
+          if (!line.trim()) {
+            return <div key={index} style={{ height: "8px" }} />;
+          }
+
+          // Kiểm tra xem có phải là tiêu đề không (có dấu hai chấm ở cuối)
+          const isTitle = line.trim().endsWith(":") && line.length < 50;
+
+          // Kiểm tra xem có phải là danh sách không
+          const isList = /^(•|\d+\.|[a-z]\)|-|\+)\s/.test(line.trim());
+
+          return (
+            <div
+              key={index}
+              style={{
+                marginBottom: isTitle ? "8px" : isList ? "4px" : "6px",
+                fontWeight: isTitle ? "600" : "normal",
+                color: isTitle ? "#D32F2F" : "#333",
+                paddingLeft: isList ? "12px" : "0",
+                position: "relative",
+              }}
+            >
+              {line}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Component TypewriterText với format đẹp hơn
+  const TypewriterText = ({ text, onComplete, messageId, shouldStop }) => {
     const [displayText, setDisplayText] = useState("");
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [stopped, setStopped] = useState(false);
 
     useEffect(() => {
-      if (currentIndex < text.length) {
+      if (shouldStop && !stopped) {
+        setStopped(true);
+        // Không hiển thị full text, chỉ dừng tại chỗ hiện tại
+        if (onComplete) onComplete(messageId); // Gọi callback khi dừng
+        return;
+      }
+
+      if (currentIndex < text.length && !stopped) {
         const timer = setTimeout(() => {
           setDisplayText(text.slice(0, currentIndex + 1));
           setCurrentIndex(currentIndex + 1);
@@ -30,14 +113,15 @@ export default function GeminiChatbot() {
             setTimeout(scrollToBottom, 10);
           }
         }, 30); // Tốc độ typing (30ms mỗi ký tự)
-        return () => clearTimeout(timer);
-      } else {
-        // Hoàn thành typing
-        if (onComplete) onComplete(messageId);
-      }
-    }, [currentIndex, text, onComplete, messageId]);
 
-    return <span>{displayText}</span>;
+        return () => clearTimeout(timer);
+      } else if (currentIndex >= text.length && !stopped) {
+        // Hoàn thành typing tự nhiên
+        if (onComplete) onComplete(messageId); // Gọi callback khi hoàn thành
+      }
+    }, [currentIndex, text, onComplete, messageId, shouldStop, stopped]);
+
+    return <FormattedText text={displayText} />;
   };
   // Lấy tên user khi mở chatbot
   useEffect(() => {
@@ -114,6 +198,8 @@ export default function GeminiChatbot() {
       },
     ]);
     setTypingMessageId(messageId);
+    setIsTyping(true); // Bắt đầu typing
+    setShouldStopTyping(false); // Reset shouldStop flag
     setLoading(false);
     // Auto scroll ngay khi bot bắt đầu phản hồi
     setTimeout(scrollToBottom, 100);
@@ -127,8 +213,20 @@ export default function GeminiChatbot() {
       )
     );
     setTypingMessageId(null);
+    setIsTyping(false);
+    setShouldStopTyping(false); // Reset shouldStop flag
     // Auto scroll khi typing hoàn thành
     setTimeout(scrollToBottom, 100);
+  };
+
+  // Hàm dừng typing
+  const stopTyping = () => {
+    setShouldStopTyping(true); // Signal để dừng typing
+    setIsTyping(false);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
   };
 
   // Gửi câu hỏi (từ input hoặc gợi ý)
@@ -243,19 +341,25 @@ export default function GeminiChatbot() {
         <div
           style={{
             position: "fixed",
-            bottom: 144,
-            right: 20,
-            width: "min(450px, calc(100vw - 40px))", // Tăng width để nằm ngang hơn
-            maxHeight: "400px", // Giảm height để không chiếm quá nhiều màn hình
+            bottom: isExpanded ? 20 : 144,
+            right: isExpanded ? 20 : 20,
+            left: isExpanded ? 20 : "auto",
+            top: isExpanded ? 20 : "auto",
+            width: isExpanded
+              ? "calc(100vw - 40px)"
+              : "min(450px, calc(100vw - 40px))",
+            height: isExpanded ? "calc(100vh - 40px)" : "auto",
+            maxHeight: isExpanded ? "none" : "400px",
             background: "#fff",
-            borderRadius: 16, // Bo tròn nhiều hơn
-            boxShadow: "0 8px 32px rgba(0,0,0,0.15)", // Shadow đẹp hơn
+            borderRadius: 16,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
             padding: 0,
             zIndex: 1001,
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",
             border: "1px solid #f0f0f0",
+            transition: "all 0.3s ease",
           }}
         >
           {/* Header */}
@@ -285,38 +389,66 @@ export default function GeminiChatbot() {
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => setOpen(false)}
-              style={{
-                background: "rgba(255,255,255,0.2)",
-                border: "none",
-                borderRadius: "50%",
-                width: 28,
-                height: 28,
-                fontSize: 16,
-                color: "#fff",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.2s ease",
-              }}
-              title="Đóng chatbot"
-              onMouseEnter={(e) =>
-                (e.target.style.background = "rgba(255,255,255,0.3)")
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.background = "rgba(255,255,255,0.2)")
-              }
-            >
-              ×
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                style={{
+                  background: "rgba(255,255,255,0.2)",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 28,
+                  height: 28,
+                  fontSize: 14,
+                  color: "#fff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.2s ease",
+                }}
+                title={isExpanded ? "Thu nhỏ chatbot" : "Phóng to chatbot"}
+                onMouseEnter={(e) =>
+                  (e.target.style.background = "rgba(255,255,255,0.3)")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.background = "rgba(255,255,255,0.2)")
+                }
+              >
+                {isExpanded ? "🗗" : "🗖"}
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                style={{
+                  background: "rgba(255,255,255,0.2)",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 28,
+                  height: 28,
+                  fontSize: 16,
+                  color: "#fff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.2s ease",
+                }}
+                title="Đóng chatbot"
+                onMouseEnter={(e) =>
+                  (e.target.style.background = "rgba(255,255,255,0.3)")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.background = "rgba(255,255,255,0.2)")
+                }
+              >
+                ×
+              </button>
+            </div>
           </div>
           {/* Nội dung chat */}
           <div
             ref={chatContentRef}
             style={{
-              height: 180, // Giảm height để compact hơn
+              height: isExpanded ? "calc(100vh - 200px)" : 180,
               overflowY: "auto",
               background: "#fafafa",
               padding: "16px",
@@ -356,10 +488,10 @@ export default function GeminiChatbot() {
                         : "#fff",
                     color: msg.from === "user" ? "#fff" : "#333",
                     borderRadius: 18,
-                    padding: "10px 16px",
-                    maxWidth: "75%",
+                    padding: msg.from === "bot" ? "12px 16px" : "10px 16px",
+                    maxWidth: "80%",
                     fontSize: 14,
-                    lineHeight: "1.4",
+                    lineHeight: msg.from === "bot" ? "1.6" : "1.4",
                     boxShadow:
                       msg.from === "user"
                         ? "0 2px 8px rgba(33, 150, 243, 0.3)"
@@ -373,7 +505,10 @@ export default function GeminiChatbot() {
                       text={msg.text}
                       onComplete={handleTypingComplete}
                       messageId={msg.id}
+                      shouldStop={shouldStopTyping}
                     />
+                  ) : msg.from === "bot" ? (
+                    <FormattedText text={msg.text} />
                   ) : (
                     msg.text
                   )}
@@ -453,6 +588,54 @@ export default function GeminiChatbot() {
               </div>
             )}
           </div>
+
+          {/* Nút dừng phản hồi khi bot đang typing */}
+          {isTyping && messages.some((msg) => msg.isTyping) && (
+            <div
+              style={{
+                padding: "8px 16px",
+                background: "#fff",
+                borderTop: "1px solid #f0f0f0",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <button
+                onClick={stopTyping}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #FF6B6B 0%, #EE5A52 100%)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 20,
+                  padding: "8px 20px",
+                  fontSize: 13,
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(255, 107, 107, 0.3)",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+                title="Dừng phản hồi để hỏi câu khác"
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "scale(1.05)";
+                  e.target.style.boxShadow =
+                    "0 4px 12px rgba(255, 107, 107, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "scale(1)";
+                  e.target.style.boxShadow =
+                    "0 2px 8px rgba(255, 107, 107, 0.3)";
+                }}
+              >
+                <span>⏹️</span>
+                Dừng phản hồi
+              </button>
+            </div>
+          )}
+
           {/* Gợi ý câu hỏi - Làm ngang hơn */}
           <div
             className="chat-suggestions"
@@ -632,7 +815,7 @@ export default function GeminiChatbot() {
               onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
             >
               <span role="img" aria-label="send">
-                ✈️
+                ➤
               </span>
             </button>
           </div>
