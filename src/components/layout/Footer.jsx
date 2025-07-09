@@ -87,16 +87,7 @@ const Footer = () => {
         </div>
 
         {/* Floating Chatbot - Độc lập */}
-        <div
-          style={{
-            position: "fixed",
-            bottom: "80px",
-            right: "20px",
-            zIndex: 1001,
-          }}
-        >
-          <GeminiChatbot />
-        </div>
+        <GeminiChatbot />
       </footer>
     </>
   );
