@@ -25,6 +25,10 @@ export default function GeminiChatbot() {
         const timer = setTimeout(() => {
           setDisplayText(text.slice(0, currentIndex + 1));
           setCurrentIndex(currentIndex + 1);
+          // Auto scroll mỗi 10 ký tự để đảm bảo luôn thấy text đang typing
+          if (currentIndex > 0 && currentIndex % 10 === 0) {
+            setTimeout(scrollToBottom, 10);
+          }
         }, 30); // Tốc độ typing (30ms mỗi ký tự)
         return () => clearTimeout(timer);
       } else {
@@ -111,6 +115,8 @@ export default function GeminiChatbot() {
     ]);
     setTypingMessageId(messageId);
     setLoading(false);
+    // Auto scroll ngay khi bot bắt đầu phản hồi
+    setTimeout(scrollToBottom, 100);
   };
 
   // Hàm hoàn thành typing
@@ -121,6 +127,8 @@ export default function GeminiChatbot() {
       )
     );
     setTypingMessageId(null);
+    // Auto scroll khi typing hoàn thành
+    setTimeout(scrollToBottom, 100);
   };
 
   // Gửi câu hỏi (từ input hoặc gợi ý)
