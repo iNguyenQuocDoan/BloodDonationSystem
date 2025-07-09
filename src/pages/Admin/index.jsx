@@ -12,7 +12,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line, Pie, Bar } from "react-chartjs-2";
-
+console.log("test");
 /* Đăng ký các thành phần Chart.js */
 ChartJS.register(
   CategoryScale,
