@@ -33,10 +33,24 @@ const ScrollToTopButton = () => {
     visible && (
       <button
         onClick={scrollToTop}
-        className="fixed bottom-[100px] right-5 p-3 bg-[#D32F2F] text-white rounded-full shadow-lg hover:bg-red-600 transition hover:animate-bounce"
+        className="fixed bottom-[140px] right-5 w-12 h-12 bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center group z-[1000]"
         aria-label="Scroll to top"
+        title="Cuộn lên đầu trang"
+        style={{ right: "20px" }} // Đồng bộ với các nút khác
       >
-        ↑
+        <svg
+          className="w-5 h-5 transform group-hover:-translate-y-0.5 transition-transform duration-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M7 11l5-5m0 0l5 5m-5-5v12"
+          />
+        </svg>
       </button>
     )
   );

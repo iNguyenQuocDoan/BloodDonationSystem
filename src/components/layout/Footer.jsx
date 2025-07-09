@@ -10,12 +10,20 @@ const Footer = () => {
           {/* Box: Về chúng tôi */}
           <div className="bg-[#23272f] rounded-lg p-6 flex flex-col items-center justify-center text-white min-h-[180px] h-full text-center">
             <span className="font-semibold text-xl mb-2">Về chúng tôi</span>
-            <p className="mb-2 text-base leading-relaxed">DaiVietBlood là dự án kết nối cộng đồng hiến máu tình nguyện, lan tỏa yêu thương và trách nhiệm xã hội. Chúng tôi cam kết minh bạch, an toàn và tận tâm phục vụ cộng đồng.</p>
-            <span className="italic text-sm text-[#D32F2F]">"Mỗi giọt máu trao đi – Kết nối triệu trái tim"</span>
+            <p className="mb-2 text-base leading-relaxed">
+              DaiVietBlood là dự án kết nối cộng đồng hiến máu tình nguyện, lan
+              tỏa yêu thương và trách nhiệm xã hội. Chúng tôi cam kết minh bạch,
+              an toàn và tận tâm phục vụ cộng đồng.
+            </p>
+            <span className="italic text-sm text-[#D32F2F]">
+              "Mỗi giọt máu trao đi – Kết nối triệu trái tim"
+            </span>
           </div>
           {/* Box 1: Địa chỉ của chúng tôi */}
           <div className="bg-[#23272f] rounded-lg p-6 flex flex-col items-center justify-center text-white min-h-[180px] h-full text-center">
-            <h3 className="font-semibold text-xl mb-2">Địa chỉ của chúng tôi</h3>
+            <h3 className="font-semibold text-xl mb-2">
+              Địa chỉ của chúng tôi
+            </h3>
             <p className="text-base">Địa chỉ: 123 A Street, District B, HCMC</p>
             <p className="text-base">Hotline: 0123 456 789</p>
             <p className="text-base">Email: daivietblood@gmail.com</p>
@@ -34,9 +42,13 @@ const Footer = () => {
           <div className="bg-[#23272f] rounded-lg p-6 flex flex-col items-center justify-center text-white min-h-[180px] h-full text-center">
             <div className="flex items-center mb-2">
               <FaMapMarkerAlt className="text-green-400 mr-2 text-lg" />
-              <span className="font-semibold text-xl">Lịch hiến máu tình nguyện</span>
+              <span className="font-semibold text-xl">
+                Lịch hiến máu tình nguyện
+              </span>
             </div>
-            <p className="text-base">Hiến máu tình nguyện: 7h00 – 18h00 (Tất cả các ngày)</p>
+            <p className="text-base">
+              Hiến máu tình nguyện: 7h00 – 18h00 (Tất cả các ngày)
+            </p>
             <p className="text-base">Tổng đài: 0976 99 00 66</p>
           </div>
         </div>
@@ -44,20 +56,48 @@ const Footer = () => {
           © 2025 DaiVietBlood. Mọi quyền được bảo lưu.
         </div>
         {/* Floating Emergency Button */}
-        <div style={{position: 'fixed', bottom: '32px', right: '32px', zIndex: 1000}}>
-          <a href="/emergency" className="flex items-center gap-2 bg-[#D32F2F] text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition font-bold text-lg animate-bounce">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            zIndex: 1000,
+          }}
+        >
+          <a
+            href="/emergency"
+            className="flex items-center gap-2 bg-[#D32F2F] text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition font-bold text-lg animate-bounce"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             Hiến máu khẩn cấp
           </a>
-          {/* Đặt chatbot ở đây để nó nằm trên nút khẩn cấp */}
-          <div style={{position: 'absolute', bottom: '70px', right: 0}}>
-            <GeminiChatbot />
-          </div>
+        </div>
+
+        {/* Floating Chatbot - Độc lập */}
+        <div
+          style={{
+            position: "fixed",
+            bottom: "80px",
+            right: "20px",
+            zIndex: 1001,
+          }}
+        >
+          <GeminiChatbot />
         </div>
       </footer>
-      
     </>
   );
 };

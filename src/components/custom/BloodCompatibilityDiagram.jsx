@@ -12,9 +12,9 @@ const ABO_RULES = {
 
 const ABO_DESC = {
   O: "Nhóm O hiến hồng cầu cho mọi nhóm máu",
-  A: "Nhóm A hiến cho A và AB.",
-  B: "Nhóm B hiến cho B và AB.",
-  AB: "Nhóm AB chỉ hiến cho AB nhưng nhận từ tất cả.",
+  A: "Nhóm A hiến cho A và AB",
+  B: "Nhóm B hiến cho B và AB",
+  AB: "Nhóm AB chỉ hiến cho AB nhưng nhận từ tất cả",
 };
 
 const RH_TYPES = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"];
@@ -30,14 +30,14 @@ const RH_RULES = {
 };
 
 const RH_DESC = {
-  "O-": "O- âm hiến cho tất cả .",
-  "O+": "O+ hiến cho các nhóm Rh dương.",
-  "A-": "A- âm hiến cho A-/A+ & AB-/AB+.",
-  "A+": "A+ hiến cho A+ và AB+.",
-  "B-": "B- âm hiến cho B-/B+ & AB-/AB+.",
-  "B+": "B+ hiến cho B+ và AB+.",
-  "AB-": "AB- âm hiến cho AB- và AB+.",
-  "AB+": "AB+ chỉ hiến cho AB+ nhưng nhận từ tất cả.",
+  "O-": "O- âm hiến cho tất cả",
+  "O+": "O+ hiến cho các nhóm Rh dương",
+  "A-": "A- âm hiến cho A-/A+ & AB-/AB+",
+  "A+": "A+ hiến cho A+ và AB+",
+  "B-": "B- âm hiến cho B-/B+ & AB-/AB+",
+  "B+": "B+ hiến cho B+ và AB+",
+  "AB-": "AB- âm hiến cho AB- và AB+",
+  "AB+": "AB+ chỉ hiến cho AB+ nhưng nhận từ tất cả",
 };
 
 export default function BloodCompatibilityDiagram({ withRh = false }) {
@@ -139,7 +139,7 @@ export default function BloodCompatibilityDiagram({ withRh = false }) {
       {/* Khung sơ đồ */}
       <div
         ref={containerRef}
-        className="relative w-full h-[320px] rounded-xl sm:h-[360px] md:h-[400px] lg:h-[440px] bg-gray-50 px-1 sm:px-3"
+        className="relative w-full h-[320px] rounded-xl sm:h-[360px] md:h-[400px] lg:h-[440px] bg-gray-50 px-1 sm:px-3 overflow-hidden"
       >
         {/* Hàng donor */}
         <div className="absolute top-3 left-0 right-0 flex items-center z-10 px-1">
