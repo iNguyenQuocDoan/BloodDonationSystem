@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { askGemini } from "./askGemini";
 import useApi from "../../hooks/useApi";
+import TypewriterText from "./TypewriterText";
 
 export default function GeminiChatbot() {
   const [open, setOpen] = useState(false);
@@ -90,39 +91,6 @@ export default function GeminiChatbot() {
     );
   };
 
-  // Component TypewriterText với format đẹp hơn
-  const TypewriterText = ({ text, onComplete, messageId, shouldStop }) => {
-    const [displayText, setDisplayText] = useState("");
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [stopped, setStopped] = useState(false);
-
-    useEffect(() => {
-      if (shouldStop && !stopped) {
-        setStopped(true);
-        // Không hiển thị full text, chỉ dừng tại chỗ hiện tại
-        if (onComplete) onComplete(messageId); // Gọi callback khi dừng
-        return;
-      }
-
-      if (currentIndex < text.length && !stopped) {
-        const timer = setTimeout(() => {
-          setDisplayText(text.slice(0, currentIndex + 1));
-          setCurrentIndex(currentIndex + 1);
-          // Auto scroll mỗi 10 ký tự để đảm bảo luôn thấy text đang typing
-          if (currentIndex > 0 && currentIndex % 10 === 0) {
-            setTimeout(scrollToBottom, 10);
-          }
-        }, 30); // Tốc độ typing (30ms mỗi ký tự)
-
-        return () => clearTimeout(timer);
-      } else if (currentIndex >= text.length && !stopped) {
-        // Hoàn thành typing tự nhiên
-        if (onComplete) onComplete(messageId); // Gọi callback khi hoàn thành
-      }
-    }, [currentIndex, text, onComplete, messageId, shouldStop, stopped]);
-
-    return <FormattedText text={displayText} />;
-  };
   // Lấy tên user khi mở chatbot
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
@@ -168,6 +136,41 @@ export default function GeminiChatbot() {
     "Sau khi hiến máu nên làm gì?",
   ];
 
+  // Thêm các câu trả lời nhanh cho câu hỏi phổ biến
+  const quickAnswers = {
+    "nhóm máu o có thể hiến cho ai":
+      "Nhóm máu O có thể hiến cho: O, A, B, AB (nhóm máu vạn năng về hiến máu)",
+    "nhóm máu a nhận được từ nhóm nào": "Nhóm máu A nhận được từ: A và O",
+    "nhóm máu b nên lưu ý gì khi hiến máu":
+      "Nhóm máu B: Có thể hiến cho B và AB, nhận từ B và O. Lưu ý kiểm tra sức khỏe trước khi hiến.",
+    "nhóm máu ab có đặc điểm gì":
+      "Nhóm máu AB: Nhận được từ tất cả nhóm máu (vạn năng về nhận máu), chỉ hiến cho AB.",
+    "làm thế nào để đăng ký hiến máu":
+      "Đăng ký hiến máu: Vào trang chủ → Đăng ký hiến máu → Điền thông tin → Chọn địa điểm và thời gian.",
+    "tôi cần chuẩn bị gì trước khi hiến máu":
+      "Chuẩn bị: Ngủ đủ giấc, ăn uống đầy đủ, mang CMND, không uống rượu bia 24h trước.",
+    "ai không nên hiến máu":
+      "Không nên hiến: Dưới 18 tuổi, cân nặng dưới 45kg, đang mang thai, có bệnh lý tim mạch, nhiễm trùng.",
+    "hiến máu có lợi ích gì":
+      "Lợi ích: Kích thích tạo máu mới, kiểm tra sức khỏe miễn phí, giúp đỡ người khó khăn, cảm thấy ý nghĩa.",
+    "sau khi hiến máu nên làm gì":
+      "Sau hiến máu: Nghỉ ngơi 10-15 phút, uống nhiều nước, ăn nhẹ, tránh gắng sức 24h đầu.",
+  };
+
+  // Hàm kiểm tra và trả lời nhanh
+  const getQuickAnswer = (question) => {
+    const normalizedQuestion = question.toLowerCase().trim();
+    for (const [key, answer] of Object.entries(quickAnswers)) {
+      if (
+        normalizedQuestion.includes(key) ||
+        key.includes(normalizedQuestion)
+      ) {
+        return answer;
+      }
+    }
+    return null;
+  };
+
   // Hàm scroll xuống dưới với hiệu ứng mượt
   const scrollToBottom = () => {
     if (chatContentRef.current) {
@@ -205,8 +208,8 @@ export default function GeminiChatbot() {
     setTimeout(scrollToBottom, 100);
   };
 
-  // Hàm hoàn thành typing
-  const handleTypingComplete = (messageId) => {
+  // Hàm hoàn thành typing - sử dụng useCallback để tránh re-render
+  const handleTypingComplete = useCallback((messageId) => {
     setMessages((msgs) =>
       msgs.map((msg) =>
         msg.id === messageId ? { ...msg, isTyping: false } : msg
@@ -217,7 +220,7 @@ export default function GeminiChatbot() {
     setShouldStopTyping(false); // Reset shouldStop flag
     // Auto scroll khi typing hoàn thành
     setTimeout(scrollToBottom, 100);
-  };
+  }, []);
 
   // Hàm dừng typing
   const stopTyping = () => {
@@ -271,9 +274,23 @@ export default function GeminiChatbot() {
       return;
     }
 
-    // Các câu hỏi khác vẫn hỏi Gemini
-    const reply = await askGemini(question);
-    addBotMessage(reply);
+    // Kiểm tra câu trả lời nhanh trước khi gọi Gemini
+    const quickAnswer = getQuickAnswer(question);
+    if (quickAnswer) {
+      addBotMessage(quickAnswer);
+      return;
+    }
+
+    // Các câu hỏi khác gọi Gemini với prompt ngắn gọn
+    try {
+      const optimizedPrompt = `Trả lời ngắn gọn (2-3 câu) về câu hỏi hiến máu: ${question}. Chỉ đưa thông tin quan trọng nhất.`;
+      const reply = await askGemini(optimizedPrompt);
+      addBotMessage(reply);
+    } catch {
+      addBotMessage(
+        "Xin lỗi, tôi không thể trả lời câu hỏi này ngay bây giờ. Vui lòng thử lại sau."
+      );
+    }
   };
 
   // Icon button style
@@ -502,6 +519,7 @@ export default function GeminiChatbot() {
                 >
                   {msg.from === "bot" && msg.isTyping ? (
                     <TypewriterText
+                      key={`stable-${msg.id}`}
                       text={msg.text}
                       onComplete={handleTypingComplete}
                       messageId={msg.id}
@@ -607,9 +625,9 @@ export default function GeminiChatbot() {
                     "linear-gradient(135deg, #FF6B6B 0%, #EE5A52 100%)",
                   color: "#fff",
                   border: "none",
-                  borderRadius: 20,
+                  borderRadius: "20px",
                   padding: "8px 20px",
-                  fontSize: 13,
+                  fontSize: "13px",
                   fontWeight: "600",
                   cursor: "pointer",
                   boxShadow: "0 2px 8px rgba(255, 107, 107, 0.3)",
