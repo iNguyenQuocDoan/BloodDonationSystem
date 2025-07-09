@@ -95,9 +95,26 @@ const TypewriterText = memo(
         timerRef.current = setTimeout(() => {
           setDisplayText(text.slice(0, currentIndex + 1));
           setCurrentIndex(currentIndex + 1);
-          // Auto scroll mỗi 10 ký tự để đảm bảo luôn thấy text đang typing
-          if (currentIndex > 0 && currentIndex % 10 === 0 && scrollToBottom) {
-            setTimeout(scrollToBottom, 10);
+
+          // Auto scroll mượt mà hơn - scroll mỗi 5 ký tự thay vì 10
+          if (currentIndex > 0 && currentIndex % 5 === 0 && scrollToBottom) {
+            setTimeout(() => scrollToBottom(false), 5);
+          }
+
+          // Scroll đặc biệt khi gặp ký tự xuống dòng để đảm bảo luôn thấy dòng mới
+          const currentChar = text[currentIndex];
+          if (currentChar === "\n" && scrollToBottom) {
+            setTimeout(() => scrollToBottom(false), 10);
+          }
+
+          // Scroll khi hoàn thành câu (gặp dấu chấm, chấm hỏi, chấm than)
+          if (/[.!?]/.test(currentChar) && scrollToBottom) {
+            setTimeout(() => scrollToBottom(false), 15);
+          }
+
+          // Scroll khi gặp dấu hai chấm (thường là tiêu đề)
+          if (currentChar === ":" && scrollToBottom) {
+            setTimeout(() => scrollToBottom(false), 15);
           }
         }, 30); // Tốc độ typing (30ms mỗi ký tự)
 
@@ -110,6 +127,10 @@ const TypewriterText = memo(
       } else if (currentIndex >= text.length && !stopped) {
         // Hoàn thành typing tự nhiên
         if (onComplete) onComplete(messageId);
+        // Scroll cuối cùng để đảm bảo toàn bộ nội dung được hiển thị
+        if (scrollToBottom) {
+          setTimeout(() => scrollToBottom(false), 50);
+        }
       }
     }, [
       currentIndex,
@@ -139,7 +160,8 @@ const TypewriterText = memo(
       prevProps.text === nextProps.text &&
       prevProps.messageId === nextProps.messageId &&
       prevProps.shouldStop === nextProps.shouldStop &&
-      prevProps.onComplete === nextProps.onComplete
+      prevProps.onComplete === nextProps.onComplete &&
+      prevProps.scrollToBottom === nextProps.scrollToBottom
     );
   }
 );

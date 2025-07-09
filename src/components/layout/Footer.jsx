@@ -57,16 +57,14 @@ const Footer = () => {
         </div>
         {/* Floating Emergency Button */}
         <div
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-            zIndex: 1000,
-          }}
+          className="fixed-button-base emergency-btn
+                     md:bottom-[80px] md:right-[15px] 
+                     max-[480px]:bottom-[70px] max-[480px]:right-[10px]"
         >
           <a
             href="/emergency"
-            className="flex items-center gap-2 bg-[#D32F2F] text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition font-bold text-lg animate-bounce"
+            className="flex items-center gap-2 bg-[#D32F2F] text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition font-bold text-lg"
+            title="🚨 Yêu cầu hiến máu khẩn cấp - Hỗ trợ tức thì!"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

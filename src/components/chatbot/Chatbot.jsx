@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { askGemini } from "./askGemini";
 import useApi from "../../hooks/useApi";
 import TypewriterText from "./TypewriterText";
+import "./Chatbot.css";
 
 export default function GeminiChatbot() {
   const [open, setOpen] = useState(false);
@@ -19,6 +20,14 @@ export default function GeminiChatbot() {
 
   const { getCurrentUser } = useApi();
   const [showFAQ, setShowFAQ] = useState(false);
+
+  // Dispatch custom event khi chatbot mở/đóng để ẩn/hiện nút scroll to top
+  useEffect(() => {
+    const event = new CustomEvent("chatbotToggle", {
+      detail: { isOpen: open },
+    });
+    window.dispatchEvent(event);
+  }, [open]);
 
   // Component để format text đẹp hơn
   const FormattedText = ({ text }) => {
@@ -108,6 +117,26 @@ export default function GeminiChatbot() {
     setInput("");
   }, [userName]);
 
+  // Cập nhật title động cho tab khi chatbot mở/đóng
+  useEffect(() => {
+    const originalTitle = document.title;
+
+    if (open) {
+      if (isTyping) {
+        document.title = "✍️ DaiVietBlood AI đang trả lời...";
+      } else {
+        document.title = "💬 DaiVietBlood AI Assistant - Đang tư vấn...";
+      }
+    } else {
+      document.title = originalTitle;
+    }
+
+    // Cleanup khi component unmount
+    return () => {
+      document.title = originalTitle;
+    };
+  }, [open, isTyping]);
+
   const faqList = [
     {
       question: "Làm cách nào để đăng ký tài khoản trên hệ thống?",
@@ -171,13 +200,49 @@ export default function GeminiChatbot() {
     return null;
   };
 
+  // Hàm xử lý chuyển đổi kích thước ngay lập tức
+  const handleToggleExpand = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Hiệu ứng nhấn đơn giản cho nút
+    const button = e.target.closest("button");
+    if (button) {
+      button.style.transform = "scale(0.9)";
+      button.style.transition = "transform 0.1s ease";
+      setTimeout(() => {
+        button.style.transform = "";
+        button.style.transition = "";
+      }, 100);
+    }
+
+    // Đổi state ngay lập tức - không có animation
+    setIsExpanded(!isExpanded);
+
+    // Scroll ngay sau khi resize
+    setTimeout(() => {
+      if (chatContentRef.current) {
+        chatContentRef.current.scrollTo({
+          top: chatContentRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }, 50); // Delay nhỏ để DOM cập nhật
+  };
+
   // Hàm scroll xuống dưới với hiệu ứng mượt
-  const scrollToBottom = () => {
+  const scrollToBottom = (immediate = false) => {
     if (chatContentRef.current) {
-      chatContentRef.current.scrollTo({
-        top: chatContentRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+      if (immediate) {
+        // Scroll ngay lập tức không có animation
+        chatContentRef.current.scrollTop = chatContentRef.current.scrollHeight;
+      } else {
+        // Scroll với animation mượt
+        chatContentRef.current.scrollTo({
+          top: chatContentRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }
     }
   };
 
@@ -187,6 +252,23 @@ export default function GeminiChatbot() {
       setTimeout(scrollToBottom, 100); // Delay nhỏ để đảm bảo DOM đã render
     }
   }, [messages]);
+
+  // Auto scroll khi phóng to/thu nhỏ chatbot - ngay lập tức
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Scroll ngay lập tức khi resize
+      setTimeout(() => {
+        scrollToBottom(false);
+      }, 100); // Delay nhỏ để DOM cập nhật
+    }
+  }, [isExpanded, messages]);
+
+  // Scroll đặc biệt khi bot đang typing
+  useEffect(() => {
+    if (isTyping) {
+      setTimeout(() => scrollToBottom(true), 100);
+    }
+  }, [isExpanded, isTyping]);
 
   // Hàm thêm tin nhắn bot với typing effect
   const addBotMessage = (text) => {
@@ -293,169 +375,60 @@ export default function GeminiChatbot() {
     }
   };
 
-  // Icon button style
-  const iconBtnStyle = {
-    position: "fixed",
-    bottom: 80,
-    right: 20,
-    zIndex: 1001, // Tăng z-index
-    background: "#D32F2F",
-    color: "#fff",
-    borderRadius: "50%",
-    width: 56,
-    height: 56,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 2px 8px #0002",
-    cursor: "pointer",
-    fontSize: 28,
-    border: "none",
-  };
-
   // Avatar
   const botAvatar = "https://cdn-icons-png.flaticon.com/512/4712/4712035.png";
   const userAvatar = "https://cdn-icons-png.flaticon.com/512/1946/1946429.png";
 
   return (
     <>
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          
-          @keyframes typing-dot {
-            0%, 60%, 100% {
-              transform: translateY(0);
-              opacity: 0.4;
-            }
-            30% {
-              transform: translateY(-10px);
-              opacity: 1;
-            }
-          }
-          
-          /* Hide scrollbar */
-          .chat-suggestions::-webkit-scrollbar {
-            display: none;
-          }
-        `}
-      </style>
       {!open && (
-        <button
-          style={iconBtnStyle}
+        <div
+          className="chatbot-trigger fixed-button-base chatbot-btn"
           onClick={() => setOpen(true)}
-          title="Chatbot DaiVietBlood - Hỗ trợ tư vấn hiến máu, tìm hiểu nhóm máu và giải đáp thắc mắc 24/7"
+          title="💬 DaiVietBlood AI Assistant - Tư vấn hiến máu 24/7"
         >
-          <span role="img" aria-label="chat">
-            💬
-          </span>
-        </button>
+          <div className="chatbot-button">
+            <span className="emoji">💬</span>
+            <span>DaiVietBlood AI</span>
+            <div className="status-indicator"></div>
+          </div>
+        </div>
       )}
       {open && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: isExpanded ? 20 : 144,
-            right: isExpanded ? 20 : 20,
-            left: isExpanded ? 20 : "auto",
-            top: isExpanded ? 20 : "auto",
-            width: isExpanded
-              ? "calc(100vw - 40px)"
-              : "min(450px, calc(100vw - 40px))",
-            height: isExpanded ? "calc(100vh - 40px)" : "auto",
-            maxHeight: isExpanded ? "none" : "400px",
-            background: "#fff",
-            borderRadius: 16,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-            padding: 0,
-            zIndex: 1001,
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            border: "1px solid #f0f0f0",
-            transition: "all 0.3s ease",
-          }}
-        >
+        <div className={`chatbot-window ${isExpanded ? "expanded" : "normal"}`}>
           {/* Header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              background: "linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%)",
-              padding: "14px 20px",
-              borderRadius: "16px 16px 0 0",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <img
-                src={botAvatar}
-                alt="bot"
-                style={{ width: 32, height: 32, borderRadius: "50%" }}
-              />
+          <div className="chatbot-header">
+            <div className="chatbot-header-info">
+              <img src={botAvatar} alt="bot" className="chatbot-avatar" />
               <div>
-                <div style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
-                  🩸 DaiVietBlood Assistant
+                <div className="chatbot-title">
+                  🩸 DaiVietBlood AI Assistant
                 </div>
-                <div style={{ color: "#fff", fontSize: 11, opacity: 0.9 }}>
+                <div className="chatbot-subtitle">
+                  Tư vấn hiến máu • Nhóm máu • Sức khỏe 24/7
+                </div>
+                <div className="chatbot-greeting">
                   Xin chào <b>{userName || "Bạn"}</b>! Tôi có thể giúp gì cho
                   bạn?
                 </div>
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div className="chatbot-controls">
               <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                style={{
-                  background: "rgba(255,255,255,0.2)",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 28,
-                  height: 28,
-                  fontSize: 14,
-                  color: "#fff",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.2s ease",
-                }}
-                title={isExpanded ? "Thu nhỏ chatbot" : "Phóng to chatbot"}
-                onMouseEnter={(e) =>
-                  (e.target.style.background = "rgba(255,255,255,0.3)")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.background = "rgba(255,255,255,0.2)")
+                onClick={handleToggleExpand}
+                className="chatbot-control-btn expand"
+                title={
+                  isExpanded
+                    ? "📱 Thu nhỏ để tiếp tục duyệt web"
+                    : "🔍 Phóng to để trò chuyện thoải mái hơn"
                 }
               >
                 {isExpanded ? "🗗" : "🗖"}
               </button>
               <button
                 onClick={() => setOpen(false)}
-                style={{
-                  background: "rgba(255,255,255,0.2)",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 28,
-                  height: 28,
-                  fontSize: 16,
-                  color: "#fff",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.2s ease",
-                }}
-                title="Đóng chatbot"
-                onMouseEnter={(e) =>
-                  (e.target.style.background = "rgba(255,255,255,0.3)")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.background = "rgba(255,255,255,0.2)")
-                }
+                className="chatbot-control-btn close"
+                title="❌ Đóng trò chuyện - Hẹn gặp lại!"
               >
                 ×
               </button>
@@ -464,59 +437,19 @@ export default function GeminiChatbot() {
           {/* Nội dung chat */}
           <div
             ref={chatContentRef}
-            style={{
-              height: isExpanded ? "calc(100vh - 200px)" : 180,
-              overflowY: "auto",
-              background: "#fafafa",
-              padding: "16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-              flex: "1 1 auto",
-              scrollBehavior: "smooth",
-            }}
+            className={`chatbot-content ${isExpanded ? "expanded" : "normal"}`}
           >
             {messages.map((msg, i) => (
               <div
                 key={msg.id || i}
-                style={{
-                  display: "flex",
-                  flexDirection: msg.from === "user" ? "row-reverse" : "row",
-                  alignItems: "flex-end",
-                  gap: 8,
-                }}
+                className={`message ${msg.from === "user" ? "user" : ""}`}
               >
                 <img
                   src={msg.from === "user" ? userAvatar : botAvatar}
                   alt={msg.from}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "#fff",
-                    border: "2px solid #f0f0f0",
-                  }}
+                  className="message-avatar"
                 />
-                <div
-                  style={{
-                    background:
-                      msg.from === "user"
-                        ? "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)"
-                        : "#fff",
-                    color: msg.from === "user" ? "#fff" : "#333",
-                    borderRadius: 18,
-                    padding: msg.from === "bot" ? "12px 16px" : "10px 16px",
-                    maxWidth: "80%",
-                    fontSize: 14,
-                    lineHeight: msg.from === "bot" ? "1.6" : "1.4",
-                    boxShadow:
-                      msg.from === "user"
-                        ? "0 2px 8px rgba(33, 150, 243, 0.3)"
-                        : "0 2px 8px rgba(0,0,0,0.1)",
-                    wordWrap: "break-word",
-                    border: msg.from === "bot" ? "1px solid #f0f0f0" : "none",
-                  }}
-                >
+                <div className={`message-content ${msg.from}`}>
                   {msg.from === "bot" && msg.isTyping ? (
                     <TypewriterText
                       key={`stable-${msg.id}`}
@@ -524,6 +457,7 @@ export default function GeminiChatbot() {
                       onComplete={handleTypingComplete}
                       messageId={msg.id}
                       shouldStop={shouldStopTyping}
+                      scrollToBottom={scrollToBottom}
                     />
                   ) : msg.from === "bot" ? (
                     <FormattedText text={msg.text} />
@@ -534,73 +468,14 @@ export default function GeminiChatbot() {
               </div>
             ))}
             {loading && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-end",
-                  gap: 8,
-                  marginLeft: 0,
-                }}
-              >
-                <img
-                  src={botAvatar}
-                  alt="bot"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "#fff",
-                    border: "2px solid #f0f0f0",
-                  }}
-                />
-                <div
-                  style={{
-                    background: "#fff",
-                    borderRadius: 18,
-                    padding: "10px 16px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                    border: "1px solid #f0f0f0",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <span style={{ fontSize: 13, color: "#666" }}>
-                    Đang suy nghĩ
-                  </span>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 3,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        backgroundColor: "#D32F2F",
-                        animation: "typing-dot 1.4s infinite ease-in-out",
-                      }}
-                    ></div>
-                    <div
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        backgroundColor: "#D32F2F",
-                        animation: "typing-dot 1.4s infinite ease-in-out 0.2s",
-                      }}
-                    ></div>
-                    <div
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        backgroundColor: "#D32F2F",
-                        animation: "typing-dot 1.4s infinite ease-in-out 0.4s",
-                      }}
-                    ></div>
+              <div className="loading-indicator">
+                <img src={botAvatar} alt="bot" className="message-avatar" />
+                <div className="loading-content">
+                  <span className="loading-text">Đang suy nghĩ</span>
+                  <div className="loading-dots">
+                    <div className="loading-dot"></div>
+                    <div className="loading-dot"></div>
+                    <div className="loading-dot"></div>
                   </div>
                 </div>
               </div>
@@ -609,44 +484,11 @@ export default function GeminiChatbot() {
 
           {/* Nút dừng phản hồi khi bot đang typing */}
           {isTyping && messages.some((msg) => msg.isTyping) && (
-            <div
-              style={{
-                padding: "8px 16px",
-                background: "#fff",
-                borderTop: "1px solid #f0f0f0",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
+            <div className="stop-typing-container">
               <button
                 onClick={stopTyping}
-                style={{
-                  background:
-                    "linear-gradient(135deg, #FF6B6B 0%, #EE5A52 100%)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "20px",
-                  padding: "8px 20px",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  boxShadow: "0 2px 8px rgba(255, 107, 107, 0.3)",
-                  transition: "all 0.2s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
+                className="stop-typing-btn"
                 title="Dừng phản hồi để hỏi câu khác"
-                onMouseEnter={(e) => {
-                  e.target.style.transform = "scale(1.05)";
-                  e.target.style.boxShadow =
-                    "0 4px 12px rgba(255, 107, 107, 0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = "scale(1)";
-                  e.target.style.boxShadow =
-                    "0 2px 8px rgba(255, 107, 107, 0.3)";
-                }}
               >
                 <span>⏹️</span>
                 Dừng phản hồi
@@ -654,94 +496,31 @@ export default function GeminiChatbot() {
             </div>
           )}
 
-          {/* Gợi ý câu hỏi - Làm ngang hơn */}
-          <div
-            className="chat-suggestions"
-            style={{
-              display: "flex",
-              gap: 8,
-              overflowX: "auto",
-              padding: "12px 16px",
-              background: "#fff",
-              flex: "0 0 auto",
-              scrollbarWidth: "none", // Firefox
-              msOverflowStyle: "none", // IE/Edge
-            }}
-          >
-            {suggestions.slice(0, 6).map(
-              (
-                s,
-                idx // Chỉ hiển thị 6 suggestion đầu
-              ) => (
-                <button
-                  key={idx}
-                  style={{
-                    background:
-                      s === "Các câu hỏi thường gặp" && showFAQ
-                        ? "linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%)"
-                        : "linear-gradient(135deg, #fff 0%, #f8f9fa 100%)",
-                    border:
-                      s === "Các câu hỏi thường gặp" && showFAQ
-                        ? "1px solid #D32F2F"
-                        : "1px solid #e9ecef",
-                    borderRadius: 20,
-                    padding: "8px 16px",
-                    fontSize: 13,
-                    color:
-                      s === "Các câu hỏi thường gặp" && showFAQ
-                        ? "#fff"
-                        : "#495057",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    boxShadow:
-                      s === "Các câu hỏi thường gặp" && showFAQ
-                        ? "0 2px 8px rgba(211, 47, 47, 0.3)"
-                        : "0 2px 4px rgba(0,0,0,0.05)",
-                    transition: "all 0.2s ease",
-                    fontWeight: "500",
-                  }}
-                  disabled={loading}
-                  onClick={() => handleSend(s)}
-                >
-                  {s}
-                </button>
-              )
-            )}
+          {/* Gợi ý câu hỏi */}
+          <div className="suggestions-container">
+            {suggestions.slice(0, 6).map((s, idx) => (
+              <button
+                key={idx}
+                className={`suggestion-btn ${
+                  s === "Các câu hỏi thường gặp" && showFAQ
+                    ? "active"
+                    : "normal"
+                }`}
+                disabled={loading}
+                onClick={() => handleSend(s)}
+              >
+                {s}
+              </button>
+            ))}
           </div>
 
           {/* FAQ List */}
           {showFAQ && (
-            <div
-              style={{
-                background: "#fff",
-                border: "1px solid #ffd6d6",
-                borderRadius: 12,
-                margin: "8px 12px",
-                padding: "8px 16px",
-                boxShadow: "0 2px 8px #0001",
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                maxHeight: "150px",
-                overflowY: "auto",
-                flex: "0 0 auto",
-              }}
-            >
+            <div className="faq-container">
               {faqList.map((q, idx) => (
                 <button
                   key={idx}
-                  style={{
-                    width: "100%",
-                    background: "#ffe6ea",
-                    color: "#d32f2f",
-                    border: "none",
-                    borderRadius: 20,
-                    padding: "12px 0",
-                    fontWeight: "bold",
-                    fontSize: 15,
-                    cursor: "pointer",
-                    transition: "background 0.2s",
-                  }}
+                  className="faq-btn"
                   onClick={() => {
                     handleSend(q.question, true);
                     setShowFAQ(false);
@@ -751,18 +530,7 @@ export default function GeminiChatbot() {
                 </button>
               ))}
               <button
-                style={{
-                  width: "100%",
-                  background: "#fff",
-                  color: "#888",
-                  border: "1px solid #ffd6d6",
-                  borderRadius: 20,
-                  padding: "10px 0",
-                  fontWeight: "bold",
-                  fontSize: 15,
-                  cursor: "pointer",
-                  marginTop: 4,
-                }}
+                className="faq-close-btn"
                 onClick={() => setShowFAQ(false)}
               >
                 Đóng
@@ -771,66 +539,20 @@ export default function GeminiChatbot() {
           )}
 
           {/* Input */}
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              padding: "12px 16px",
-              background: "#fff",
-              borderTop: "1px solid #f0f0f0",
-              flex: "0 0 auto",
-              borderRadius: "0 0 16px 16px",
-            }}
-          >
+          <div className="input-container">
             <input
-              style={{
-                flex: 1,
-                borderRadius: 24,
-                border: "1px solid #e9ecef",
-                padding: "10px 16px",
-                fontSize: 14,
-                outline: "none",
-                background: "#f8f9fa",
-                transition: "all 0.2s ease",
-              }}
+              className="input-field"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Nhập câu hỏi về hiến máu..."
+              placeholder="💭 Hỏi về hiến máu, nhóm máu, sức khỏe..."
               disabled={loading}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#D32F2F";
-                e.target.style.background = "#fff";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "#e9ecef";
-                e.target.style.background = "#f8f9fa";
-              }}
             />
             <button
-              style={{
-                background: "linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: "50%",
-                width: 44,
-                height: 44,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 16,
-                cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: "0 2px 8px rgba(211, 47, 47, 0.3)",
-                transition: "all 0.2s ease",
-                opacity: loading ? 0.7 : 1,
-              }}
+              className="send-btn"
               onClick={() => handleSend()}
               disabled={loading}
               title="Gửi tin nhắn"
-              onMouseEnter={(e) =>
-                !loading && (e.target.style.transform = "scale(1.05)")
-              }
-              onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
             >
               <span role="img" aria-label="send">
                 ➤

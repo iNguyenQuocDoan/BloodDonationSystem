@@ -12,7 +12,7 @@ export const RegisterPage = () => {
     confirm_password: "",
     telephone: "",
     address: "",
-    dob: ""
+    dob: "",
   });
   const [errors, setErrors] = useState({});
   const [coords, setCoords] = useState({ latitude: "", longitude: "" });
@@ -49,7 +49,7 @@ export const RegisterPage = () => {
     // Điều chỉnh tuổi nếu chưa đến sinh nhật trong năm
     const actualAge =
       monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
         ? age - 1
         : age;
 
@@ -143,7 +143,6 @@ export const RegisterPage = () => {
         password: form.password,
         confirm_password: form.confirm_password,
         name: form.user_name,
-        name: form.user_name,
         date_of_birth: form.dob,
         phone: form.telephone,
         address: form.address,
@@ -191,8 +190,9 @@ export const RegisterPage = () => {
               value={form.user_name}
               onChange={handleChange}
               placeholder="Nhập họ và tên của bạn"
-              className={`w-full px-4 py-2 border rounded ${errors.user_name ? "border-red-500" : ""
-                }`}
+              className={`w-full px-4 py-2 border rounded ${
+                errors.user_name ? "border-red-500" : ""
+              }`}
               required
             />
             {errors.user_name && (
@@ -208,8 +208,9 @@ export const RegisterPage = () => {
               value={form.email}
               onChange={handleChange}
               placeholder="Nhập email của bạn"
-              className={`w-full px-4 py-2 border rounded ${errors.email ? "border-red-500" : ""
-                }`}
+              className={`w-full px-4 py-2 border rounded ${
+                errors.email ? "border-red-500" : ""
+              }`}
               required
             />
             {errors.email && (
@@ -226,8 +227,9 @@ export const RegisterPage = () => {
                 value={form.password}
                 onChange={handleChange}
                 placeholder="Nhập mật khẩu của bạn"
-                className={`w-full px-4 py-2 border rounded ${errors.password ? "border-red-500" : ""
-                  }`}
+                className={`w-full px-4 py-2 border rounded ${
+                  errors.password ? "border-red-500" : ""
+                }`}
                 required
               />
             </div>
@@ -237,7 +239,9 @@ export const RegisterPage = () => {
           </div>
 
           <div>
-            <label className="block text-[#555555] mb-1">Xác nhận mật khẩu:</label>
+            <label className="block text-[#555555] mb-1">
+              Xác nhận mật khẩu:
+            </label>
             <div className="relative">
               <input
                 type="password"
@@ -245,8 +249,9 @@ export const RegisterPage = () => {
                 value={form.confirm_password}
                 onChange={handleChange}
                 placeholder="Nhập lại mật khẩu của bạn"
-                className={`w-full px-4 py-2 border rounded ${errors.confirm_password ? "border-red-500" : ""
-                  }`}
+                className={`w-full px-4 py-2 border rounded ${
+                  errors.confirm_password ? "border-red-500" : ""
+                }`}
                 required
               />
             </div>
@@ -266,8 +271,9 @@ export const RegisterPage = () => {
               onChange={handleChange}
               min={ageLimit.min}
               max={ageLimit.max}
-              className={`w-full px-4 py-2 border rounded ${errors.dob ? "border-red-500" : ""
-                }`}
+              className={`w-full px-4 py-2 border rounded ${
+                errors.dob ? "border-red-500" : ""
+              }`}
               required
             />
             <p className="text-gray-500 text-xs mt-1">
@@ -286,7 +292,9 @@ export const RegisterPage = () => {
               value={form.address}
               onChange={handleChange}
               placeholder="Nhập địa chỉ của bạn"
-              className={`w-full px-4 py-2 border rounded ${errors.address ? "border-red-500" : ""}`}
+              className={`w-full px-4 py-2 border rounded ${
+                errors.address ? "border-red-500" : ""
+              }`}
               required
             />
             {addressLoading && (

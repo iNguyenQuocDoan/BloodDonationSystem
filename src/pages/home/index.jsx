@@ -7,33 +7,63 @@ import BloodCompatibilityDiagram from "../../components/custom/BloodCompatibilit
 import DonateBlood from "./DonateBlood";
 import { DateFilter } from "../../components/DateFilter";
 import { FAQPage } from "./FAQ";
+import {
+  triggerHapticFeedback,
+  playButtonSound,
+} from "../../utils/buttonEffects";
 
 // ScrollToTopButton Component
 const ScrollToTopButton = () => {
   const [visible, setVisible] = useState(false);
+  const [isIntense, setIsIntense] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false); // State để theo dõi chatbot
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
+      const scrollTop = window.pageYOffset;
+
+      if (scrollTop > 300) {
         setVisible(true);
+        // Hiệu ứng intense khi scroll xuống rất nhiều
+        setIsIntense(scrollTop > 1000);
       } else {
         setVisible(false);
+        setIsIntense(false);
       }
     };
 
+    // Lắng nghe custom event từ chatbot
+    const handleChatbotToggle = (event) => {
+      setChatbotOpen(event.detail.isOpen);
+    };
+
     window.addEventListener("scroll", toggleVisibility);
-    return () => window.removeEventListener("scroll", toggleVisibility);
+    window.addEventListener("chatbotToggle", handleChatbotToggle);
+
+    return () => {
+      window.removeEventListener("scroll", toggleVisibility);
+      window.removeEventListener("chatbotToggle", handleChatbotToggle);
+    };
   }, []);
 
   const scrollToTop = () => {
+    // Thêm hiệu ứng âm thanh và haptic
+    triggerHapticFeedback("light");
+    playButtonSound();
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    visible && (
+    visible &&
+    !chatbotOpen && ( // Ẩn nút khi chatbot mở
       <button
         onClick={scrollToTop}
-        className="fixed bottom-[140px] right-5 w-12 h-12 bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center group z-[1000]"
+        className={`fixed-button-base scroll-to-top-btn w-12 h-12 bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group z-[1002] 
+                    md:bottom-[240px] md:right-[15px] 
+                    max-[480px]:bottom-[200px] max-[480px]:right-[10px] ${
+                      isIntense ? "intense" : ""
+                    }`}
         aria-label="Scroll to top"
         title="Cuộn lên đầu trang"
         style={{ right: "20px" }} // Đồng bộ với các nút khác

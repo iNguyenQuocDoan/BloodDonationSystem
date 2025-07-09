@@ -14,7 +14,7 @@
     "aos": "^2.3.4",
     "axios": "^1.9.0",
     "chart.js": "^4.4.1",
-    "framer-motion": "^12.20.5",
+    "framer-motion": "^12.23.0",
     "js-cookie": "^3.0.5",
     "react": "^19.1.0",
     "react-chartjs-2": "^5.3.0",
