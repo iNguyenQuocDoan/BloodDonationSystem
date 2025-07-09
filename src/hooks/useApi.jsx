@@ -23,7 +23,6 @@ const useApi = () => {
     setError(null);
 
     try {
-
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -31,29 +30,45 @@ const useApi = () => {
         },
         ...options
       });
-      console.log('API response status:', response.status); // Thêm dòng này
-      // Handle 401 from server
+      
+      console.log('API response status:', response.status);
+      
+      // Xử lý 401 - Authentication error
       if (response.status === 401) {
-        clearAuthData();
         if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
+          clearAuthData();
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 100);
         }
         throw new Error('Session expired');
       }
 
       const data = await response.json();
-      if (!data.status && data.message) {
+      console.log('API response data:', data); // Debug log
+      
+      // Xử lý response không thành công (400, 500, etc.)
+      if (!response.ok) {
+        // Ưu tiên message từ server response
+        const errorMessage = data.message || data.error || `HTTP Error: ${response.status}`;
+        throw new Error(errorMessage);
+      }
+      
+      // Xử lý trường hợp server trả về success: false
+      if (data.status === false && data.message) {
         throw new Error(data.message);
       }
 
       return data;
     } catch (err) {
-      setError(err.message || 'API call failed');
+      const errorMessage = err.message || 'API call failed';
+      setError(errorMessage);
+      console.error(`API Error [${endpoint}]:`, errorMessage);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [isLoggedIn, clearAuthData]);
+  }, [clearAuthData]);
 
   // Auth APIs
   const login = useCallback(async (credentials) => {
@@ -99,12 +114,13 @@ const useApi = () => {
     return callApi('/getSlotList');
   }, [callApi]);
 
-  const registerSlot = useCallback(async (slotId, user_id) => {
+  const registerSlot = useCallback(async (slotId, user_id, extraData = {}) => {
     return callApi('/registerSlot', {
       method: 'POST',
       body: JSON.stringify({
         Slot_ID: slotId,
-        User_ID: user_id
+        User_ID: user_id,
+        ...extraData
       })
     });
   }, [callApi]);
@@ -116,11 +132,22 @@ const useApi = () => {
     });
   }, [callApi]);
 
+  const updateUser = useCallback(async (userData) => {
+    return callApi('/updateUser', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  }, [callApi]);
+
+  const getBloodTypes = useCallback(async () => {
+    return callApi('/bloodtypes');
+  }, [callApi]);
+
   const getAppointments = useCallback(async () => {
     return callApi('/getAppointmentList');
   }, [callApi]);
 
-  const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
+   const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
     return callApi(`/appointment/${appointmentId}/addVolume`, {
       method: 'POST',
       body: JSON.stringify({ volume })
@@ -146,8 +173,10 @@ const useApi = () => {
     getSlotList,
     registerSlot,
     createSlot,
-    isLoggedIn: isLoggedIn(),
+    updateUser,
+    getBloodTypes,
     getAppointments,
+    isLoggedIn: isLoggedIn(),
     addAppointmentVolume,
     addEmergencyRequest
   };
