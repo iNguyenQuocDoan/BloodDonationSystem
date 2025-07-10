@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import VanillaTilt from "vanilla-tilt";
@@ -12,11 +12,27 @@ import {
   playButtonSound,
 } from "../../utils/buttonEffects";
 
+// Helper function to check if current path is auth related
+const isAuthRoute = (pathname) => {
+  const authRoutes = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/profile",
+    "/auth/",
+  ];
+  return authRoutes.some((route) => pathname.includes(route));
+};
+
 // ScrollToTopButton Component
 const ScrollToTopButton = () => {
   const [visible, setVisible] = useState(false);
   const [isIntense, setIsIntense] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false); // State để theo dõi chatbot
+  const location = useLocation(); // Get current location
+
+  // Kiểm tra xem có phải là trang auth không
+  const isAuthPage = isAuthRoute(location.pathname);
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -37,14 +53,17 @@ const ScrollToTopButton = () => {
       setChatbotOpen(event.detail.isOpen);
     };
 
-    window.addEventListener("scroll", toggleVisibility);
-    window.addEventListener("chatbotToggle", handleChatbotToggle);
+    // Chỉ thêm event listener nếu không phải là trang auth
+    if (!isAuthPage) {
+      window.addEventListener("scroll", toggleVisibility);
+      window.addEventListener("chatbotToggle", handleChatbotToggle);
+    }
 
     return () => {
       window.removeEventListener("scroll", toggleVisibility);
       window.removeEventListener("chatbotToggle", handleChatbotToggle);
     };
-  }, []);
+  }, [isAuthPage]); // Thêm isAuthPage vào dependency array
 
   const scrollToTop = () => {
     // Thêm hiệu ứng âm thanh và haptic
@@ -54,35 +73,37 @@ const ScrollToTopButton = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Nếu là trang auth hoặc không visible, không hiển thị nút
+  if (isAuthPage || !visible || chatbotOpen) {
+    return null;
+  }
+
   return (
-    visible &&
-    !chatbotOpen && ( // Ẩn nút khi chatbot mở
-      <button
-        onClick={scrollToTop}
-        className={`fixed-button-base scroll-to-top-btn w-12 h-12 bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group z-[1002] 
-                    md:bottom-[240px] md:right-[15px] 
-                    max-[480px]:bottom-[200px] max-[480px]:right-[10px] ${
-                      isIntense ? "intense" : ""
-                    }`}
-        aria-label="Scroll to top"
-        title="Cuộn lên đầu trang"
-        style={{ right: "20px" }} // Đồng bộ với các nút khác
+    <button
+      onClick={scrollToTop}
+      className={`fixed-button-base scroll-to-top-btn w-12 h-12 bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group z-[1002] 
+                md:bottom-[240px] md:right-[15px] 
+                max-[480px]:bottom-[200px] max-[480px]:right-[10px] ${
+                  isIntense ? "intense" : ""
+                }`}
+      aria-label="Scroll to top"
+      title="Cuộn lên đầu trang"
+      style={{ right: "20px" }} // Đồng bộ với các nút khác
+    >
+      <svg
+        className="w-5 h-5 transform group-hover:-translate-y-0.5 transition-transform duration-300"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
       >
-        <svg
-          className="w-5 h-5 transform group-hover:-translate-y-0.5 transition-transform duration-300"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2.5}
-            d="M7 11l5-5m0 0l5 5m-5-5v12"
-          />
-        </svg>
-      </button>
-    )
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2.5}
+          d="M7 11l5-5m0 0l5 5m-5-5v12"
+        />
+      </svg>
+    </button>
   );
 };
 
