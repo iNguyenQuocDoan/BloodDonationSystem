@@ -627,146 +627,61 @@
 
 .input-field {
   flex: 1;
-  border-radius: 26px;
-  border: 1px solid #e9ecef;
-  padding: 12px 18px;
-  font-size: 14px;
-  outline: none;
-  background: #f8f9fa !important;
-  color: #333 !important;
-  position: relative;
-}
-
-.input-field:focus {
-  border-color: #d32f2f;
-  background: #fff !important;
-  color: #333 !important;
-  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
-}
-
-.input-field::placeholder {
-  color: #999 !important;
-}
-
-.input-field:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.send-btn {
-  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
-  color: #fff;
   border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.3);
-  position: relative;
-  overflow: hidden;
+  outline: none;
+  padding: 12px 16px;
+  font-size: 16px !important; /* Đảm bảo tối thiểu 16px để tránh zoom trên mobile */
+  border-radius: 999px;
+  background: #f7f7f7;
+  margin-right: 8px;
+  transition: box-shadow 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.send-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.3) 0%,
-    transparent 70%
-  );
-  transform: scale(0);
-  border-radius: 50%;
-}
+@media (max-width: 600px) {
+  .input-field {
+    font-size: 17px !important; /* Tăng nhẹ trên mobile để chắc chắn không bị zoom */
+    padding: 14px 14px;
+  }
 
-.send-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-/* Chat statistics display */
-.chat-stats {
-  font-size: 11px !important;
-  color: #666 !important;
-  margin-top: 4px !important;
-  font-style: italic !important;
-  opacity: 0.8 !important;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
   .chatbot-trigger {
-    bottom: 130px; /* Đồng bộ với fixed-buttons.css cho mobile */
+    bottom: 145px !important; /* Giảm xuống, chỉ cao hơn nút hiến máu một chút */
     right: 15px;
+    z-index: 1002;
   }
 
   .chatbot-window.normal {
-    bottom: 150px; /* Xuống thấp hơn cho mobile */
+    bottom: 165px !important; /* Giảm xuống tương ứng */
     right: 15px;
     width: calc(100vw - 30px);
     transform-origin: bottom right;
+    z-index: 1002;
   }
-
-  .chatbot-window.expanded {
-    transform-origin: center;
-  }
-
-  /* Cải thiện hiệu ứng cho mobile - Dùng Framer Motion */
-  /* Đã bỏ animation CSS cũ */
 }
-
 @media (max-width: 480px) {
+  .input-field {
+    font-size: 17px !important;
+  }
+
   .chatbot-trigger {
-    bottom: 115px; /* Đồng bộ với fixed-buttons.css cho mobile nhỏ */
+    bottom: 140px !important; /* Điều chỉnh cho màn hình nhỏ hơn */
     right: 10px;
+    z-index: 1002;
   }
 
   .chatbot-window.normal {
-    bottom: 135px; /* Xuống thấp hơn cho mobile nhỏ */
+    bottom: 160px !important;
     right: 10px;
     width: calc(100vw - 20px);
     transform-origin: bottom right;
+    z-index: 1002;
   }
-
-  .chatbot-window.expanded {
-    right: 10px;
-    left: 10px;
-    width: calc(100vw - 20px);
-    transform-origin: center;
-  }
-
-  .chatbot-button {
-    font-size: 14px;
-    padding: 12px 20px;
-    gap: 10px;
-  }
-
-  .message-content {
-    max-width: 85%;
-  }
-
-  .suggestions-container {
-    padding: 8px 12px;
-  }
-
-  .suggestion-btn {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-
-  /* Hiệu ứng mượt hơn cho mobile nhỏ - Dùng Framer Motion */
-  /* Đã bỏ animation CSS cũ */
 }
-
 @media (max-width: 360px) {
+  .input-field {
+    font-size: 17px !important;
+  }
+
   .chatbot-trigger {
     right: 10px;
     bottom: 115px; /* Giữ nguyên với 480px */

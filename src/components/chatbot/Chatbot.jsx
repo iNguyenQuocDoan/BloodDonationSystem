@@ -3,8 +3,24 @@ import { askGemini } from "./askGemini";
 import useApi from "../../hooks/useApi";
 import TypewriterText from "./TypewriterText";
 import "./Chatbot.css";
+import { useLocation } from "react-router-dom";
+
+// Helper function để kiểm tra xem có phải trang auth không
+const isAuthRoute = (pathname) => {
+  const authRoutes = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/profile",
+    "/auth/",
+  ];
+  return authRoutes.some((route) => pathname.includes(route));
+};
 
 export default function GeminiChatbot() {
+  const location = useLocation();
+  const isAuthPage = isAuthRoute(location.pathname);
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -430,7 +446,8 @@ export default function GeminiChatbot() {
 
   return (
     <>
-      {!open && (
+      {/* Không hiển thị chatbot khi ở trang auth */}
+      {!isAuthPage && !open && (
         <div
           className="chatbot-trigger fixed-button-base chatbot-btn"
           onClick={() => setOpen(true)}
@@ -443,7 +460,7 @@ export default function GeminiChatbot() {
           </div>
         </div>
       )}
-      {open && (
+      {!isAuthPage && open && (
         <div className={`chatbot-window ${isExpanded ? "expanded" : "normal"}`}>
           {/* Header */}
           <div className="chatbot-header">

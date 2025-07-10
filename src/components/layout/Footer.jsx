@@ -1,8 +1,24 @@
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import GeminiChatbot from "../chatbot/Chatbot";
 
+// Helper function để kiểm tra xem có phải trang auth không
+const isAuthRoute = (pathname) => {
+  const authRoutes = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/profile",
+    "/auth/",
+  ];
+  return authRoutes.some((route) => pathname.includes(route));
+};
+
 const Footer = () => {
+  const location = useLocation();
+  const isAuthPage = isAuthRoute(location.pathname);
+
   return (
     <>
       <footer className="bg-[#23272f] py-8 mt-8 border-t border-[#2d323c]">
@@ -55,34 +71,37 @@ const Footer = () => {
         <div className="w-max mx-auto mt-6 text-[#b0b6c3] font-medium text-base">
           © 2025 DaiVietBlood. Mọi quyền được bảo lưu.
         </div>
-        {/* Floating Emergency Button */}
-        <div
-          className="fixed-button-base emergency-btn
+
+        {/* Floating Emergency Button - Ẩn ở trang auth */}
+        {!isAuthPage && (
+          <div
+            className="fixed-button-base emergency-btn
                      md:bottom-[80px] md:right-[15px] 
                      max-[480px]:bottom-[70px] max-[480px]:right-[10px]"
-        >
-          <a
-            href="/emergency"
-            className="flex items-center gap-2 bg-[#D32F2F] text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition font-bold text-lg"
-            title="🚨 Yêu cầu hiến máu khẩn cấp - Hỗ trợ tức thì!"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
+            <a
+              href="/emergency"
+              className="flex items-center gap-2 bg-[#D32F2F] text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition font-bold text-lg"
+              title="🚨 Yêu cầu hiến máu khẩn cấp - Hỗ trợ tức thì!"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            Hiến máu khẩn cấp
-          </a>
-        </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Hiến máu khẩn cấp
+            </a>
+          </div>
+        )}
 
         {/* Floating Chatbot - Độc lập */}
         <GeminiChatbot />
