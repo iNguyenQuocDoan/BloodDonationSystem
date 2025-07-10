@@ -283,6 +283,28 @@
   font-size: 16px;
 }
 
+/* Clear history button tooltip */
+.chatbot-control-btn.clear[title]:hover::before {
+  background: linear-gradient(135deg, #ff5722 0%, #d84315 100%) !important;
+  font-size: 12px !important;
+  max-width: 280px !important;
+}
+
+.chatbot-control-btn.clear[title]:hover::after {
+  border-top-color: #ff5722 !important;
+}
+
+/* Clear button disabled state */
+.chatbot-control-btn.clear:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.chatbot-control-btn.clear:disabled[title]:hover::before,
+.chatbot-control-btn.clear:disabled[title]:hover::after {
+  display: none !important;
+}
+
 /* Chat Content */
 .chatbot-content {
   overflow-y: auto;
@@ -478,31 +500,21 @@
   content: "";
   position: absolute;
   top: 0;
-  left: -100%;
+  left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 70%
   );
-  transition: left 0.5s ease;
+  transform: scale(0);
+  border-radius: 50%;
 }
 
-.stop-typing-btn:hover {
-  transform: scale(1.1) translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
-  background: linear-gradient(135deg, #ee5a52 0%, #d32f2f 100%);
-}
-
-.stop-typing-btn:hover::before {
-  left: 100%;
-}
-
-.stop-typing-btn:active {
-  transform: scale(0.95) translateY(0);
-  transition: all 0.1s ease;
+.stop-typing-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Suggestions */
@@ -678,6 +690,15 @@
 .send-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+/* Chat statistics display */
+.chat-stats {
+  font-size: 11px !important;
+  color: #666 !important;
+  margin-top: 4px !important;
+  font-style: italic !important;
+  opacity: 0.8 !important;
 }
 
 /* Responsive Design */
