@@ -30,9 +30,9 @@ const useApi = () => {
         },
         ...options
       });
-      
+
       console.log('API response status:', response.status);
-      
+
       // Xử lý 401 - Authentication error
       if (response.status === 401) {
         if (window.location.pathname !== '/login') {
@@ -46,14 +46,14 @@ const useApi = () => {
 
       const data = await response.json();
       console.log('API response data:', data); // Debug log
-      
+
       // Xử lý response không thành công (400, 500, etc.)
       if (!response.ok) {
         // Ưu tiên message từ server response
         const errorMessage = data.message || data.error || `HTTP Error: ${response.status}`;
         throw new Error(errorMessage);
       }
-      
+
       // Xử lý trường hợp server trả về success: false
       if (data.status === false && data.message) {
         throw new Error(data.message);
@@ -133,8 +133,8 @@ const useApi = () => {
   }, [callApi]);
 
   const updateUser = useCallback(async (userData) => {
-    return callApi('/updateUser', {
-      method: 'POST',
+    return callApi('//profile', {
+      method: 'PUT',
       body: JSON.stringify(userData)
     });
   }, [callApi]);
@@ -147,7 +147,7 @@ const useApi = () => {
     return callApi('/getAppointmentList');
   }, [callApi]);
 
-   const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
+  const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
     return callApi(`/appointment/${appointmentId}/addVolume`, {
       method: 'POST',
       body: JSON.stringify({ volume })
@@ -162,6 +162,54 @@ const useApi = () => {
     });
   }, [callApi]);
 
+  // Thêm API gọi addPatientDetail (BE: POST /appointment/:appointmentId/addPatient)
+  const addPatientDetail = useCallback(async (appointmentId, description, status) => {
+    return callApi(`/patientDetail/${appointmentId}/patient`, {
+      method: 'POST',
+      body: JSON.stringify({ description, status })
+    });
+  }, [callApi]);
+
+  const confirmBloodTypeByStaff = useCallback(async (userId, bloodType) => {
+    return callApi(`/users/${userId}/confirmBloodTypeByStaff`, {
+      method: 'PUT',
+      body: JSON.stringify({ bloodType })
+    });
+  }, [callApi]);
+
+  const updateStatusAppointmentByStaff = useCallback(async (appointmentId, newStatus) => {
+    return callApi(`/appointment/${appointmentId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ newStatus })
+    })
+  }, [callApi]);
+
+  const rejectAppointment = useCallback(async (appointmentId, reasonReject) => {
+    return callApi(`/appointment/${appointmentId}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ reasonReject })
+    })
+  }, [callApi]);
+
+  const historyAppointmentsByUser = useCallback(async () => {
+    return callApi(`/appointment/details`)
+  }, [callApi])
+
+  const historyPatientByUser = useCallback(async (appointmentId) => {
+    return callApi(`/patientDetail/${appointmentId}`)
+  }, [callApi])
+  const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
+    return callApi(`/patientDetail/${appointmentId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ description, status })
+    })
+  }, [callApi])
+
+  const cancelAppointmentByUser = useCallback(async (appointmentId) => {
+    return callApi(`/appointment/${appointmentId}/cancelByMember`, {
+      method: 'PUT'
+    })
+  }, [callApi])
   return {
     loading,
     error,
@@ -178,7 +226,15 @@ const useApi = () => {
     getAppointments,
     isLoggedIn: isLoggedIn(),
     addAppointmentVolume,
-    addEmergencyRequest
+    addEmergencyRequest,
+    addPatientDetail,
+    confirmBloodTypeByStaff,
+    updateStatusAppointmentByStaff,
+    rejectAppointment,
+    historyAppointmentsByUser,
+    historyPatientByUser,
+    updatePatientByStaff,
+    cancelAppointmentByUser
   };
 };
 
