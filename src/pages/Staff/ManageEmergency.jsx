@@ -5,26 +5,31 @@ import useApi from "../../hooks/useApi";
 /**
  * Staff ► EmergencyRequestManagement
  * ------------------------------------------------------------
- *  • Hiển thị danh sách yêu cầu máu khẩn cấp (paginated)
- *  • Cho phép filter theo nhóm máu / trạng thái
- *  • Hành động: Xác nhận đã liên hệ, Đã giải quyết
- * ------------------------------------------------------------
- *  API hook (useApi) cần hỗ trợ:
- *   - getEmergencyRequests(filter?)
- *   - updateEmergencyRequest(id, { status })
+ *  # | Ngày tạo | Người yêu cầu | Nhóm máu cần (A+/O-) | Lượng máu (ml) | Trạng thái | Hành động
  */
+const BLOOD_TYPES = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"];
+
 export default function ManageEmergencyPage() {
   const { loading, getEmergencyRequests, updateEmergencyRequest } = useApi();
 
+  // filter giữ riêng bloodGroup & rhNeeded để backend dễ lọc
+  const [filter, setFilter] = useState({
+    bloodGroup: "", // A / B / O / AB
+    rhNeeded: "", // + / -
+    status: "PENDING",
+  });
   const [requests, setRequests] = useState([]);
-  const [filter, setFilter] = useState({ bloodGroup: "", status: "PENDING" });
-  const [refreshKey, setRefreshKey] = useState(0); // trigger refetch
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  /* ─────────────────────── FETCH DATA ─────────────────────── */
+  /* ─────────────── FETCH DATA ─────────────── */
   useEffect(() => {
     (async () => {
       try {
-        const res = await getEmergencyRequests(filter);
+        // Loại bỏ khóa rỗng trước khi gửi
+        const queryFilter = Object.fromEntries(
+          Object.entries(filter).filter(([, v]) => v !== "")
+        );
+        const res = await getEmergencyRequests(queryFilter);
         setRequests(res || []);
       } catch (err) {
         console.error("Failed to fetch emergency requests", err);
@@ -32,17 +37,17 @@ export default function ManageEmergencyPage() {
     })();
   }, [filter, refreshKey]);
 
-  /* ─────────────────────── ACTIONS ─────────────────────── */
+  /* ─────────────── ACTIONS ─────────────── */
   const handleStatusChange = async (id, nextStatus) => {
     try {
       await updateEmergencyRequest(id, { status: nextStatus });
-      setRefreshKey((k) => k + 1); // refetch
+      setRefreshKey((k) => k + 1);
     } catch (err) {
       console.error("Update failed", err);
     }
   };
 
-  /* ─────────────────────── UI ─────────────────────── */
+  /* ─────────────── UI ─────────────── */
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-red-600 mb-6">
@@ -51,23 +56,37 @@ export default function ManageEmergencyPage() {
 
       {/* FILTER BAR */}
       <div className="flex flex-wrap gap-4 items-end mb-6">
+        {/* Dropdown Nhóm máu + Rh */}
         <div>
-          <label className="block text-sm font-medium mb-1">Nhóm máu</label>
+          <label className="block text-sm font-medium mb-1">
+            Nhóm máu (kèm Rh)
+          </label>
           <select
-            value={filter.bloodGroup}
-            onChange={(e) =>
-              setFilter({ ...filter, bloodGroup: e.target.value })
+            value={
+              filter.bloodGroup && filter.rhNeeded
+                ? `${filter.bloodGroup}${filter.rhNeeded}`
+                : ""
             }
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "") {
+                setFilter({ ...filter, bloodGroup: "", rhNeeded: "" });
+              } else {
+                const group = val.replace(/[+-]/, "");
+                const rh = val.endsWith("+") ? "+" : "-";
+                setFilter({ ...filter, bloodGroup: group, rhNeeded: rh });
+              }
+            }}
             className="border border-gray-300 rounded px-3 py-2"
           >
             <option value="">Tất cả</option>
-            {["O", "A", "B", "AB"].map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
+            {BLOOD_TYPES.map((t) => (
+              <option key={t}>{t}</option>
             ))}
           </select>
         </div>
+
+        {/* Dropdown Trạng thái */}
         <div>
           <label className="block text-sm font-medium mb-1">Trạng thái</label>
           <select
@@ -81,6 +100,8 @@ export default function ManageEmergencyPage() {
             <option value="RESOLVED">Đã giải quyết</option>
           </select>
         </div>
+
+        {/* Button refresh */}
         <button
           onClick={() => setRefreshKey((k) => k + 1)}
           className="ml-auto bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm"
@@ -98,8 +119,8 @@ export default function ManageEmergencyPage() {
               <th className="px-4 py-3">#</th>
               <th className="px-4 py-3">Ngày tạo</th>
               <th className="px-4 py-3">Người yêu cầu</th>
-              <th className="px-4 py-3">Nhóm máu</th>
-              <th className="px-4 py-3">Số lượng (đv)</th>
+              <th className="px-4 py-3">Nhóm máu cần</th>
+              <th className="px-4 py-3">Lượng máu&nbsp;(ml)</th>
               <th className="px-4 py-3">Trạng thái</th>
               <th className="px-4 py-3 text-right">Hành động</th>
             </tr>
@@ -114,56 +135,62 @@ export default function ManageEmergencyPage() {
                 </td>
               </tr>
             )}
-            {requests.map((req, idx) => (
-              <motion.tr
-                key={req.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.03 }}
-                className="border-b last:border-0"
-              >
-                <td className="px-4 py-3 whitespace-nowrap">{idx + 1}</td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {new Date(req.createdAt).toLocaleString("vi-VN")}
-                </td>
-                <td className="px-4 py-3">{req.requesterName}</td>
-                <td className="px-4 py-3 font-semibold text-red-600">
-                  {req.bloodGroup}
-                </td>
-                <td className="px-4 py-3 text-center">{req.units}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={
-                      {
-                        PENDING: "text-yellow-600",
-                        CONTACTED: "text-blue-600",
-                        RESOLVED: "text-green-600",
-                      }[req.status]
-                    }
-                  >
-                    {req.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right space-x-2">
-                  {req.status === "PENDING" && (
-                    <button
-                      onClick={() => handleStatusChange(req.id, "CONTACTED")}
-                      className="px-3 py-1 rounded bg-blue-500 hover:bg-blue-600 text-white text-xs"
+
+            {requests.map((req, idx) => {
+              const bloodLabel = `${req.bloodGroup}${req.rhNeeded || ""}`; // A+, O-, …
+              return (
+                <motion.tr
+                  key={req.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                  className="border-b last:border-0"
+                >
+                  <td className="px-4 py-3 whitespace-nowrap">{idx + 1}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {new Date(req.createdAt).toLocaleString("vi-VN")}
+                  </td>
+                  <td className="px-4 py-3">{req.requesterName}</td>
+                  <td className="px-4 py-3 font-semibold text-red-600">
+                    {bloodLabel}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {req.volumeNeeded ?? req.units}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={
+                        {
+                          PENDING: "text-yellow-600",
+                          CONTACTED: "text-blue-600",
+                          RESOLVED: "text-green-600",
+                        }[req.status]
+                      }
                     >
-                      Đã liên hệ
-                    </button>
-                  )}
-                  {req.status !== "RESOLVED" && (
-                    <button
-                      onClick={() => handleStatusChange(req.id, "RESOLVED")}
-                      className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
-                    >
-                      Đã giải quyết
-                    </button>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
+                      {req.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                    {req.status === "PENDING" && (
+                      <button
+                        onClick={() => handleStatusChange(req.id, "CONTACTED")}
+                        className="px-3 py-1 rounded bg-blue-500 hover:bg-blue-600 text-white text-xs"
+                      >
+                        Đã liên hệ
+                      </button>
+                    )}
+                    {req.status !== "RESOLVED" && (
+                      <button
+                        onClick={() => handleStatusChange(req.id, "RESOLVED")}
+                        className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
+                      >
+                        Đã giải quyết
+                      </button>
+                    )}
+                  </td>
+                </motion.tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
