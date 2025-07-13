@@ -1,31 +1,29 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import useApi from "../../hooks/useApi";
+// Nếu bạn muốn dẫn tới route khác, hãy import useNavigate:
+// import { useNavigate } from "react-router-dom";
 
-/**
- * Staff ► EmergencyRequestManagement
- * ------------------------------------------------------------
- *  # | Ngày tạo | Người yêu cầu | Nhóm máu cần (A+/O-) | Lượng máu (ml) | Trạng thái | Hành động
- */
+/* Danh sách nhóm máu kèm Rh */
 const BLOOD_TYPES = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"];
 
 export default function ManageEmergencyPage() {
   const { loading, getEmergencyRequests, updateEmergencyRequest } = useApi();
+  // const navigate = useNavigate(); // nếu cần
 
-  // filter giữ riêng bloodGroup & rhNeeded để backend dễ lọc
+  /* Filter state */
   const [filter, setFilter] = useState({
-    bloodGroup: "", // A / B / O / AB
-    rhNeeded: "", // + / -
+    bloodGroup: "",
+    rhNeeded: "",
     status: "PENDING",
   });
   const [requests, setRequests] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  /* ─────────────── FETCH DATA ─────────────── */
+  /* Lấy dữ liệu */
   useEffect(() => {
     (async () => {
       try {
-        // Loại bỏ khóa rỗng trước khi gửi
         const queryFilter = Object.fromEntries(
           Object.entries(filter).filter(([, v]) => v !== "")
         );
@@ -37,7 +35,7 @@ export default function ManageEmergencyPage() {
     })();
   }, [filter, refreshKey]);
 
-  /* ─────────────── ACTIONS ─────────────── */
+  /* Thay đổi trạng thái */
   const handleStatusChange = async (id, nextStatus) => {
     try {
       await updateEmergencyRequest(id, { status: nextStatus });
@@ -47,9 +45,16 @@ export default function ManageEmergencyPage() {
     }
   };
 
-  /* ─────────────── UI ─────────────── */
+  /* Xem DS ứng viên / ngân hàng máu */
+  const handleViewList = (req) => {
+    console.log("View list for request:", req.id);
+    // Ví dụ: navigate(`/emergency/${req.id}/candidates`);
+    // hoặc mở modal tại đây.
+  };
+
+  /* ─────────────────────── UI ─────────────────────── */
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-red-600 mb-6">
         Quản lý yêu cầu máu khẩn cấp
       </h1>
@@ -116,11 +121,14 @@ export default function ManageEmergencyPage() {
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-100 text-gray-700 uppercase text-xs font-semibold">
             <tr>
-              <th className="px-4 py-3">#</th>
-              <th className="px-4 py-3">Ngày tạo</th>
-              <th className="px-4 py-3">Người yêu cầu</th>
+              <th className="px-4 py-3">ID</th>
+              <th className="px-4 py-3">Tên</th>
+              <th className="px-4 py-3">SĐT</th>
               <th className="px-4 py-3">Nhóm máu cần</th>
-              <th className="px-4 py-3">Lượng máu&nbsp;(ml)</th>
+              <th className="px-4 py-3">Bao nhiêu&nbsp;ml</th>
+              <th className="px-4 py-3">Cần khi nào</th>
+              <th className="px-4 py-3">Độ ưu tiên</th>
+              <th className="px-4 py-3">Danh sách</th>
               <th className="px-4 py-3">Trạng thái</th>
               <th className="px-4 py-3 text-right">Hành động</th>
             </tr>
@@ -128,7 +136,7 @@ export default function ManageEmergencyPage() {
           <tbody>
             {requests.length === 0 && (
               <tr>
-                <td colSpan="7" className="text-center p-6 text-gray-500">
+                <td colSpan="10" className="text-center p-6 text-gray-500">
                   {loading
                     ? "Đang tải dữ liệu..."
                     : "Không có yêu cầu phù hợp."}
@@ -146,17 +154,35 @@ export default function ManageEmergencyPage() {
                   transition={{ delay: idx * 0.03 }}
                   className="border-b last:border-0"
                 >
-                  <td className="px-4 py-3 whitespace-nowrap">{idx + 1}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {new Date(req.createdAt).toLocaleString("vi-VN")}
-                  </td>
+                  <td className="px-4 py-3">{req.id}</td>
                   <td className="px-4 py-3">{req.requesterName}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {req.requesterPhone}
+                  </td>
                   <td className="px-4 py-3 font-semibold text-red-600">
                     {bloodLabel}
                   </td>
                   <td className="px-4 py-3 text-center">
                     {req.volumeNeeded ?? req.units}
                   </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {req.receiveDate
+                      ? new Date(req.receiveDate).toLocaleDateString("vi-VN")
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {req.priority ?? "—"}
+                  </td>
+                  {/* Nút xem DS */}
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => handleViewList(req)}
+                      className="px-3 py-1 rounded bg-purple-500 hover:bg-purple-600 text-white text-xs"
+                    >
+                      Xem DS
+                    </button>
+                  </td>
+                  {/* Trạng thái */}
                   <td className="px-4 py-3">
                     <span
                       className={
@@ -170,6 +196,7 @@ export default function ManageEmergencyPage() {
                       {req.status}
                     </span>
                   </td>
+                  {/* Hành động */}
                   <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                     {req.status === "PENDING" && (
                       <button
