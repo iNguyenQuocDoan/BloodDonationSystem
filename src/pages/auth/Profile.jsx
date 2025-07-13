@@ -38,8 +38,42 @@ const ProfilePage = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate ngày sinh: 18 <= tuổi <= 60
+    if (editForm.date_of_birth) {
+      const today = new Date();
+      const birthDate = new Date(editForm.date_of_birth);
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const actualAge =
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+          ? age - 1
+          : age;
+      if (actualAge < 18) {
+        toast.error("Bạn phải từ 18 tuổi trở lên để đăng ký hiến máu");
+        return;
+      }
+      if (actualAge > 60) {
+        toast.error("Độ tuổi hiến máu tối đa là 60 tuổi");
+        return;
+      }
+    }
+
+    // Regex: Số nhà, tên đường, Xã/Phường, Thành phố (ít nhất 4 phần, cách nhau bởi dấu phẩy)
+    const addressPattern = /^([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+)$/;
+    if (!addressPattern.test(editForm.Address)) {
+      toast.error(
+        "Địa chỉ phải theo định dạng: Số nhà, tên đường, Xã/Phường, Thành phố"
+      );
+      return;
+    }
+
     try {
-      await updateUser(editForm);
+      await updateUser({
+        ...editForm,
+        YOB: editForm.date_of_birth, // Gửi YOB thay cho date_of_birth
+      });
       toast.success("Cập nhật hồ sơ thành công!");
       setShowEdit(false);
       // Reload lại user info
@@ -49,6 +83,19 @@ const ProfilePage = () => {
       toast.error(err.message || "Cập nhật thất bại!");
     }
   };
+
+  const calculateAgeLimit = () => {
+    const today = new Date();
+    const maxDate = new Date();
+    const minDate = new Date();
+    maxDate.setFullYear(today.getFullYear() - 18);
+    minDate.setFullYear(today.getFullYear() - 60);
+    return {
+      min: minDate.toISOString().split("T")[0],
+      max: maxDate.toISOString().split("T")[0],
+    };
+  };
+  const ageLimit = calculateAgeLimit();
 
   if (!user)
     return <div className="text-center py-8">Đang tải thông tin...</div>;
@@ -79,6 +126,7 @@ const ProfilePage = () => {
           </div>
           <div>
             <div className="text-[#D32F2F] font-semibold mb-1">Địa chỉ</div>
+
             <div className="text-gray-700">
               {user.address || "Chưa cập nhật"}
             </div>
@@ -128,6 +176,8 @@ const ProfilePage = () => {
                 name="date_of_birth"
                 value={editForm.date_of_birth}
                 onChange={handleEditChange}
+                min={ageLimit.min}
+                max={ageLimit.max}
                 className="w-full border rounded p-2"
                 required
               />
@@ -157,6 +207,7 @@ const ProfilePage = () => {
             </div>
             <div className="mb-3">
               <label className="block mb-1 font-medium">Địa chỉ</label>
+
               <input
                 type="text"
                 name="Address"
@@ -164,6 +215,9 @@ const ProfilePage = () => {
                 onChange={handleEditChange}
                 className="w-full border rounded p-2"
               />
+              <div className="text-xs text-gray-400 mb-1">
+                Số nhà, tên đường, Xã/Phường, Thành phố
+              </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <button

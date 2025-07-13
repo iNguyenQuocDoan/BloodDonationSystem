@@ -3,8 +3,24 @@ import { askGemini } from "./askGemini";
 import useApi from "../../hooks/useApi";
 import TypewriterText from "./TypewriterText";
 import "./Chatbot.css";
+import { useLocation } from "react-router-dom";
+
+// Helper function để kiểm tra xem có phải trang auth không
+const isAuthRoute = (pathname) => {
+  const authRoutes = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/profile",
+    "/auth/",
+  ];
+  return authRoutes.some((route) => pathname.includes(route));
+};
 
 export default function GeminiChatbot() {
+  const location = useLocation();
+  const isAuthPage = isAuthRoute(location.pathname);
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -17,9 +33,10 @@ export default function GeminiChatbot() {
   const [shouldStopTyping, setShouldStopTyping] = useState(false); // State để dừng typing
   const [isExpanded, setIsExpanded] = useState(false); // State để phóng to chatbot
   const typingTimeoutRef = useRef(null); // Ref để lưu timeout ID
-
   const { getCurrentUser } = useApi();
   const [showFAQ, setShowFAQ] = useState(false);
+  const [isUserScrolling, setIsUserScrolling] = useState(false); // State phát hiện người dùng kéo
+  const [autoScrollLocked, setAutoScrollLocked] = useState(false); // Khóa auto scroll khi user kéo lên
 
   // Dispatch custom event khi chatbot mở/đóng để ẩn/hiện nút scroll to top
   useEffect(() => {
@@ -230,54 +247,78 @@ export default function GeminiChatbot() {
     }, 50); // Delay nhỏ để DOM cập nhật
   };
 
-  // Hàm scroll xuống dưới với hiệu ứng mượt
-  const scrollToBottom = (immediate = false) => {
-    if (chatContentRef.current) {
-      if (immediate) {
-        // Scroll ngay lập tức không có animation
-        chatContentRef.current.scrollTop = chatContentRef.current.scrollHeight;
+  // Theo dõi sự kiện scroll của người dùng
+  useEffect(() => {
+    const chatDiv = chatContentRef.current;
+    if (!chatDiv) return;
+    const handleScroll = () => {
+      // Nếu người dùng ở gần cuối (cách dưới 40px), mở lại auto scroll
+      if (
+        chatDiv.scrollHeight - chatDiv.scrollTop - chatDiv.clientHeight <
+        40
+      ) {
+        setIsUserScrolling(false);
+        setAutoScrollLocked(false);
       } else {
-        // Scroll với animation mượt
-        chatContentRef.current.scrollTo({
-          top: chatContentRef.current.scrollHeight,
-          behavior: "smooth",
-        });
+        setIsUserScrolling(true);
+        setAutoScrollLocked(true); // Khóa auto scroll khi user kéo lên
       }
-    }
-  };
+    };
+    chatDiv.addEventListener("scroll", handleScroll);
+    return () => chatDiv.removeEventListener("scroll", handleScroll);
+  }, [chatContentRef]);
+
+  // Hàm scroll xuống dưới với hiệu ứng mượt, chỉ scroll nếu user không kéo và không bị khóa
+  const scrollToBottom = useCallback(
+    (immediate = false, force = false) => {
+      if (chatContentRef.current) {
+        if ((!isUserScrolling && !autoScrollLocked) || force) {
+          if (immediate) {
+            chatContentRef.current.scrollTop =
+              chatContentRef.current.scrollHeight;
+          } else {
+            chatContentRef.current.scrollTo({
+              top: chatContentRef.current.scrollHeight,
+              behavior: "smooth",
+            });
+          }
+        }
+      }
+    },
+    [isUserScrolling, autoScrollLocked, chatContentRef]
+  );
 
   // Auto scroll khi có tin nhắn mới
   useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(scrollToBottom, 100); // Delay nhỏ để đảm bảo DOM đã render
+    if (messages.length > 0 && !autoScrollLocked) {
+      setTimeout(() => scrollToBottom(false), 100); // Chỉ scroll nếu user không kéo và không bị khóa
     }
-  }, [messages]);
+  }, [messages, scrollToBottom, autoScrollLocked]);
 
   // Auto scroll khi phóng to/thu nhỏ chatbot - ngay lập tức
   useEffect(() => {
-    if (messages.length > 0) {
-      // Scroll ngay lập tức khi resize
-      setTimeout(() => {
-        scrollToBottom(false);
-      }, 100); // Delay nhỏ để DOM cập nhật
+    if (messages.length > 0 && !autoScrollLocked) {
+      setTimeout(() => scrollToBottom(false), 100);
     }
-  }, [isExpanded, messages]);
+  }, [isExpanded, messages, scrollToBottom, autoScrollLocked]);
 
   // Scroll đặc biệt khi bot đang typing
   useEffect(() => {
-    if (isTyping) {
+    if (isTyping && !autoScrollLocked) {
       setTimeout(() => scrollToBottom(true), 100);
     }
-  }, [isExpanded, isTyping]);
+  }, [isExpanded, isTyping, scrollToBottom, autoScrollLocked]);
 
   // Hàm thêm tin nhắn bot với typing effect
   const addBotMessage = (text) => {
     const messageId = Date.now().toString();
+    // Thêm chú thích nhắc gặp bác sĩ vào cuối mỗi phản hồi bot
+    const finalText = `${text}\n\n🤝 Lưu ý: Để đảm bảo an toàn và nhận được lời khuyên phù hợp nhất với tình trạng sức khỏe của bạn, hãy gặp trực tiếp bác sĩ hoặc chuyên viên y tế khi cần thiết nhé!`;
     setMessages((msgs) => [
       ...msgs,
       {
         from: "bot",
-        text: text,
+        text: finalText,
         id: messageId,
         isTyping: true,
       },
@@ -286,23 +327,30 @@ export default function GeminiChatbot() {
     setIsTyping(true); // Bắt đầu typing
     setShouldStopTyping(false); // Reset shouldStop flag
     setLoading(false);
-    // Auto scroll ngay khi bot bắt đầu phản hồi
-    setTimeout(scrollToBottom, 100);
+    // Chỉ auto scroll nếu không bị khóa
+    if (!autoScrollLocked) {
+      setTimeout(scrollToBottom, 100);
+    }
   };
 
   // Hàm hoàn thành typing - sử dụng useCallback để tránh re-render
-  const handleTypingComplete = useCallback((messageId) => {
-    setMessages((msgs) =>
-      msgs.map((msg) =>
-        msg.id === messageId ? { ...msg, isTyping: false } : msg
-      )
-    );
-    setTypingMessageId(null);
-    setIsTyping(false);
-    setShouldStopTyping(false); // Reset shouldStop flag
-    // Auto scroll khi typing hoàn thành
-    setTimeout(scrollToBottom, 100);
-  }, []);
+  const handleTypingComplete = useCallback(
+    (messageId) => {
+      setMessages((msgs) =>
+        msgs.map((msg) =>
+          msg.id === messageId ? { ...msg, isTyping: false } : msg
+        )
+      );
+      setTypingMessageId(null);
+      setIsTyping(false);
+      setShouldStopTyping(false); // Reset shouldStop flag
+      // Chỉ auto scroll nếu không bị khóa
+      if (!autoScrollLocked) {
+        setTimeout(() => scrollToBottom(false), 100);
+      }
+    },
+    [scrollToBottom, autoScrollLocked]
+  );
 
   // Hàm dừng typing
   const stopTyping = () => {
@@ -313,6 +361,20 @@ export default function GeminiChatbot() {
       typingTimeoutRef.current = null;
     }
   };
+
+  // Hàm xây dựng prompt chuẩn hóa cho Gemini
+  function buildPrompt(messages, userInput) {
+    let prompt = `Bạn là trợ lý DaiVietBlood AI tư vấn về hiến máu, nhóm máu, sức khỏe. Hãy trả lời NGẮN GỌN, RÕ RÀNG, ưu tiên tốc độ phản hồi nhanh. Luôn dùng lời lẽ nhẹ nhàng, vui vẻ, nhân văn, truyền cảm hứng, động viên người hỏi. Nếu không biết, hãy nói rõ một cách tích cực.\n`;
+    if (messages && messages.length > 0) {
+      prompt += "\nLịch sử hội thoại:";
+      messages.forEach((msg) => {
+        if (msg.from === "user") prompt += `\nNgười dùng: ${msg.text}`;
+        else if (msg.from === "bot") prompt += `\nAI: ${msg.text}`;
+      });
+    }
+    prompt += `\nNgười dùng: ${userInput}\nAI:`;
+    return prompt;
+  }
 
   // Gửi câu hỏi (từ input hoặc gợi ý)
   const handleSend = async (customInput, isFAQ = false) => {
@@ -331,6 +393,8 @@ export default function GeminiChatbot() {
     ]);
     setInput("");
     setLoading(true);
+    setIsUserScrolling(false); // Reset auto scroll khi gửi tin nhắn mới
+    setAutoScrollLocked(false); // Mở lại auto scroll khi gửi tin nhắn mới
 
     // Scroll ngay khi gửi câu hỏi
     setTimeout(scrollToBottom, 100);
@@ -363,10 +427,11 @@ export default function GeminiChatbot() {
       return;
     }
 
-    // Các câu hỏi khác gọi Gemini với prompt ngắn gọn
+    // Các câu hỏi khác gọi Gemini với lịch sử hội thoại
     try {
-      const optimizedPrompt = `Trả lời ngắn gọn (2-3 câu) về câu hỏi hiến máu: ${question}. Chỉ đưa thông tin quan trọng nhất.`;
-      const reply = await askGemini(optimizedPrompt);
+      // Xây dựng prompt chuẩn hóa
+      const prompt = buildPrompt(messages, question);
+      const reply = await askGemini(prompt);
       addBotMessage(reply);
     } catch {
       addBotMessage(
@@ -381,7 +446,8 @@ export default function GeminiChatbot() {
 
   return (
     <>
-      {!open && (
+      {/* Không hiển thị chatbot khi ở trang auth */}
+      {!isAuthPage && !open && (
         <div
           className="chatbot-trigger fixed-button-base chatbot-btn"
           onClick={() => setOpen(true)}
@@ -394,7 +460,7 @@ export default function GeminiChatbot() {
           </div>
         </div>
       )}
-      {open && (
+      {!isAuthPage && open && (
         <div className={`chatbot-window ${isExpanded ? "expanded" : "normal"}`}>
           {/* Header */}
           <div className="chatbot-header">
