@@ -60,15 +60,17 @@ function App() {
 
           {/* Các route xác thực (chuyển hướng nếu đã đăng nhập) */}
           <Route element={<ProtectedRoute restricted={true} />}>
-            <Route element={<LayoutDeFault />}>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-            </Route>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/register" element={<RegisterPage />} />
           </Route>
 
           {/* Các route yêu cầu đăng nhập */}
-          <Route element={<ProtectedRoute requireAuth={true} allowedRoles={["member"]} />}>
+          <Route
+            element={
+              <ProtectedRoute requireAuth={true} allowedRoles={["member"]} />
+            }
+          >
             <Route element={<LayoutDeFault />}>
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/emergency" element={<EmergencyRequest />} />
