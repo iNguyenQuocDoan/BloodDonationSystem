@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { AiFillCaretDown } from "react-icons/ai";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const FAQPage = () => {
+  /* ---------- 1. DANH SÁCH FAQ HOÀN CHỈNH ---------- */
   const [faqList] = useState([
     /* ── I. ĐĂNG KÝ & XÁC NHẬN NHÓM MÁU ─────────────────────────── */
     {
@@ -100,23 +102,23 @@ export const FAQPage = () => {
       answer:
         "Vào “Yêu cầu khẩn cấp”, nhập nhóm máu, số lượng. Hệ thống thông báo cho thành viên phù hợp gần nhất.",
     },
-    // {
-    //   id: 17,
-    //   question: "Ứng dụng có nhắc khi đủ thời gian hiến lại không?",
-    //   answer:
-    //     "Có. Sau mỗi lần hiến, hệ thống tự ghi nhận và nhắc khi đủ 3 tháng (nam) hoặc 4 tháng (nữ).",
-    // },
+    {
+      id: 17,
+      question: "Ứng dụng có nhắc khi đủ thời gian hiến lại không?",
+      answer:
+        "Có. Sau mỗi lần hiến, hệ thống tự ghi nhận và nhắc khi đủ 3 tháng (nam) hoặc 4 tháng (nữ).",
+    },
     {
       id: 18,
       question: "Tôi xem lịch sử hiến máu và tải chứng nhận ở đâu?",
       answer:
         "Đăng nhập → “Lịch sử hiến máu”. Xem chi tiết và tải chứng nhận PDF.",
     },
-    // {
-    //   id: 19,
-    //   question: "Thay đổi ngôn ngữ giao diện thế nào?",
-    //   answer: "Vào Cài đặt → “Ngôn ngữ” → chọn Tiếng Việt hoặc English.",
-    // },
+    {
+      id: 19,
+      question: "Thay đổi ngôn ngữ giao diện thế nào?",
+      answer: "Vào Cài đặt → “Ngôn ngữ” → chọn Tiếng Việt hoặc English.",
+    },
 
     /* ── IV. KIẾN THỨC NHÓM MÁU ────────────────────────────────── */
     {
@@ -157,30 +159,78 @@ export const FAQPage = () => {
     },
   ]);
 
+  /* ---------- 2. PHÂN TRANG ---------- */
+  const itemsPerPage = 6;
+  const [currentPage, setCurrentPage] = useState(1);
   const [openFAQs, setOpenFAQs] = useState([]);
 
-  // Scroll to top khi component mount
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+  /* ---------- 3. REF LƯU DOM & CUỘN ---------- */
+  const itemRefs = useRef({});
+  const prevTopRef = useRef(null);
+  const toggledIdRef = useRef(null);
 
+  /* ---------- 4. CUỘN LÊN KHI MOUNT ---------- */
+  useEffect(() => window.scrollTo({ top: 0, behavior: "smooth" }), []);
+
+  /* ---------- 5. CẮT TRANG ---------- */
+  const paginatedFAQs = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return faqList.slice(start, start + itemsPerPage);
+  }, [currentPage, faqList]);
+
+  const placeholderCount = itemsPerPage - paginatedFAQs.length;
+  const totalPages = Math.ceil(faqList.length / itemsPerPage);
+
+  /* ---------- 6. GIỮ NGUYÊN SCROLL ---------- */
+  useLayoutEffect(() => {
+    if (prevTopRef.current == null || toggledIdRef.current == null) return;
+
+    const newTop =
+      itemRefs.current[toggledIdRef.current]?.getBoundingClientRect().top ?? 0;
+    const diff = newTop - prevTopRef.current;
+
+    window.scrollBy({ top: diff, left: 0, behavior: "instant" });
+
+    prevTopRef.current = null;
+    toggledIdRef.current = null;
+  }, [openFAQs]);
+
+  /* ---------- 7. HÀM XỬ LÝ ---------- */
   const toggleFAQ = (id) => {
-    setOpenFAQs(
-      openFAQs.includes(id)
-        ? openFAQs.filter((faqId) => faqId !== id)
-        : [...openFAQs, id]
+    const el = itemRefs.current[id];
+    if (el) {
+      prevTopRef.current = el.getBoundingClientRect().top;
+      toggledIdRef.current = id;
+    }
+
+    setOpenFAQs((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    setOpenFAQs([]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  /* ---------- 8. RENDER ---------- */
   return (
     <div className="mx-auto px-4 py-8">
       <h1 className="text-center text-2xl pb-8 text-[#D32F2F]">
         Câu Hỏi Thường Gặp
       </h1>
 
+      {/* DANH SÁCH FAQ */}
       <div className="max-w-4xl mx-auto space-y-4">
-        {faqList.map((item) => (
-          <div key={item.id} className="w-full border rounded-lg shadow-sm">
+        {paginatedFAQs.map((item) => (
+          <div
+            key={item.id}
+            className="w-full border rounded-lg shadow-sm"
+            ref={(el) => (itemRefs.current[item.id] = el)}
+          >
+            {/* CÂU HỎI */}
             <button
               className="w-full flex justify-between p-4 bg-gray-50 hover:bg-gray-100"
               onClick={() => toggleFAQ(item.id)}
@@ -193,13 +243,77 @@ export const FAQPage = () => {
               />
             </button>
 
-            {openFAQs.includes(item.id) && (
-              <div className="p-4">
-                <p className="text-black">{item.answer}</p>
-              </div>
-            )}
+            {/* CÂU TRẢ LỜI – scaleY mượt */}
+            <AnimatePresence initial={false}>
+              {openFAQs.includes(item.id) && (
+                <motion.div
+                  key="content"
+                  initial={{ scaleY: 0, opacity: 0 }}
+                  animate={{ scaleY: 1, opacity: 1 }}
+                  exit={{ scaleY: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="origin-top overflow-hidden"
+                >
+                  <div className="p-4">
+                    <p className="text-black">{item.answer}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         ))}
+
+        {/* PLACEHOLDER giữ chiều cao */}
+        {Array.from({ length: placeholderCount }).map((_, idx) => (
+          <div
+            key={`placeholder-${idx}`}
+            className="border rounded-lg shadow-sm h-[64px] invisible"
+          />
+        ))}
+      </div>
+
+      {/* THANH PHÂN TRANG */}
+      <div className="flex justify-center items-center gap-2 mt-6">
+        <button
+          onClick={() => goToPage(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded disabled:opacity-40"
+        >
+          Trước
+        </button>
+
+        {Array.from({ length: totalPages }, (_, i) => i + 1)
+          .filter((n) =>
+            totalPages <= 5
+              ? true
+              : Math.abs(n - currentPage) <= 2 || n === 1 || n === totalPages
+          )
+          .map((n, idx, arr) => {
+            const isEllipsis = idx > 0 && n - arr[idx - 1] > 1;
+            return (
+              <span key={n} className="flex">
+                {isEllipsis && <span className="px-2">…</span>}
+                <button
+                  onClick={() => goToPage(n)}
+                  className={`px-3 py-1 border rounded ${
+                    n === currentPage
+                      ? "bg-[#D32F2F] text-white"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  {n}
+                </button>
+              </span>
+            );
+          })}
+
+        <button
+          onClick={() => goToPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 border rounded disabled:opacity-40"
+        >
+          Sau
+        </button>
       </div>
     </div>
   );

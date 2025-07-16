@@ -60,16 +60,21 @@ const DonateBlood = () => {
   }, [getCurrentUser, getSlotList]);
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await historyAppointmentsByUser();
-        setMyRegistrations(res.data || []);
-      } catch {
-        setMyRegistrations([]);
-      }
-    };
-    fetchHistory();
-  }, [historyAppointmentsByUser]);
+    // Chỉ gọi khi đã đăng nhập và user là member
+    if (localStorage.getItem("isLoggedIn") === "true" && user && user.user_role === "member") {
+      const fetchHistory = async () => {
+        try {
+          const res = await historyAppointmentsByUser();
+          setMyRegistrations(res.data || []);
+        } catch {
+          setMyRegistrations([]);
+        }
+      };
+      fetchHistory();
+    } else {
+      setMyRegistrations([]);
+    }
+  }, [historyAppointmentsByUser, user]);
 
   // useEffect(() => {
   //   if (user && user.user_id) {
@@ -585,7 +590,7 @@ const DonateBlood = () => {
       )}
 
       {/* Hiển thị lịch sử đăng ký hiến máu của bạn */}
-      {user && (
+      {localStorage.getItem("isLoggedIn") === "true" && user && (
         <div className="mt-10 mb-8">
           <h2 className="text-2xl font-bold text-red-600 mb-6 text-center uppercase tracking-wide drop-shadow">
             Lịch sử đăng ký hiến máu của bạn

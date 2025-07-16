@@ -33,9 +33,7 @@ export const LoginPage = () => {
 
       // Lưu thông tin người dùng
       localStorage.setItem("isLoggedIn", "true");
-      if (data.data && data.data.token) {
-        localStorage.setItem("token", data.data.token);
-      }
+
 
 
       toast.success("Đăng nhập thành công!", {

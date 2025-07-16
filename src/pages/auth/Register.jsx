@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import useApi from "../../hooks/useApi";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 export const RegisterPage = () => {
   const [form, setForm] = useState({
@@ -12,6 +13,8 @@ export const RegisterPage = () => {
     date_of_birth: "",
   });
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { loading, register } = useApi();
   const navigate = useNavigate();
 
@@ -60,12 +63,17 @@ export const RegisterPage = () => {
     }
   };
 
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Họ và tên là bắt buộc";
     if (!form.email.trim()) newErrors.email = "Email là bắt buộc";
     if (!form.password.trim()) newErrors.password = "Mật khẩu là bắt buộc";
+    else if (!passwordRegex.test(form.password))
+      newErrors.password =
+        "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt";
     if (!form.date_of_birth) newErrors.date_of_birth = "Ngày sinh là bắt buộc";
     if (form.password !== form.confirm_password)
       newErrors.confirm_password = "Mật khẩu xác nhận không khớp";
@@ -116,7 +124,9 @@ export const RegisterPage = () => {
               }`}
               required
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -141,7 +151,7 @@ export const RegisterPage = () => {
             <label className="block text-[#555555] mb-1">Mật khẩu:</label>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={form.password}
                 onChange={handleChange}
@@ -151,6 +161,18 @@ export const RegisterPage = () => {
                 }`}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <AiOutlineEyeInvisible className="text-gray-500 hover:text-gray-700 w-5 h-5" />
+                ) : (
+                  <AiOutlineEye className="text-gray-500 hover:text-gray-700 w-5 h-5" />
+                )}
+              </button>
             </div>
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -163,7 +185,7 @@ export const RegisterPage = () => {
             </label>
             <div className="relative">
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 name="confirm_password"
                 value={form.confirm_password}
                 onChange={handleChange}
@@ -173,6 +195,18 @@ export const RegisterPage = () => {
                 }`}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? (
+                  <AiOutlineEyeInvisible className="text-gray-500 hover:text-gray-700 w-5 h-5" />
+                ) : (
+                  <AiOutlineEye className="text-gray-500 hover:text-gray-700 w-5 h-5" />
+                )}
+              </button>
             </div>
             {errors.confirm_password && (
               <p className="text-red-500 text-sm mt-1">
