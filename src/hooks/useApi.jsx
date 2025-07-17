@@ -22,43 +22,42 @@ const useApi = () => {
       setLoading(true);
       setError(null);
 
-      try {
-        const response = await fetch(url, {
-          headers: {
-            "Content-Type": "application/json",
-            ...(options.headers || {}),
-          },
-          ...options,
-        });
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        },
+        ...options
+      });
 
-        console.log("API response status:", response.status);
+      console.log('API response status:', response.status);
 
-        // Xử lý 401 - Authentication error
-        if (response.status === 401) {
-          if (window.location.pathname !== "/login") {
-            clearAuthData();
-            setTimeout(() => {
-              window.location.href = "/login";
-            }, 100);
-          }
-          throw new Error("Session expired");
+      // Xử lý 401 - Authentication error
+      if (response.status === 401) {
+        if (window.location.pathname !== '/login') {
+          clearAuthData();
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 100);
         }
+        throw new Error('Session expired');
+      }
 
-        const data = await response.json();
-        console.log("API response data:", data); // Debug log
+      const data = await response.json();
+      console.log('API response data:', data); // Debug log
 
-        // Xử lý response không thành công (400, 500, etc.)
-        if (!response.ok) {
-          // Ưu tiên message từ server response
-          const errorMessage =
-            data.message || data.error || `HTTP Error: ${response.status}`;
-          throw new Error(errorMessage);
-        }
+      // Xử lý response không thành công (400, 500, etc.)
+      if (!response.ok) {
+        // Ưu tiên message từ server response
+        const errorMessage = data.message || data.error || `HTTP Error: ${response.status}`;
+        throw new Error(errorMessage);
+      }
 
-        // Xử lý trường hợp server trả về success: false
-        if (data.status === false && data.message) {
-          throw new Error(data.message);
-        }
+      // Xử lý trường hợp server trả về success: false
+      if (data.status === false && data.message) {
+        throw new Error(data.message);
+      }
 
         return data;
       } catch (err) {
@@ -144,38 +143,32 @@ const useApi = () => {
     [callApi]
   );
 
-  const updateUser = useCallback(
-    async (userData) => {
-      return callApi("//profile", {
-        method: "PUT",
-        body: JSON.stringify(userData),
-      });
-    },
-    [callApi]
-  );
+  const updateUser = useCallback(async (userData) => {
+    return callApi('//profile', {
+      method: 'PUT',
+      body: JSON.stringify(userData)
+    });
+  }, [callApi]);
 
   const getBloodTypes = useCallback(async () => {
     return callApi("/bloodtypes");
   }, [callApi]);
 
   const getAppointments = useCallback(async () => {
-    return callApi("/getAppointmentList");
+    return callApi("/appointment");
   }, [callApi]);
 
-  const addAppointmentVolume = useCallback(
-    async (appointmentId, volume) => {
-      return callApi(`/appointment/${appointmentId}/addVolume`, {
-        method: "POST",
-        body: JSON.stringify({ volume }),
-      });
-    },
-    [callApi]
-  );
+  const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
+    return callApi(`/appointment/${appointmentId}/addVolume`, {
+      method: 'POST',
+      body: JSON.stringify({ volume })
+    });
+  }, [callApi]);
 
   //Emergency Request API
   const addEmergencyRequest = useCallback(
     async (requestData) => {
-      return callApi("/addEmergencyRequest", {
+      return callApi("/requestEmergencyBlood", {
         method: "POST",
         body: JSON.stringify(requestData),
       });
@@ -228,30 +221,41 @@ const useApi = () => {
     return callApi(`/appointment/details`);
   }, [callApi]);
 
-  const historyPatientByUser = useCallback(
-    async (appointmentId) => {
-      return callApi(`/patientDetail/${appointmentId}`);
-    },
-    [callApi]
-  );
-  const updatePatientByStaff = useCallback(
-    async (appointmentId, description, status) => {
-      return callApi(`/patientDetail/${appointmentId}`, {
-        method: "PUT",
-        body: JSON.stringify({ description, status }),
-      });
-    },
-    [callApi]
-  );
 
-  const cancelAppointmentByUser = useCallback(
-    async (appointmentId) => {
-      return callApi(`/appointment/${appointmentId}/cancelByMember`, {
-        method: "PUT",
-      });
-    },
-    [callApi]
-  );
+  const historyPatientByUser = useCallback(async (appointmentId) => {
+    return callApi(`/patientDetail/${appointmentId}`)
+  }, [callApi])
+  const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
+    return callApi(`/patientDetail/${appointmentId}/update`, {
+      method: 'PUT',
+      body: JSON.stringify({ description, status })
+    })
+  }, [callApi])
+
+  const cancelAppointmentByUser = useCallback(async (appointmentId) => {
+    return callApi(`/appointment/${appointmentId}/cancelByMember`, {
+      method: 'PUT'
+    })
+  }, [callApi])
+
+   const getEmergencyRequestList = useCallback(async () => {
+    return callApi("/getEmergencyRequestList");
+  }, [callApi]);
+
+  const getProfileER = useCallback(async (userId) => {
+  return callApi(`/getProfileER/${userId}`);
+}, [callApi]);
+
+const getPotentialDonorPlus = useCallback(async (emergencyId) => {
+  return callApi(`/getPotentialDonorPlus/${emergencyId}`);
+}, [callApi]);
+
+const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
+  return callApi(`/sendEmergencyEmail/${donorEmail}/${donorName}`, {
+    method: "POST"
+  });
+}, [callApi]);
+
   return {
     loading,
     error,
@@ -277,6 +281,10 @@ const useApi = () => {
     historyPatientByUser,
     updatePatientByStaff,
     cancelAppointmentByUser,
+    getEmergencyRequestList,
+    getProfileER,
+    getPotentialDonorPlus,
+    sendEmergencyEmail
   };
 };
 

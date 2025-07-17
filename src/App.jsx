@@ -39,6 +39,7 @@ import ProtectedRoute from "./components/auth/RequireRole";
 import AdminLayout from "./Layouts/LayoutAdmin";
 import { RegisterPage } from "./pages/auth/Register";
 import ProfilePage from "./pages/auth/Profile";
+import Blogs from "./pages/home/Blogs";
 
 function App() {
   return (
@@ -52,7 +53,7 @@ function App() {
               <Route path="/" element={<Homepage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/aboutus" element={<AboutUs />} />
-
+              <Route path="/blogs" element={<Blogs />} />
               <Route path="/donate" element={<DonateBlood />} />
               <Route path="/faq" element={<FAQPage />} />
             </Route>

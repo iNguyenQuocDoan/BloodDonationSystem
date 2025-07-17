@@ -60,7 +60,7 @@ const ProfilePage = () => {
       }
     }
 
-    // Regex: Số nhà, tên đường, Xã/Phường, Thành phố (ít nhất 4 phần, cách nhau bởi dấu phẩy)
+    // Regex: Số nhà, tên đường, Xã/Phường, Quận (ít nhất 4 phần, cách nhau bởi dấu phẩy)
     const addressPattern = /^([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+)$/;
     if (!addressPattern.test(editForm.Address)) {
       toast.error(
@@ -216,7 +216,8 @@ const ProfilePage = () => {
                 className="w-full border rounded p-2"
               />
               <div className="text-xs text-gray-400 mb-1">
-                Số nhà, tên đường, Xã/Phường, Thành phố
+                Số nhà, tên đường, Xã/Phường, Quận<br/>
+                  *Nếu là quận 9 thì nhập Thủ Đức
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">

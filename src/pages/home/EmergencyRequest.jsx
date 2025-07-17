@@ -76,7 +76,12 @@ const EmergencyRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+      // Kiểm tra địa chỉ
+     if (!user?.address) {
+    toast.warning("Bạn cần cập nhật địa chỉ trước khi gửi yêu cầu!");
+    return;
+  }
+  
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -154,6 +159,9 @@ const EmergencyRequest = () => {
                 </p>
                 <p className="text-sm text-blue-700">
                   <strong>Email:</strong> {user.email || "Chưa cập nhật"} 
+                </p>
+                <p className="text-sm text-blue-700">
+                  <strong>Địa chỉ:</strong> {user.address || "Chưa cập nhật"} 
                 </p>
               </div>
             </div>
