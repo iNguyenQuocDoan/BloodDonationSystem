@@ -1,43 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import useApi from "../../hooks/useApi";
+import { toast } from "react-toastify";
 
 const BlogAdmin = () => {
-  const { callApi } = useApi();
+  const {
+    fetchBlogs,
+    createBlog,
+    updateBlog,
+    deleteBlog,
+    paginate,
+    loading,
+    error
+  } = useApi();
+
   const [blogs, setBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  // Sửa lại form để dùng imageUrl thay vì image_url
+  const [currentPage, setCurrentPage] = useState(1);
+  const cardsPerPage = 6;
   const [form, setForm] = useState({ title: "", content: "", imageUrl: "" });
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const fetchBlogs = () => {
-    setLoading(true);
-    callApi("/blogs")
-      .then((res) => {
-        // Nếu res.data là mảng blog, dùng luôn; nếu là object có blogs thì lấy blogs
-        const blogArr = Array.isArray(res.data) ? res.data : (res.data.blogs || res.data.data || []);
-        setBlogs(blogArr);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Không thể tải tin tức!");
-        setLoading(false);
-      });
-  };
-
   useEffect(() => {
-    fetchBlogs();
-  }, []);
+    fetchBlogs().then(setBlogs).catch(() => setBlogs([]));
+  }, [fetchBlogs]);
 
+  // Validate và submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
     // Validate tiêu đề không trùng
     const normalizedTitle = form.title.trim().toLowerCase();
     const isDuplicateTitle = blogs.some((b, idx) => {
-      // Loại trừ chính blog đang sửa
       if (editingId && (b.Blog_ID || b.blogId || b.id || idx) === editingId) return false;
       return (b.Title || b.title || b.blog_title || "").trim().toLowerCase() === normalizedTitle;
     });
@@ -49,7 +43,6 @@ const BlogAdmin = () => {
       setFormError("Tiêu đề đã tồn tại, vui lòng nhập tiêu đề khác!");
       return;
     }
-    // Validate nội dung
     if (!form.content.trim()) {
       setFormError("Vui lòng nhập nội dung!");
       return;
@@ -59,53 +52,58 @@ const BlogAdmin = () => {
       return;
     }
     // Validate link ảnh
-    if (form.imageUrl) {
-      const url = form.imageUrl.trim();
-      const isValidImg = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-      if (!isValidImg) {
-        setFormError("Link ảnh không hợp lệ! (phải là http(s)://... và kết thúc bằng .jpg, .jpeg, .png, .gif, .webp)");
-        return;
-      }
+    if (!form.imageUrl) {
+      setFormError("Vui lòng chọn ảnh hợp lệ!");
+      toast.error("Vui lòng chọn ảnh hợp lệ!");
+      return;
+    }
+    const url = form.imageUrl.trim();
+    const isValidImg =
+      /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+    if (!isValidImg) {
+      setFormError("Ảnh không hợp lệ! (phải là link http(s), .jpg, .png, ... từ máy tính)");
+      toast.error("Ảnh không hợp lệ! (phải là link http(s), .jpg, .png, ... từ máy tính)");
+      return;
     }
     try {
       if (editingId) {
-        await callApi(`/blogs/${editingId}`, {
-          method: "PUT",
-          body: JSON.stringify({
-            title: form.title,
-            content: form.content,
-            imageUrl: form.imageUrl // camelCase
-          }),
+        await updateBlog(editingId, {
+          title: form.title,
+          content: form.content,
+          imageUrl: form.imageUrl
         });
+        toast.success("Cập nhật tin tức thành công!");
       } else {
-        await callApi("/blogs/create", {
-          method: "POST",
-          body: JSON.stringify({
-            title: form.title,
-            content: form.content,
-            imageUrl: form.imageUrl // camelCase
-          }),
+        await createBlog({
+          title: form.title,
+          content: form.content,
+          imageUrl: form.imageUrl
         });
+        toast.success("Tạo tin tức mới thành công!");
       }
+      fetchBlogs().then(setBlogs);
       setShowForm(false);
       setEditingId(null);
       setForm({ title: "", content: "", imageUrl: "" });
       setFormError("");
-      fetchBlogs();
     } catch (err) {
       setFormError(err.message || "Có lỗi xảy ra, vui lòng thử lại!");
+      toast.error("Không thể lưu ảnh này! Vui lòng chọn ảnh khác hoặc thử lại.");
+      // KHÔNG reset form, KHÔNG reset fileInputRef, giữ nguyên các giá trị đã nhập
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa tin này?")) return;
-    callApi(`/blogs/${id}`, { method: "DELETE" })
-      .then(() => fetchBlogs())
-      .catch(() => alert("Lỗi khi xóa tin tức!"));
+    try {
+      await deleteBlog(id);
+      fetchBlogs().then(setBlogs);
+    } catch {
+      alert("Lỗi khi xóa tin tức!");
+    }
   };
 
   const handleEdit = (blog) => {
-    // Tìm key chứa 'image' và 'url' (không phân biệt hoa thường)
     const imgKey = Object.keys(blog).find(
       k => k.toLowerCase().includes('image') && k.toLowerCase().includes('url')
     );
@@ -125,7 +123,12 @@ const BlogAdmin = () => {
     setShowForm(true);
   };
 
-  console.log("Blogs data:", blogs);
+  // Pagination
+  const { paged, totalPages } = paginate(blogs, currentPage, cardsPerPage);
+
+  // Cloudinary config demo, thay bằng của bạn nếu cần
+  const CLOUDINARY_CLOUD_NAME = 'dehtgp5iq';
+  const CLOUDINARY_UPLOAD_PRESET = 'demo_preset'; // Đảm bảo đúng tuyệt đối, không dấu cách, không ký tự lạ
 
   return (
     <div className="p-6">
@@ -136,73 +139,70 @@ const BlogAdmin = () => {
       ) : error ? (
         <div className="text-red-500">{error}</div>
       ) : (
-        <table className="w-full border">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-2 border">Tiêu đề</th>
-              <th className="p-2 border">Ảnh</th>
-              <th className="p-2 border">Nội dung</th>
-              <th className="p-2 border">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {blogs.map((blog, idx) => {
-              // Debug: log toàn bộ object blog và các key liên quan đến ảnh
-              console.log('Blog object:', blog);
-              const imgKeys = Object.keys(blog).filter(k => k.toLowerCase().includes('image'));
-              imgKeys.forEach(k => console.log('Image key:', k, 'Value:', blog[k]));
+        <>
+          {/* Card grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {paged.map((blog, idx) => {
+              const imgKey = Object.keys(blog).find(
+                k => k.toLowerCase().includes('image') && k.toLowerCase().includes('url')
+              );
+              const imgSrc = imgKey ? blog[imgKey] : "";
+              const fallbackImg = "https://via.placeholder.com/96x64?text=No+Image";
               return (
-                <tr key={blog.Blog_ID || blog.blogId || blog.id || idx}>
-                  <td className="border p-2">{blog.Title || blog.title || blog.blog_title}</td>
-                  <td className="border p-2">{
-                    (() => {
-                      const imgKey = Object.keys(blog).find(
-                        k => k.toLowerCase().includes('image') && k.toLowerCase().includes('url')
-                      );
-                      const imgSrc = imgKey ? blog[imgKey] : "";
-                      const fallbackImg = "https://via.placeholder.com/96x64?text=No+Image";
-                      return (
-                        <div style={{ position: "relative" }}>
-                          <img
-                            src={imgSrc || fallbackImg}
-                            alt=""
-                            className="w-24 h-16 object-cover"
-                            style={{ opacity: imgSrc ? 1 : 0.5 }}
-                          />
-                          {!imgSrc && (
-                            <span
-                              style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                height: "100%",
-                                color: "#D32F2F",
-                                fontSize: "10px",
-                                background: "rgba(255,255,255,0.7)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: "bold"
-                              }}
-                            >
-                              Chưa có ảnh
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })()
-                  }</td>
-                  <td className="border p-2 max-w-xs truncate">{blog.Content || blog.content || blog.blog_content}</td>
-                  <td className="border p-2">
-                    <button onClick={() => handleEdit(blog)} className="mr-2 px-2 py-1 bg-blue-500 text-white rounded">Sửa</button>
+                <div key={blog.Blog_ID || blog.blogId || blog.id || idx} className="bg-white rounded shadow p-4 flex flex-col">
+                  <div className="mb-2 w-full h-32 flex items-center justify-center relative">
+                    <img
+                      src={imgSrc || fallbackImg}
+                      alt=""
+                      className="w-full h-32 object-cover rounded"
+                      style={{ opacity: imgSrc ? 1 : 0.5 }}
+                    />
+                    {!imgSrc && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          color: "#D32F2F",
+                          fontSize: "10px",
+                          background: "rgba(255,255,255,0.7)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        Chưa có ảnh
+                      </span>
+                    )}
+                  </div>
+                  <div className="font-bold text-lg mb-1 truncate">{blog.Title || blog.title || blog.blog_title}</div>
+                  <div className="text-gray-700 text-sm mb-2 max-h-16 overflow-hidden">{blog.Content || blog.content || blog.blog_content}</div>
+                  <div className="mt-auto flex gap-2">
+                    <button onClick={() => handleEdit(blog)} className="px-2 py-1 bg-blue-500 text-white rounded">Sửa</button>
                     <button onClick={() => handleDelete(blog.Blog_ID || blog.blogId || blog.id || idx)} className="px-2 py-1 bg-red-500 text-white rounded">Xóa</button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               );
             })}
-          </tbody>
-        </table>
+          </div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6 gap-2">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i+1)}
+                  className={`px-3 py-1 rounded ${currentPage === i+1 ? 'bg-[#D32F2F] text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  {i+1}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -214,8 +214,55 @@ const BlogAdmin = () => {
               <input type="text" className="w-full border p-2 rounded" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
             </div>
             <div className="mb-2">
-              <label className="block mb-1">Link ảnh (image_url)</label>
-              <input type="text" className="w-full border p-2 rounded" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} />
+              <label className="block mb-1">Ảnh</label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="customFileInput"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (!file.type.startsWith('image/')) {
+                      toast.error('Chỉ chọn file ảnh!');
+                      return;
+                    }
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                    try {
+                      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                        method: 'POST',
+                        body: formData,
+                      });
+                      const data = await res.json();
+                      if (data.secure_url) {
+                        setForm(f => ({ ...f, imageUrl: data.secure_url, fileName: file.name }));
+                        toast.success('Tải ảnh lên Cloudinary thành công!');
+                      } else {
+                        console.error('Cloudinary upload error:', data);
+                        toast.error(
+                          (data.error && data.error.message)
+                            ? `Lỗi Cloudinary: ${data.error.message}`
+                            : 'Tải ảnh lên Cloudinary thất bại! Vui lòng kiểm tra preset, cloud_name hoặc chọn ảnh khác.'
+                        );
+                      }
+                    } catch (err) {
+                      toast.error('Tải ảnh lên Cloudinary thất bại! Lỗi mạng hoặc file quá lớn.');
+                    }
+                  }}
+                />
+                <label htmlFor="customFileInput" className="px-4 py-2 bg-gray-200 rounded cursor-pointer font-semibold text-gray-700 hover:bg-gray-300">Chọn tệp</label>
+                <span className="ml-2 text-sm text-gray-600">
+                  {form.fileName ? form.fileName : 'Chưa chọn tệp'}
+                </span>
+              </div>
+              {form.imageUrl && (
+                <div className="mt-2 flex justify-center">
+                  <img src={form.imageUrl} alt="preview" className="max-h-32 rounded shadow" />
+                </div>
+              )}
             </div>
             <div className="mb-2">
               <label className="block mb-1">Nội dung</label>

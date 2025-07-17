@@ -23,6 +23,7 @@ import EmergencyRequest from "./pages/home/EmergencyRequest";
 import DonateBlood from "./pages/home/DonateBlood";
 import { FAQPage } from "./pages/home/FAQ";
 import News from "./pages/home/News";
+import BlogDetail from "./pages/home/BlogDetail";
 
 // Staff pages
 import DashboardPage from "./pages/Staff/Dashboard";
@@ -57,6 +58,7 @@ function App() {
               <Route path="/donate" element={<DonateBlood />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/news" element={<News />} />
+              <Route path="/news/:id" element={<BlogDetail />} />
             </Route>
           </Route>
 

@@ -166,95 +166,43 @@ const useApi = () => {
   }, [callApi]);
 
   //Emergency Request API
-  const addEmergencyRequest = useCallback(
-    async (requestData) => {
-      return callApi("/requestEmergencyBlood", {
-        method: "POST",
-        body: JSON.stringify(requestData),
-      });
-    },
-    [callApi]
-  );
-
-  // Thêm API gọi addPatientDetail (BE: POST /appointment/:appointmentId/addPatient)
-  const addPatientDetail = useCallback(
-    async (appointmentId, description, status) => {
-      return callApi(`/patientDetail/${appointmentId}/patient`, {
-        method: "POST",
-        body: JSON.stringify({ description, status }),
-      });
-    },
-    [callApi]
-  );
-
-  const confirmBloodTypeByStaff = useCallback(
-    async (userId, bloodType) => {
-      return callApi(`/users/${userId}/confirmBloodTypeByStaff`, {
-        method: "PUT",
-        body: JSON.stringify({ bloodType }),
-      });
-    },
-    [callApi]
-  );
-
-  const updateStatusAppointmentByStaff = useCallback(
-    async (appointmentId, newStatus) => {
-      return callApi(`/appointment/${appointmentId}/status`, {
-        method: "PUT",
-        body: JSON.stringify({ newStatus }),
-      });
-    },
-    [callApi]
-  );
-
-  const rejectAppointment = useCallback(
-    async (appointmentId, reasonReject) => {
-      return callApi(`/appointment/${appointmentId}/reject`, {
-        method: "PUT",
-        body: JSON.stringify({ reasonReject }),
-      });
-    },
-    [callApi]
-  );
-
-  const historyAppointmentsByUser = useCallback(async () => {
-    return callApi(`/appointment/details`);
+  const addEmergencyRequest = useCallback(async (requestData) => {
+    return callApi('/addEmergencyRequest', {
+      method: 'POST',
+      body: JSON.stringify(requestData)
+    });
   }, [callApi]);
 
+  // BLOG APIs
+  const fetchBlogs = useCallback(async () => {
+    const res = await callApi('/blogs');
+    return Array.isArray(res.data) ? res.data : (res.data.blogs || res.data.data || []);
+  }, [callApi]);
 
-  const historyPatientByUser = useCallback(async (appointmentId) => {
-    return callApi(`/patientDetail/${appointmentId}`)
-  }, [callApi])
-  const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
-    return callApi(`/patientDetail/${appointmentId}/update`, {
+  const createBlog = useCallback(async (blog) => {
+    return callApi('/blogs/create', {
+      method: 'POST',
+      body: JSON.stringify(blog),
+    });
+  }, [callApi]);
+
+  const updateBlog = useCallback(async (id, blog) => {
+    return callApi(`/blogs/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ description, status })
-    })
-  }, [callApi])
-
-  const cancelAppointmentByUser = useCallback(async (appointmentId) => {
-    return callApi(`/appointment/${appointmentId}/cancelByMember`, {
-      method: 'PUT'
-    })
-  }, [callApi])
-
-   const getEmergencyRequestList = useCallback(async () => {
-    return callApi("/getEmergencyRequestList");
+      body: JSON.stringify(blog),
+    });
   }, [callApi]);
 
-  const getProfileER = useCallback(async (userId) => {
-  return callApi(`/getProfileER/${userId}`);
-}, [callApi]);
+  const deleteBlog = useCallback(async (id) => {
+    return callApi(`/blogs/${id}`, { method: 'DELETE' });
+  }, [callApi]);
 
-const getPotentialDonorPlus = useCallback(async (emergencyId) => {
-  return callApi(`/getPotentialDonorPlus/${emergencyId}`);
-}, [callApi]);
-
-const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
-  return callApi(`/sendEmergencyEmail/${donorEmail}/${donorName}`, {
-    method: "POST"
-  });
-}, [callApi]);
+  // Pagination helper for blogs
+  const paginate = useCallback((items, currentPage, perPage) => {
+    const totalPages = Math.ceil(items.length / perPage);
+    const paged = items.slice((currentPage - 1) * perPage, currentPage * perPage);
+    return { paged, totalPages };
+  }, []);
 
   return {
     loading,
@@ -273,18 +221,12 @@ const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
     isLoggedIn: isLoggedIn(),
     addAppointmentVolume,
     addEmergencyRequest,
-    addPatientDetail,
-    confirmBloodTypeByStaff,
-    updateStatusAppointmentByStaff,
-    rejectAppointment,
-    historyAppointmentsByUser,
-    historyPatientByUser,
-    updatePatientByStaff,
-    cancelAppointmentByUser,
-    getEmergencyRequestList,
-    getProfileER,
-    getPotentialDonorPlus,
-    sendEmergencyEmail
+    // Blog APIs
+    fetchBlogs,
+    createBlog,
+    updateBlog,
+    deleteBlog,
+    paginate
   };
 };
 
