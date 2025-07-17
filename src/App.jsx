@@ -69,7 +69,11 @@ function App() {
           </Route>
 
           {/* Các route yêu cầu đăng nhập */}
-          <Route element={<ProtectedRoute requireAuth={true} allowedRoles={["member"]} />}>
+          <Route
+            element={
+              <ProtectedRoute requireAuth={true} allowedRoles={["member"]} />
+            }
+          >
             <Route element={<LayoutDeFault />}>
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/emergency" element={<EmergencyRequest />} />

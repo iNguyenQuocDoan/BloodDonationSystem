@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import useApi from "../../hooks/useApi";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 export const RegisterPage = () => {
   const [form, setForm] = useState({
@@ -13,8 +12,6 @@ export const RegisterPage = () => {
     date_of_birth: "",
   });
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { loading, register } = useApi();
   const navigate = useNavigate();
 
@@ -63,17 +60,12 @@ export const RegisterPage = () => {
     }
   };
 
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Họ và tên là bắt buộc";
     if (!form.email.trim()) newErrors.email = "Email là bắt buộc";
     if (!form.password.trim()) newErrors.password = "Mật khẩu là bắt buộc";
-    else if (!passwordRegex.test(form.password))
-      newErrors.password =
-        "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt";
     if (!form.date_of_birth) newErrors.date_of_birth = "Ngày sinh là bắt buộc";
     if (form.password !== form.confirm_password)
       newErrors.confirm_password = "Mật khẩu xác nhận không khớp";
@@ -141,6 +133,7 @@ export const RegisterPage = () => {
               Tham gia cộng đồng hiến máu tình nguyện!
             </p>
           </div>
+
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-[#555555] font-medium mb-1">
@@ -173,20 +166,7 @@ export const RegisterPage = () => {
                 </div>
               </div>
               {errors.name && (
-                <p className="text-red-500 text-sm mt-1 flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-1"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {errors.name}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
               )}
             </div>
 
@@ -218,20 +198,7 @@ export const RegisterPage = () => {
                 </div>
               </div>
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1 flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-1"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {errors.email}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
               )}
             </div>
 
@@ -241,59 +208,32 @@ export const RegisterPage = () => {
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   name="password"
                   value={form.password}
                   onChange={handleChange}
-                  placeholder="Nhập mật khẩu của bạn"
+                  placeholder="Tạo mật khẩu mới"
                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#D32F2F] focus:border-transparent transition-all duration-200 bg-white/90 backdrop-blur-md focus:bg-white shadow-md ${
                     errors.password ? "border-red-500" : "border-gray-200/60"
                   }`}
                   required
                 />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                tabIndex={-1}
-              >
-                {showPassword ? (
-                  <AiOutlineEyeInvisible className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                ) : (
-                  <AiOutlineEye className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                )}
-              </button>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <svg
                     className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              {errors.password && (
-                <p className="text-red-500 text-sm mt-1 flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-1"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     <path
                       fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
                       clipRule="evenodd"
                     />
                   </svg>
-                  {errors.password}
-                </p>
+                </div>
+              </div>
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
               )}
             </div>
 
@@ -303,11 +243,11 @@ export const RegisterPage = () => {
               </label>
               <div className="relative">
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type="password"
                   name="confirm_password"
                   value={form.confirm_password}
                   onChange={handleChange}
-                  placeholder="Nhập lại mật khẩu của bạn"
+                  placeholder="Nhập lại mật khẩu"
                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#D32F2F] focus:border-transparent transition-all duration-200 bg-white/90 backdrop-blur-md focus:bg-white shadow-md ${
                     errors.confirm_password
                       ? "border-red-500"
@@ -315,47 +255,22 @@ export const RegisterPage = () => {
                   }`}
                   required
                 />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? (
-                  <AiOutlineEyeInvisible className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                ) : (
-                  <AiOutlineEye className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                )}
-              </button>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <svg
                     className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              {errors.confirm_password && (
-                <p className="text-red-500 text-sm mt-1 flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-1"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     <path
                       fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
                       clipRule="evenodd"
                     />
                   </svg>
+                </div>
+              </div>
+              {errors.confirm_password && (
+                <p className="text-red-500 text-sm mt-1">
                   {errors.confirm_password}
                 </p>
               )}
@@ -383,52 +298,25 @@ export const RegisterPage = () => {
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <svg
                     className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-gray-500 text-xs mt-1 flex items-center">
-                <svg
-                  className="w-3 h-3 mr-1"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Độ tuổi hiến máu: từ 18 đến 60 tuổi
-              </p>
-              {errors.date_of_birth && (
-                <p className="text-red-500 text-sm mt-1 flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-1"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     <path
                       fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
                       clipRule="evenodd"
                     />
                   </svg>
+                </div>
+              </div>
+              {errors.date_of_birth && (
+                <p className="text-red-500 text-sm mt-1">
                   {errors.date_of_birth}
                 </p>
               )}
             </div>
 
-            <div className="pt-2">
+            <div className="pt-3">
               <button
                 type="submit"
                 className="w-full py-3 px-4 bg-gradient-to-r from-[#D32F2F] to-red-600 text-white font-semibold rounded-xl transition-all duration-300 hover:from-red-600 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-500 transform hover:-translate-y-1 hover:scale-[1.02] shadow-lg hover:shadow-red-200/50 active:translate-y-0 active:shadow-inner"
@@ -464,13 +352,14 @@ export const RegisterPage = () => {
               </button>
             </div>
           </form>
+
           <div className="flex justify-center mt-6 pt-6 border-t border-gray-100">
             <span className="text-gray-600 mr-2">Đã có tài khoản?</span>
             <Link
               to="/login"
               className="text-[#D32F2F] hover:text-red-600 font-medium hover:underline transition-colors duration-200"
             >
-              Đăng nhập ngay
+              Đăng nhập
             </Link>
           </div>
         </div>
@@ -478,3 +367,5 @@ export const RegisterPage = () => {
     </div>
   );
 };
+
+export default RegisterPage;
