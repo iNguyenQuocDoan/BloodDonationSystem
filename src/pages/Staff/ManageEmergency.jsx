@@ -1,11 +1,37 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 import useApi from "../../hooks/useApi";
 
 const BLOOD_TYPES = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"];
+const REJECT_REASONS = [
+  "Không liên lạc được",
+  "Không tìm được người hiến",
+  "Không còn máu phù hợp để trao",
+  "Lý do cần máu của bạn không phù hợp",
+  "Không tìm được người hiến tiềm năng phù hợp",
+  "Thông tin không rõ ràng hoặc sai lệch",
+  "Khác"
+];
+const PRIORITY_OPTIONS = [
+  { value: "high", label: "Cao" },
+  { value: "medium", label: "Trung bình" },
+  { value: "low", label: "Thấp" }
+];
+const SOURCE_OPTIONS = [
+  { value: "donor", label: "Người hiến" },
+  { value: "bank", label: "Ngân hàng máu" }
+];
 
 export default function ManageEmergencyPage() {
-  const { loading, getEmergencyRequestList, getProfileER, getPotentialDonorPlus, sendEmergencyEmail } = useApi();
+  const {
+    loading,
+    getEmergencyRequestList,
+    getProfileER,
+    getPotentialDonorPlus,
+    sendEmergencyEmail,
+    addDonorToEmergency, // <-- Thêm dòng này
+  } = useApi();
 
   const [filter, setFilter] = useState({
     bloodGroup: "",
@@ -23,6 +49,17 @@ export default function ManageEmergencyPage() {
   const [potentialList, setPotentialList] = useState([]);
   const [showPotentialPopup, setShowPotentialPopup] = useState(false);
   const [checkedDonors, setCheckedDonors] = useState([]);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [currentEmergencyId, setCurrentEmergencyId] = useState(null);
+
+  // State cho popup từ chối
+  const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejectOtherMsg, setRejectOtherMsg] = useState(""); // Thêm state cho message "Khác"
+  const [rejectRow, setRejectRow] = useState(null);
+
+  // Thêm state tạm cho từng dòng nếu chưa có:
+  const [editRows, setEditRows] = useState({}); // { [Potential_ID]: { ...fields } }
 
   useEffect(() => {
     (async () => {
@@ -35,9 +72,33 @@ export default function ManageEmergencyPage() {
     })();
   }, [filter, refreshKey]);
 
+  // Sửa lại handleStatusChange
   const handleStatusChange = async (id, nextStatus) => {
-    // ...implement logic...
+    if (nextStatus === "Rejected") {
+      setRejectRow(id);
+      setShowRejectPopup(true);
+      return;
+    }
+    // Gọi API cập nhật trạng thái bình thường ở đây
+    // await updateStatus(id, nextStatus);
     setRefreshKey((k) => k + 1);
+  };
+
+  // Hàm xác nhận từ chối
+  const handleConfirmReject = async () => {
+    let reason = rejectReason === "Khác" ? rejectOtherMsg : rejectReason;
+    if (!reason) {
+      toast.warn("Vui lòng chọn hoặc nhập lý do từ chối!");
+      return;
+    }
+    // Gọi API cập nhật trạng thái rejected với lý do reason
+    // await updateStatus(rejectRow, "Rejected", reason);
+    setShowRejectPopup(false);
+    setRejectReason("");
+    setRejectOtherMsg("");
+    setRejectRow(null);
+    setRefreshKey((k) => k + 1);
+    toast.success("Đã cập nhật trạng thái từ chối!");
   };
 
   const handleViewRequester = async (req) => {
@@ -60,11 +121,12 @@ export default function ManageEmergencyPage() {
 
   // Hàm lấy danh sách potential donor
   const handleShowPotentialList = async (emergencyId) => {
+    setCurrentEmergencyId(emergencyId); // Lưu lại emergencyId
     try {
-      const res = await getPotentialDonorPlus(emergencyId); // bạn cần thêm hàm này vào useApi.jsx
+      const res = await getPotentialDonorPlus(emergencyId);
       setPotentialList(res.data || []);
       setShowPotentialPopup(true);
-      setCheckedDonors([]); // reset checked
+      setCheckedDonors([]);
     } catch (err) {
       setPotentialList([]);
       setShowPotentialPopup(true);
@@ -80,30 +142,68 @@ export default function ManageEmergencyPage() {
     );
   };
 
-  // Hàm xử lý nút Add (sau này call API)
-  const handleAddDonor = (donor) => {
-    // TODO: call API add donor vào yêu cầu
-    alert(`Thêm ${donor.User_Name} vào yêu cầu!`);
+  // Hàm xử lý nút Add
+  const handleAddDonor = async (emergencyId, potentialId) => {
+    try {
+      await addDonorToEmergency(emergencyId, potentialId);
+      toast.success("Đã thêm vào yêu cầu!", {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      setShowPotentialPopup(false); // Đóng popup sau khi thêm thành công
+      setRefreshKey((k) => k + 1); // reload lại danh sách nếu cần
+    } catch (err) {
+      toast.error("Thêm vào yêu cầu thất bại!", {
+        position: "top-center",
+        autoClose: 2000,
+      });
+    }
   };
 
   // Hàm gửi email (sau này call API)
   const handleSendEmail = async () => {
+    if (sendingEmail) return; // Đang gửi thì không cho gửi tiếp
     if (checkedDonors.length === 0) {
-      alert("Vui lòng chọn ít nhất một người để gửi email!");
+      toast.warn("Vui lòng chọn ít nhất một người để gửi email!", {
+        position: "top-center",
+        autoClose: 2000,
+      });
       return;
     }
+    setSendingEmail(true);
+    let hasError = false;
     for (const donorId of checkedDonors) {
       const donor = potentialList.find(d => d.User_ID === donorId);
       if (donor) {
         try {
           await sendEmergencyEmail(donor.email, donor.userName);
         } catch (err) {
-          console.error(`Gửi email thất bại cho ${donor.userName}`, err);
+          hasError = true;
+          toast.error(`Gửi email thất bại cho ${donor.userName}`, {
+            position: "top-center",
+            autoClose: 2000,
+          });
         }
       }
     }
-    alert("Đã gửi email cho các người được chọn!");
-    setShowPotentialPopup(false);
+    if (!hasError) {
+      toast.success("Đã gửi email cho các người được chọn!", {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      setShowPotentialPopup(false);
+    }
+    setSendingEmail(false);
+  };
+
+  const handleEditRowChange = (id, field, value) => {
+    setEditRows(prev => ({
+      ...prev,
+      [id]: {
+        ...(prev[id] || {}),
+        [field]: value
+      }
+    }));
   };
 
   return (
@@ -150,9 +250,10 @@ export default function ManageEmergencyPage() {
             className="border border-gray-300 rounded px-3 py-2"
           >
             <option value="">Tất cả</option>
-            <option value="PENDING">Chờ xử lý</option>
-            <option value="CONTACTED">Đã liên hệ</option>
-            <option value="RESOLVED">Đã giải quyết</option>
+            <option value="Pending">Chờ xử lý</option>
+            <option value="Processing">Đã liên hệ</option>
+            <option value="Completed">Đã giải quyết</option>
+            <option value="Rejected">Đã giải quyết</option>
           </select>
         </div>
         <button
@@ -190,104 +291,175 @@ export default function ManageEmergencyPage() {
                 </td>
               </tr>
             )}
-            {requests.map((req, idx) => (
-              <motion.tr
-                key={idx}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.03 }}
-                className="border-b last:border-0"
-              >
-                <td className="px-4 py-3 flex items-center justify-between gap-2">
-                  {req.User_Name}
-                  <button
-                    className="ml-auto text-blue-600 hover:text-blue-800"
-                    title="Xem thông tin người yêu cầu"
-                    onClick={() => handleViewRequester(req)}
-                  >
-                    <i className="fa fa-eye" />
-                  </button>
-                </td>
-                <td className="px-4 py-3">{req.BloodType}</td>
-                <td className="px-4 py-3">{req.Volume}</td>
-                <td className="px-4 py-3">
-                  {req.Needed_Before
-                    ? new Date(req.Needed_Before).toLocaleDateString("vi-VN")
-                    : "—"}
-                </td>
-                <td className="px-4 py-3">{req.Priority ?? "—"}</td>
-                <td className="px-4 py-3">{req.sourceType ?? "—"}</td>
-                <td className="px-4 py-3">
-                  {req.Donor_ID
-                    ? (
-                      <button
-                        className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
-                        onClick={() => handleViewDonor(req)}
-                      >
-                        Xem hồ sơ
-                      </button>
-                    )
-                    : (
-                      <button
-                        className="px-3 py-1 rounded bg-purple-500 hover:bg-purple-600 text-white text-xs"
-                        onClick={() => handleShowPotentialList(req.Emergency_ID)}
-                      >
-                        Danh sách ưu tiên
-                      </button>
-                    )
-                  }
-                </td>
-                <td className="px-4 py-3">{req.Place ?? "—"}</td>
-                <td className="px-4 py-3">{req.Status}</td>
-                <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-                  {req.Status === "Pending" && (
+            {requests.map((req, idx) => {
+              const edit = editRows[req.Potential_ID] || {};
+              const tempPriority = edit.Priority ?? req.Priority ?? "";
+              const tempSource = edit.sourceType ?? req.sourceType ?? "";
+              const tempPlace = edit.Place ?? req.Place ?? "";
+              const tempStatus = edit.Status ?? req.Status ?? "";
+
+              return (
+                <motion.tr
+                  key={idx}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                  className="border-b last:border-0"
+                >
+                  <td className="px-4 py-3 flex items-center justify-between gap-2">
+                    {req.User_Name}
                     <button
-                      onClick={() => handleStatusChange(req.Potential_ID, "CONTACTED")}
-                      className="px-3 py-1 rounded bg-blue-500 hover:bg-blue-600 text-white text-xs"
+                      className="ml-auto text-blue-600 hover:text-blue-800"
+                      title="Xem thông tin người yêu cầu"
+                      onClick={() => handleViewRequester(req)}
                     >
-                      Đã liên hệ
+                      <i className="fa fa-eye" />
                     </button>
-                  )}
-                  {req.Status !== "Completed" && (
-                    <button
-                      onClick={() => handleStatusChange(req.Potential_ID, "Completed")}
-                      className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
+                  </td>
+                  <td className="px-4 py-3">{req.BloodType}</td>
+                  <td className="px-4 py-3">{req.Volume}</td>
+                  <td className="px-4 py-3">
+                    {req.Needed_Before
+                      ? new Date(req.Needed_Before).toLocaleDateString("vi-VN")
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={tempPriority}
+                      onChange={e => handleEditRowChange(req.Potential_ID, "Priority", e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1 text-xs"
+                      disabled={req.Status === "Completed"}
                     >
-                      Đã giải quyết
-                    </button>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
+                      <option value="">Chọn độ ưu tiên</option>
+                      {PRIORITY_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={tempSource}
+                      onChange={e => handleEditRowChange(req.Potential_ID, "sourceType", e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1 text-xs"
+                      disabled={req.Status === "Completed"}
+                    >
+                      <option value="">Chọn nguồn</option>
+                      {SOURCE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    {req.Donor_ID
+                      ? (
+                        <button
+                          className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
+                          onClick={() => handleViewDonor(req)}
+                        >
+                          Xem hồ sơ
+                        </button>
+                      )
+                      : (
+                        <button
+                          className="px-3 py-1 rounded bg-purple-500 hover:bg-purple-600 text-white text-xs"
+                          onClick={() => handleShowPotentialList(req.Emergency_ID)}
+                        >
+                          Danh sách ưu tiên
+                        </button>
+                      )
+                    }
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={tempPlace}
+                      onChange={e => handleEditRowChange(req.Potential_ID, "Place", e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1 text-xs"
+                      disabled={req.Status === "Completed"}
+                    >
+                      <option value="">Chọn địa điểm</option>
+                      <option value="recive house">Nhà nhận máu</option>
+                      <option value="donor house">Nhà hiến máu</option>
+                      <option value="center">Trung tâm</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={tempStatus}
+                      onChange={e => handleEditRowChange(req.Potential_ID, "Status", e.target.value)}
+                      className="border border-gray-300 rounded px-2 py-1 text-xs"
+                      disabled={req.Status === "Completed"}
+                    >
+                      <option value="Pending">Chờ xử lý</option>
+                      <option value="Contacted">Đã liên hệ</option>
+                      <option value="Completed">Đã giải quyết</option>
+                      <option value="Rejected">Từ chối</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                    {req.Status !== "Completed" && (
+                      <button
+                        onClick={() => {
+                          if ((edit.Status ?? req.Status) === "Rejected") {
+                            setRejectRow(req.Potential_ID);
+                            setShowRejectPopup(true);
+                          } else {
+                            // Gọi API update với editRows[req.Potential_ID] ở đây
+                            // Xong thì xóa editRows[req.Potential_ID] và reload
+                          }
+                        }}
+                        className="px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white text-xs"
+                      >
+                        Cập nhật
+                      </button>
+                    )}
+                  </td>
+                </motion.tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       {/* Popup hiển thị profile */}
       {selectedProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 min-w-[320px] relative">
+        <div className="fixed inset-0 bg-gradient-to-br from-red-100/90 via-white/90 to-pink-100/90 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[340px] relative border-2 border-red-300 ring-4 ring-red-100/40">
             <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl transition"
               onClick={() => setSelectedProfile(null)}
+              title="Đóng"
             >
-              &times;
+              <i className="fa fa-times-circle" />
             </button>
-            <h2 className="text-lg font-bold mb-4">Thông tin hồ sơ</h2>
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-pink-400 flex items-center justify-center shadow-lg mb-2 border-4 border-white">
+                <i className="fa fa-user text-white text-3xl" />
+              </div>
+              <h2 className="text-xl font-bold text-red-600 drop-shadow mb-1">Thông tin hồ sơ</h2>
+            </div>
             {selectedProfile.error ? (
-              <div className="text-red-500">{selectedProfile.error}</div>
+              <div className="text-red-500 text-center">{selectedProfile.error}</div>
             ) : (
-              <div className="space-y-2">
-                <div><b>Tên:</b> {selectedProfile.User_Name}</div>
-                <div><b>Địa chỉ:</b> {selectedProfile.Full_Address ?? "—"}</div>
-                <div><b>Số điện thoại:</b> {selectedProfile.Phone ?? "—"}</div>
-                <div><b>Email:</b> {selectedProfile.Email ?? "—"}</div>
-                <div><b>Giới tính:</b>  {selectedProfile.Gender === "M"
-                  ? "Nam"
-                  : selectedProfile.Gender === "F"
-                    ? "Nữ"
-                    : "—"}</div>
-                <div><b>Năm sinh:</b> {selectedProfile.Date_Of_Birth ?? "—"}</div>
+              <div className="space-y-3 text-gray-700">
+                <div><b className="text-red-500">Tên:</b> {selectedProfile.User_Name}</div>
+                <div><b className="text-pink-500">Địa chỉ:</b> {selectedProfile.Full_Address ?? "—"}</div>
+                <div><b className="text-rose-600">Số điện thoại:</b> {selectedProfile.Phone ?? "—"}</div>
+                <div>
+                  <b className="text-pink-500">Nhóm máu:</b>
+                  <span className="ml-2 px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">{selectedProfile.BloodGroup ?? "—"}</span>
+                </div>
+                <div><b className="text-rose-500">Email:</b> {selectedProfile.Email ?? "—"}</div>
+                <div>
+                  <b className="text-yellow-600">Giới tính:</b>
+                  <span className="ml-2 font-semibold">
+                    {selectedProfile.Gender === "M"
+                      ? <span className="text-blue-600">Nam ♂️</span>
+                      : selectedProfile.Gender === "F"
+                        ? <span className="text-pink-600">Nữ ♀️</span>
+                        : "—"}
+                  </span>
+                </div>
+                <div><b className="text-gray-600">Năm sinh:</b> {selectedProfile.Date_Of_Birth ?? "—"}</div>
               </div>
             )}
           </div>
@@ -296,18 +468,23 @@ export default function ManageEmergencyPage() {
 
       {/* Popup danh sách ưu tiên */}
       {showPotentialPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-8 min-w-[600px] max-w-4xl w-full relative">
+        <div className="fixed inset-0 bg-gradient-to-br from-red-100/90 via-white/90 to-pink-100/90 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[600px] max-w-4xl w-full relative border-2 border-red-300 ring-4 ring-red-100/40">
             <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl transition"
               onClick={() => setShowPotentialPopup(false)}
+              title="Đóng"
             >
-              &times;
+              <i className="fa fa-times-circle" />
             </button>
-            <h2 className="text-lg font-bold mb-4">Danh sách người ưu tiên</h2>
-            <table className="min-w-full text-sm mb-4">
+            <div className="flex items-center gap-2 mb-4">
+              <i className="fa fa-users text-red-500 text-2xl" />
+              <h2 className="text-lg font-bold text-red-700 drop-shadow">Danh sách người ưu tiên</h2>
+              <span className="ml-2 bg-pink-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-semibold shadow">{potentialList.length} người</span>
+            </div>
+            <table className="min-w-full text-sm mb-4 rounded-xl overflow-hidden shadow">
               <thead>
-                <tr>
+                <tr className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700">
                   <th></th>
                   <th>Tên</th>
                   <th>Nhóm máu</th>
@@ -318,24 +495,27 @@ export default function ManageEmergencyPage() {
               </thead>
               <tbody>
                 {potentialList.map((donor) => (
-                  <tr key={donor.User_ID}>
+                  <tr key={donor.User_ID} className="hover:bg-pink-50 transition">
                     <td>
                       <input
                         type="checkbox"
                         checked={checkedDonors.includes(donor.User_ID)}
                         onChange={() => handleCheckDonor(donor.User_ID)}
+                        className="accent-red-500 w-4 h-4"
                       />
                     </td>
-                    <td>{donor.userName}</td>
-                    <td>{donor.bloodType}</td>
-                    <td>{donor.address}</td>
-                    <td>{donor.email}</td>
+                    <td className="font-semibold text-gray-800">{donor.userName}</td>
+                    <td>
+                      <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">{donor.bloodType}</span>
+                    </td>
+                    <td className="text-gray-600">{donor.address}</td>
+                    <td className="text-rose-600">{donor.email}</td>
                     <td>
                       <button
-                        className="px-2 py-1 bg-green-500 text-white rounded text-xs"
-                        onClick={() => handleAddDonor(donor)}
+                        className="px-3 py-1 bg-gradient-to-r from-pink-400 to-red-500 text-white rounded shadow hover:scale-105 hover:from-red-500 hover:to-pink-600 transition font-semibold"
+                        onClick={() => handleAddDonor(currentEmergencyId, donor.potentialId)}
                       >
-                        Add
+                        <i className="fa fa-plus-circle mr-1" /> Add
                       </button>
                     </td>
                   </tr>
@@ -343,11 +523,73 @@ export default function ManageEmergencyPage() {
               </tbody>
             </table>
             <button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+              className="w-full py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-xl shadow-lg hover:from-pink-600 hover:to-red-700 transition text-lg flex items-center justify-center gap-2"
               onClick={handleSendEmail}
+              disabled={sendingEmail}
             >
-              Send Email
+              {sendingEmail ? (
+                <>
+                  <i className="fa fa-spinner fa-spin mr-2" />
+                  Đang gửi...
+                </>
+              ) : (
+                <>
+                  <i className="fa fa-paper-plane mr-2" />
+                  Send Email
+                </>
+              )}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Popup chọn lý do từ chối */}
+      {showRejectPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-8 min-w-[340px] max-w-sm w-full relative border-2 border-red-300">
+            <h2 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
+              <i className="fa fa-ban text-red-500" /> Lý do từ chối
+            </h2>
+            <select
+              className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
+              value={rejectReason}
+              onChange={e => {
+                setRejectReason(e.target.value);
+                if (e.target.value !== "Khác") setRejectOtherMsg("");
+              }}
+            >
+              <option value="">-- Chọn lý do --</option>
+              {REJECT_REASONS.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+            {rejectReason === "Khác" && (
+              <input
+                className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
+                placeholder="Nhập lý do từ chối..."
+                value={rejectOtherMsg}
+                onChange={e => setRejectOtherMsg(e.target.value)}
+              />
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                onClick={() => {
+                  setShowRejectPopup(false);
+                  setRejectReason("");
+                  setRejectOtherMsg("");
+                  setRejectRow(null);
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white font-semibold"
+                onClick={handleConfirmReject}
+              >
+                Xác nhận
+              </button>
+            </div>
           </div>
         </div>
       )}

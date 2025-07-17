@@ -22,42 +22,42 @@ const useApi = () => {
       setLoading(true);
       setError(null);
 
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {})
-        },
-        ...options
-      });
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          },
+          ...options
+        });
 
-      console.log('API response status:', response.status);
+        console.log('API response status:', response.status);
 
-      // Xử lý 401 - Authentication error
-      if (response.status === 401) {
-        if (window.location.pathname !== '/login') {
-          clearAuthData();
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 100);
+        // Xử lý 401 - Authentication error
+        if (response.status === 401) {
+          if (window.location.pathname !== '/login') {
+            clearAuthData();
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 100);
+          }
+          throw new Error('Session expired');
         }
-        throw new Error('Session expired');
-      }
 
-      const data = await response.json();
-      console.log('API response data:', data); // Debug log
+        const data = await response.json();
+        console.log('API response data:', data); // Debug log
 
-      // Xử lý response không thành công (400, 500, etc.)
-      if (!response.ok) {
-        // Ưu tiên message từ server response
-        const errorMessage = data.message || data.error || `HTTP Error: ${response.status}`;
-        throw new Error(errorMessage);
-      }
+        // Xử lý response không thành công (400, 500, etc.)
+        if (!response.ok) {
+          // Ưu tiên message từ server response
+          const errorMessage = data.message || data.error || `HTTP Error: ${response.status}`;
+          throw new Error(errorMessage);
+        }
 
-      // Xử lý trường hợp server trả về success: false
-      if (data.status === false && data.message) {
-        throw new Error(data.message);
-      }
+        // Xử lý trường hợp server trả về success: false
+        if (data.status === false && data.message) {
+          throw new Error(data.message);
+        }
 
         return data;
       } catch (err) {
@@ -238,23 +238,29 @@ const useApi = () => {
     })
   }, [callApi])
 
-   const getEmergencyRequestList = useCallback(async () => {
+  const getEmergencyRequestList = useCallback(async () => {
     return callApi("/getEmergencyRequestList");
   }, [callApi]);
 
   const getProfileER = useCallback(async (userId) => {
-  return callApi(`/getProfileER/${userId}`);
-}, [callApi]);
+    return callApi(`/getProfileER/${userId}`);
+  }, [callApi]);
 
-const getPotentialDonorPlus = useCallback(async (emergencyId) => {
-  return callApi(`/getPotentialDonorPlus/${emergencyId}`);
-}, [callApi]);
+  const getPotentialDonorPlus = useCallback(async (emergencyId) => {
+    return callApi(`/getPotentialDonorPlus/${emergencyId}`);
+  }, [callApi]);
 
-const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
-  return callApi(`/sendEmergencyEmail/${donorEmail}/${donorName}`, {
-    method: "POST"
-  });
-}, [callApi]);
+  const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
+    return callApi(`/sendEmergencyEmail/${donorEmail}/${donorName}`, {
+      method: "POST"
+    });
+  }, [callApi]);
+
+  const addDonorToEmergency = useCallback(async (emergencyId, potentialId) => {
+    return callApi(`/updateEmergencyRequest/${emergencyId}/${potentialId}`, {
+      method: "PUT"
+    });
+  }, [callApi]);
 
   return {
     loading,
@@ -284,7 +290,8 @@ const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
     getEmergencyRequestList,
     getProfileER,
     getPotentialDonorPlus,
-    sendEmergencyEmail
+    sendEmergencyEmail,
+    addDonorToEmergency,
   };
 };
 
