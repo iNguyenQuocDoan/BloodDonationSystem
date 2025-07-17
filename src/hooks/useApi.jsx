@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from "react";
 
 const useApi = () => {
   const [loading, setLoading] = useState(false);
@@ -7,20 +7,20 @@ const useApi = () => {
 
   // Auth utilities
   const isLoggedIn = useCallback(() => {
+    console.log("Checking login status...");
     return localStorage.getItem("isLoggedIn") === "true";
   }, []);
 
   const clearAuthData = useCallback(() => {
     localStorage.removeItem("isLoggedIn");
-
-
   }, []);
 
   // Main API caller
-  const callApi = useCallback(async (endpoint, options = {}) => {
-    const url = `${BASE_URL}${endpoint}`;
-    setLoading(true);
-    setError(null);
+  const callApi = useCallback(
+    async (endpoint, options = {}) => {
+      const url = `${BASE_URL}${endpoint}`;
+      setLoading(true);
+      setError(null);
 
     try {
       const response = await fetch(url, {
@@ -30,9 +30,9 @@ const useApi = () => {
         },
         ...options
       });
-      
+
       console.log('API response status:', response.status);
-      
+
       // Xử lý 401 - Authentication error
       if (response.status === 401) {
         if (window.location.pathname !== '/login') {
@@ -46,108 +46,119 @@ const useApi = () => {
 
       const data = await response.json();
       console.log('API response data:', data); // Debug log
-      
+
       // Xử lý response không thành công (400, 500, etc.)
       if (!response.ok) {
         // Ưu tiên message từ server response
         const errorMessage = data.message || data.error || `HTTP Error: ${response.status}`;
         throw new Error(errorMessage);
       }
-      
+
       // Xử lý trường hợp server trả về success: false
       if (data.status === false && data.message) {
         throw new Error(data.message);
       }
 
-      return data;
-    } catch (err) {
-      const errorMessage = err.message || 'API call failed';
-      setError(errorMessage);
-      console.error(`API Error [${endpoint}]:`, errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [clearAuthData]);
+        return data;
+      } catch (err) {
+        const errorMessage = err.message || "API call failed";
+        setError(errorMessage);
+        console.error(`API Error [${endpoint}]:`, errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [clearAuthData]
+  );
 
   // Auth APIs
-  const login = useCallback(async (credentials) => {
-    const result = await callApi('/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials)
-    });
+  const login = useCallback(
+    async (credentials) => {
+      const result = await callApi("/login", {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      });
 
-    if (result.status) {
+      if (result.status) {
+        localStorage.setItem("isLoggedIn", "true");
+      }
 
-
-      localStorage.setItem("isLoggedIn", "true");
-
-    }
-
-    return result;
-  }, [callApi]);
+      return result;
+    },
+    [callApi]
+  );
 
   const logout = useCallback(async () => {
     try {
-      await callApi('/logout', { method: 'POST' });
+      await callApi("/logout", { method: "POST" });
     } catch (error) {
-      console.log('Logout failed, clearing local data');
+      console.log("Logout failed, clearing local data");
     } finally {
       clearAuthData();
-      window.location.href = '/login';
+      window.location.href = "/login";
     }
   }, [callApi, clearAuthData]);
 
-  const register = useCallback(async (userData) => {
-    return callApi('/signup', {
-      method: 'POST',
-      body: JSON.stringify(userData)
-    });
-  }, [callApi]);
+  const register = useCallback(
+    async (userData) => {
+      return callApi("/signup", {
+        method: "POST",
+        body: JSON.stringify(userData),
+      });
+    },
+    [callApi]
+  );
 
   // Data APIs
   const getCurrentUser = useCallback(async () => {
-    return callApi('/getMe');
+    return callApi("/getMe");
   }, [callApi]);
 
   const getSlotList = useCallback(async () => {
-    return callApi('/getSlotList');
+    return callApi("/getSlotList");
   }, [callApi]);
 
-  const registerSlot = useCallback(async (slotId, user_id, extraData = {}) => {
-    return callApi('/registerSlot', {
-      method: 'POST',
-      body: JSON.stringify({
-        Slot_ID: slotId,
-        User_ID: user_id,
-        ...extraData
-      })
-    });
-  }, [callApi]);
+  const registerSlot = useCallback(
+    async (slotId, user_id, extraData = {}) => {
+      return callApi("/registerSlot", {
+        method: "POST",
+        body: JSON.stringify({
+          Slot_ID: slotId,
+          User_ID: user_id,
+          ...extraData,
+        }),
+      });
+    },
+    [callApi]
+  );
 
-  const createSlot = useCallback(async (slotData) => {
-    return callApi('/createSlot', {
-      method: 'POST',
-      body: JSON.stringify(slotData)
-    });
-  }, [callApi]);
+  const createSlot = useCallback(
+    async (slotData) => {
+      return callApi("/createSlot", {
+        method: "POST",
+        body: JSON.stringify(slotData),
+      });
+    },
+    [callApi]
+  );
 
   const updateUser = useCallback(async (userData) => {
-    return callApi('/updateUser', {
-      method: 'POST',
+    return callApi('//profile', {
+      method: 'PUT',
       body: JSON.stringify(userData)
     });
   }, [callApi]);
 
   const getBloodTypes = useCallback(async () => {
-    return callApi('/bloodtypes');
+    return callApi("/bloodtypes");
   }, [callApi]);
 
   const getAppointments = useCallback(async () => {
-    return callApi('/getAppointmentList');
+    return callApi("/appointment");
   }, [callApi]);
 
-   const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
+  const addAppointmentVolume = useCallback(async (appointmentId, volume) => {
     return callApi(`/appointment/${appointmentId}/addVolume`, {
       method: 'POST',
       body: JSON.stringify({ volume })
@@ -155,12 +166,95 @@ const useApi = () => {
   }, [callApi]);
 
   //Emergency Request API
-  const addEmergencyRequest = useCallback(async (requestData) => {
-    return callApi('/addEmergencyRequest', {
-      method: 'POST',
-      body: JSON.stringify(requestData)
-    });
+  const addEmergencyRequest = useCallback(
+    async (requestData) => {
+      return callApi("/requestEmergencyBlood", {
+        method: "POST",
+        body: JSON.stringify(requestData),
+      });
+    },
+    [callApi]
+  );
+
+  // Thêm API gọi addPatientDetail (BE: POST /appointment/:appointmentId/addPatient)
+  const addPatientDetail = useCallback(
+    async (appointmentId, description, status) => {
+      return callApi(`/patientDetail/${appointmentId}/patient`, {
+        method: "POST",
+        body: JSON.stringify({ description, status }),
+      });
+    },
+    [callApi]
+  );
+
+  const confirmBloodTypeByStaff = useCallback(
+    async (userId, bloodType) => {
+      return callApi(`/users/${userId}/confirmBloodTypeByStaff`, {
+        method: "PUT",
+        body: JSON.stringify({ bloodType }),
+      });
+    },
+    [callApi]
+  );
+
+  const updateStatusAppointmentByStaff = useCallback(
+    async (appointmentId, newStatus) => {
+      return callApi(`/appointment/${appointmentId}/status`, {
+        method: "PUT",
+        body: JSON.stringify({ newStatus }),
+      });
+    },
+    [callApi]
+  );
+
+  const rejectAppointment = useCallback(
+    async (appointmentId, reasonReject) => {
+      return callApi(`/appointment/${appointmentId}/reject`, {
+        method: "PUT",
+        body: JSON.stringify({ reasonReject }),
+      });
+    },
+    [callApi]
+  );
+
+  const historyAppointmentsByUser = useCallback(async () => {
+    return callApi(`/appointment/details`);
   }, [callApi]);
+
+
+  const historyPatientByUser = useCallback(async (appointmentId) => {
+    return callApi(`/patientDetail/${appointmentId}`)
+  }, [callApi])
+  const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
+    return callApi(`/patientDetail/${appointmentId}/update`, {
+      method: 'PUT',
+      body: JSON.stringify({ description, status })
+    })
+  }, [callApi])
+
+  const cancelAppointmentByUser = useCallback(async (appointmentId) => {
+    return callApi(`/appointment/${appointmentId}/cancelByMember`, {
+      method: 'PUT'
+    })
+  }, [callApi])
+
+   const getEmergencyRequestList = useCallback(async () => {
+    return callApi("/getEmergencyRequestList");
+  }, [callApi]);
+
+  const getProfileER = useCallback(async (userId) => {
+  return callApi(`/getProfileER/${userId}`);
+}, [callApi]);
+
+const getPotentialDonorPlus = useCallback(async (emergencyId) => {
+  return callApi(`/getPotentialDonorPlus/${emergencyId}`);
+}, [callApi]);
+
+const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
+  return callApi(`/sendEmergencyEmail/${donorEmail}/${donorName}`, {
+    method: "POST"
+  });
+}, [callApi]);
 
   return {
     loading,
@@ -178,7 +272,19 @@ const useApi = () => {
     getAppointments,
     isLoggedIn: isLoggedIn(),
     addAppointmentVolume,
-    addEmergencyRequest
+    addEmergencyRequest,
+    addPatientDetail,
+    confirmBloodTypeByStaff,
+    updateStatusAppointmentByStaff,
+    rejectAppointment,
+    historyAppointmentsByUser,
+    historyPatientByUser,
+    updatePatientByStaff,
+    cancelAppointmentByUser,
+    getEmergencyRequestList,
+    getProfileER,
+    getPotentialDonorPlus,
+    sendEmergencyEmail
   };
 };
 

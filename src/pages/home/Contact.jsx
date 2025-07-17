@@ -25,9 +25,9 @@ const Contact = () => {
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
         <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-0">
           <h3 className="font-semibold text-lg mb-4">Địa chỉ của chúng tôi</h3>
-          <p>Địa chỉ: 123 A Street, District B, HCMC</p>
+          <p>Địa chỉ: Lô E2a-8, Đường D1, Khu Công nghệ cao, Phường Tăng Nhơn Phú, TPHCM</p>
           <p>Hotline: 0123 456 789</p>
-          <p>Email: support@bloodshare.vn</p>
+          <p>Email: daivietblood@gmail.com</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6 flex-1 min-w-0">
           <h3 className="font-semibold text-lg mb-4">Gửi </h3>

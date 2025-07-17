@@ -87,7 +87,7 @@ export default function Header() {
               </li>
               <li>
                 <NavLink to="/news" className={navItemClass}>
-                  Tin tức
+                  Bài viết
                 </NavLink>
               </li>
               <li>

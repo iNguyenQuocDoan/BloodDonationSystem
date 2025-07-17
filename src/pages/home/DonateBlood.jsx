@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import useApi from "../../hooks/useApi";
@@ -14,7 +14,7 @@ const DonateBlood = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [myRegistrations, setMyRegistrations] = useState([]);
 
-  const { loading, error, getSlotList, registerSlot, getCurrentUser } = useApi();
+  const { loading, error, getSlotList, registerSlot, getCurrentUser, historyAppointmentsByUser, historyPatientByUser, cancelAppointmentByUser } = useApi();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -58,6 +58,23 @@ const DonateBlood = () => {
 
     fetchData();
   }, [getCurrentUser, getSlotList]);
+
+  useEffect(() => {
+    // Chỉ gọi khi đã đăng nhập và user là member
+    if (localStorage.getItem("isLoggedIn") === "true" && user && user.user_role === "member") {
+      const fetchHistory = async () => {
+        try {
+          const res = await historyAppointmentsByUser();
+          setMyRegistrations(res.data || []);
+        } catch {
+          setMyRegistrations([]);
+        }
+      };
+      fetchHistory();
+    } else {
+      setMyRegistrations([]);
+    }
+  }, [historyAppointmentsByUser, user]);
 
   // useEffect(() => {
   //   if (user && user.user_id) {
@@ -110,6 +127,22 @@ const DonateBlood = () => {
     setFilteredSlots(filtered);
   }, [slots]);
 
+  // Helper chuyển trạng thái BE sang tiếng Việt
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "Pending":
+        return "Đang chờ chấp thuận";
+      case "Processing":
+        return "Được hiến";
+      case "Completed":
+        return "Đã hiến xong";
+      case "Canceled":
+        return "Từ chối";
+      default:
+        return status;
+    }
+  };
+
   const filterSlotsByDate = useCallback(() => {
     filterSlotsByDateWithParams(startDate, endDate);
   }, [filterSlotsByDateWithParams, startDate, endDate]);
@@ -155,18 +188,6 @@ const DonateBlood = () => {
         autoClose: 3000
       }
       return;
-    }
-    // Nếu đã đăng ký 1 ca, chỉ cho phép đăng ký lại đúng ca đó
-    if (myRegistrations && myRegistrations.length > 0) {
-      const isRegistered = myRegistrations.some(
-        (reg) => reg.Slot_ID === slotId
-      );
-      if (!isRegistered) {
-        toast.info(
-          "Bạn chỉ được đăng ký hiến máu 1 lần trong 1 tháng kể từ lần đăng ký trước. Nếu muốn đổi ca, hãy liên hệ quản trị viên."
-        );
-        return;
-      }
     }
     try {
       const selectedSlot = slots.find(slot => slot.Slot_ID === slotId);
@@ -254,31 +275,17 @@ const DonateBlood = () => {
         setSlots(slotsRes.data);
         setFilteredSlots(slotsRes.data);
 
-        // Cập nhật lại registration data nếu cần
-        // if (user?.user_id) {
-        //   fetchMyRegistrations();
-        // }
+        // Thêm dòng này để reload lại lịch sử đăng ký
+        const regRes = await historyAppointmentsByUser();
+        setMyRegistrations(regRes.data || []);
       }
 
     } catch (error) {
       console.error("Error registering slot:", error);
-      toast.error("Đăng ký thất bại. Vui lòng thử lại!");
+      toast.error(error?.message || "Đăng ký thất bại. Vui lòng thử lại!");
     }
   };
 
-  // Helper kiểm tra user đã đăng ký hiến máu trong vòng 1 tháng gần nhất chưa
-  const hasRecentRegistration = useMemo(() => {
-    if (!myRegistrations || myRegistrations.length === 0) return false;
-    // Lấy ngày đăng ký gần nhất
-    const latest = myRegistrations.reduce((max, reg) => {
-      const d = new Date(reg.Slot_Date);
-      return d > max ? d : max;
-    }, new Date("1970-01-01"));
-    // Kiểm tra nếu ngày gần nhất cách hiện tại < 30 ngày
-    const now = new Date();
-    const diffDays = (now - latest) / (1000 * 60 * 60 * 24);
-    return diffDays < 30;
-  }, [myRegistrations]);
 
   // Helper: Tìm ca đăng ký gần nhất
   const latestRegistration = useMemo(() => {
@@ -304,7 +311,7 @@ const DonateBlood = () => {
   // Helper: Ngày có thể đăng ký lại
   const nextRegisterDate = useMemo(() => {
     if (!latestRegistration) return null;
-    return addMonths(new Date(latestRegistration.Slot_Date), 1);
+    return addMonths(new Date(latestRegistration.Slot_Date), 3);
   }, [latestRegistration]);
 
   // Helper: User chỉ được đăng ký ca có ngày >= ngày được phép đăng ký lại
@@ -326,18 +333,19 @@ const DonateBlood = () => {
       year: "numeric",
     });
   };
-  // Helper format giờ dạng 7h00, trả về '-' nếu không hợp lệ
+
   const formatTimeVN = (timeString) => {
-    if (
-      !timeString ||
-      timeString === "00:00:00" ||
-      timeString === "-" ||
-      timeString === "Invalid Date"
-    )
-      return "-";
-    const parts = timeString.split(":");
-    if (parts.length < 2) return "-";
-    const [h, m] = parts;
+    if (!timeString) return "-";
+    // Nếu có chữ T (ISO format)
+    if (timeString.includes("T")) {
+      const tIndex = timeString.indexOf("T");
+      const timePart = timeString.slice(tIndex + 1, tIndex + 6); // "13:00"
+      const [h, m] = timePart.split(":");
+      if (!h || !m) return "-";
+      return `${parseInt(h, 10)}h${m}`;
+    }
+    // Nếu là dạng "07:00:00"
+    const [h, m] = timeString.split(":");
     if (!h || !m) return "-";
     return `${parseInt(h, 10)}h${m}`;
   };
@@ -361,6 +369,51 @@ const DonateBlood = () => {
     return dateA - dateB;
   });
 
+  // State cho popup xem hồ sơ bệnh án
+  const [showPatientModal, setShowPatientModal] = useState(false);
+  const [patientInfo, setPatientInfo] = useState(null);
+  const [patientLoading, setPatientLoading] = useState(false);
+
+  // Hàm xem hồ sơ bệnh án
+  const handleViewPatient = async (appointmentId) => {
+    setPatientLoading(true);
+    setShowPatientModal(true);
+    try {
+      const res = await historyPatientByUser(appointmentId);
+      setPatientInfo(res.data || null);
+    } catch {
+      setPatientInfo(null);
+    } finally {
+      setPatientLoading(false);
+    }
+  };
+
+  const handleCancelAppointment = async (appointmentId) => {
+    const confirm = await Swal.fire({
+      title: "Xác nhận hủy lịch?",
+      text: "Bạn chắc chắn muốn hủy lịch hiến máu này? Hành động này không thể hoàn tác.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Hủy lịch",
+      cancelButtonText: "Đóng",
+      confirmButtonColor: "#dc2626"
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      await cancelAppointmentByUser(appointmentId);
+      toast.success("Đã hủy lịch thành công!");
+      // Reload lại lịch sử
+      const res = await historyAppointmentsByUser();
+      setMyRegistrations(res.data || []);
+      // Reload lại danh sách slot
+      const slotsRes = await getSlotList();
+      setSlots(slotsRes.data);
+      setFilteredSlots(slotsRes.data);
+    } catch (err) {
+      toast.error(err?.message || "Hủy lịch thất bại!");
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold text-center mb-8 text-red-600">
@@ -382,10 +435,6 @@ const DonateBlood = () => {
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
-        </div>
-      ) : error ? (
-        <div className="text-center text-red-500 py-8 bg-white rounded-lg shadow p-4">
-          <p className="text-lg">{error}</p>
         </div>
       ) : filteredSlots.length === 0 ? (
         <div className="text-center py-8 bg-white rounded-lg shadow p-4">
@@ -445,8 +494,9 @@ const DonateBlood = () => {
                   <div className="mb-4">
                     <p className="text-gray-700 mb-2">
                       <span className="font-medium">Thời gian: </span>
-                      {formatTimeVN(slot.Start_Time)} -{" "}
-                      {formatTimeVN(slot.End_Time)}
+                      {slot.Start_Time && slot.End_Time
+                        ? `${formatTimeVN(slot.Start_Time)} - ${formatTimeVN(slot.End_Time)}`
+                        : "-"}
                     </p>
                     <p className="text-gray-700 mb-2">
                       <span className="font-medium">Số lượng đã đăng ký: </span>
@@ -471,23 +521,32 @@ const DonateBlood = () => {
                       )}
                     </p>
                   </div>
+                  {/* ==== PHẦN HIỂN THỊ DANH SÁCH SLOT ====
+                  Thay đổi nút ở đây: Nếu đã đăng ký thì thành nút Hủy đăng ký, nếu chưa thì là Đăng ký */}
                   <button
-                    onClick={() => handleRegister(slot.Slot_ID)}
-                    disabled={disableRegister}
+                    disabled={isSlotFull || loading || (!isRegistered && !canRegister)}
                     className={`w-full py-2 px-4 rounded transition duration-300 flex items-center justify-center font-semibold
                       ${isSlotFull
                         ? "bg-yellow-200 text-yellow-700 cursor-not-allowed"
                         : isRegistered
-                          ? "bg-blue-200 text-blue-700 cursor-not-allowed"
+                          ? "bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300"
                           : "bg-red-600 hover:bg-red-700 text-white"
-                      }`}
+                    }`}
                     title={
                       isRegistered
-                        ? "Bạn đã đăng ký ca này."
+                        ? "Bạn đã đăng ký ca này. Nhấn để hủy đăng ký."
                         : isSlotFull
                           ? "Ca này đã đầy, vui lòng chọn ca khác."
                           : ""
                     }
+                    onClick={() => {
+                      if (isRegistered) {
+                        const appointment = myRegistrations.find(reg => reg.Slot_ID === slot.Slot_ID);
+                        if (appointment) handleCancelAppointment(appointment.Appointment_ID);
+                      } else {
+                        handleRegister(slot.Slot_ID);
+                      }
+                    }}
                   >
                     {isRegistered ? (
                       <>
@@ -501,10 +560,10 @@ const DonateBlood = () => {
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
+                            d="M6 18L18 6M6 6l12 12"
                           />
                         </svg>
-                        Đã đăng ký
+                        Hủy đăng ký
                       </>
                     ) : loading ? (
                       "Đang đăng ký..."
@@ -531,11 +590,15 @@ const DonateBlood = () => {
       )}
 
       {/* Hiển thị lịch sử đăng ký hiến máu của bạn */}
-      {user && (
+      {localStorage.getItem("isLoggedIn") === "true" && user && (
         <div className="mt-10 mb-8">
-          <h2 className="text-2xl font-bold text-red-600 mb-6 text-center uppercase tracking-wide drop-shadow">Lịch sử đăng ký hiến máu của bạn</h2>
-          {myRegistrations && myRegistrations.length === 0 ? (
-            <div className="text-center text-gray-500 py-8 bg-white rounded-lg shadow-md">Bạn chưa đăng ký hiến máu nào.</div>
+          <h2 className="text-2xl font-bold text-red-600 mb-6 text-center uppercase tracking-wide drop-shadow">
+            Lịch sử đăng ký hiến máu của bạn
+          </h2>
+          {myRegistrations.length === 0 ? (
+            <div className="text-center text-gray-500 py-8 bg-white rounded-lg shadow-md">
+              Bạn chưa đăng ký hiến máu nào.
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white rounded-xl shadow-lg border border-gray-200">
@@ -543,42 +606,113 @@ const DonateBlood = () => {
                   <tr>
                     <th className="px-6 py-3 text-center text-base font-semibold">Ngày</th>
                     <th className="px-6 py-3 text-center text-base font-semibold">Khung giờ</th>
+                    <th className="px-6 py-3 text-center text-base font-semibold">Lượng máu (ml)</th>
                     <th className="px-6 py-3 text-center text-base font-semibold">Trạng thái</th>
+                    <th className="px-6 py-3 text-center text-base font-semibold">Hồ sơ bệnh án</th>
                     <th className="px-6 py-3 text-center text-base font-semibold">Lý do từ chối</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {myRegistrations &&
-                    myRegistrations.map((reg) => {
-                      // Tìm slot tương ứng
-                      const slot = slots.find(s => s.Slot_ID === reg.Slot_ID);
-                      const startTime = slot ? slot.Start_Time : reg.Start_Time;
-                      const endTime = slot ? slot.End_Time : reg.End_Time;
-                      return (
-                        <tr key={reg.Appointment_ID} className="border-b hover:bg-gray-50 text-center">
-                          <td className="px-6 py-3">{formatDateVN(reg.Slot_Date)}</td>
-                          <td className="px-6 py-3 font-mono text-sm text-blue-700">
-                            {formatTimeVN(startTime)}{formatTimeVN(endTime) ? ` - ${formatTimeVN(endTime)}` : ""}
-                          </td>
-                          <td className="px-6 py-3">
-                            {reg.Status === "P" && (
-                              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Chờ xác nhận</span>
-                            )}
-                            {reg.Status === "A" && (
-                              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Được hiến</span>
-                            )}
-                            {reg.Status === "R" && (
-                              <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full font-semibold text-xs shadow">Từ chối</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-3 text-gray-700">{reg.Status === "R" && reg.Reject_Reason ? reg.Reject_Reason : "-"}</td>
-                        </tr>
-                      );
-                    })}
+                  {myRegistrations.map((reg) => {
+                    // Màu cho trạng thái
+                    let statusColor = "text-gray-700 bg-gray-50";
+                    if (reg.Status === "Pending") statusColor = "text-yellow-700 bg-yellow-50";
+                    else if (reg.Status === "Processing") statusColor = "text-blue-700 bg-blue-50";
+                    else if (reg.Status === "Completed") statusColor = "text-green-700 bg-green-50";
+                    else if (reg.Status === "Canceled") statusColor = "text-red-700 bg-red-50";
+
+                    return (
+                      <tr
+                        key={reg.Appointment_ID}
+                        className="border-b hover:bg-gray-100 text-center transition"
+                      >
+                        <td className="px-6 py-3 font-medium">{formatDateVN(reg.Slot_Date)}</td>
+                        <td className="px-6 py-3 font-mono text-blue-700">
+                          {reg.Start_Time && reg.End_Time
+                            ? `${formatTimeVN(reg.Start_Time)} - ${formatTimeVN(reg.End_Time)}`
+                            : "-"}
+                        </td>
+                        <td className="px-6 py-3 font-semibold">
+                          {reg.Status === "Completed" && reg.Volume
+                            ? (
+                              <span className="inline-block bg-green-50 text-green-700 px-3 py-1 rounded-full">
+                                {reg.Volume} ml
+                              </span>
+                            )
+                            : (
+                              <span className="text-gray-400">-</span>
+                            )
+                          }
+                        </td>
+                        <td className={`px-6 py-3 font-semibold rounded ${statusColor}`}>
+                          {getStatusLabel(reg.Status)}
+                        </td>
+                        <td className="px-6 py-3">
+                          <button
+                            className="px-3 py-1 bg-blue-50 border border-blue-200 text-blue-700 rounded-full text-xs font-medium shadow-sm hover:bg-blue-100 hover:border-blue-300 transition"
+                            onClick={() => handleViewPatient(reg.Appointment_ID)}
+                          >
+                            Xem hồ sơ
+                          </button>
+                        </td>
+                        <td className="px-6 py-3">
+                          {reg.Status === "Canceled" && reg.Reason_Reject ? (
+                            <span
+                              className="inline-block bg-red-50 text-red-700 px-3 py-1 rounded-full"
+                              title={reg.Reason_Reject}
+                            >
+                              {reg.Reason_Reject.length > 30
+                                ? reg.Reason_Reject.slice(0, 30) + "..."
+                                : reg.Reason_Reject}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+              <div className="text-xs text-gray-500 mt-2 text-right pr-2">
+                * Lượng máu chỉ hiển thị khi trạng thái là <span className="text-green-700 font-semibold">Đã hiến xong</span>
+              </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Popup xem hồ sơ bệnh án */}
+      {showPatientModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-[400px] max-h-[80vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4 text-center text-blue-700">Hồ sơ bệnh án</h2>
+            {patientLoading ? (
+              <div className="text-center text-gray-500 py-8">Đang tải...</div>
+            ) : patientInfo ? (
+              <>
+                <div className="mb-3">
+                  <span className="font-semibold">Mô tả:</span>
+                  <div className="text-gray-800 mt-1">{patientInfo.Description || <span className="italic text-gray-400">Chưa có mô tả</span>}</div>
+                </div>
+                <div className="mb-3">
+                  <span className="font-semibold">Trạng thái:</span>
+                  <div className="text-gray-800 mt-1">{patientInfo.Status || <span className="italic text-gray-400">Chưa cập nhật</span>}</div>
+                </div>
+                {/* Có thể bổ sung thêm trường khác nếu BE trả về */}
+              </>
+            ) : (
+              <div className="text-center text-gray-400 py-8">Không có dữ liệu bệnh án.</div>
+            )}
+            <div className="flex justify-end mt-4">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
+                onClick={() => setShowPatientModal(false)}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

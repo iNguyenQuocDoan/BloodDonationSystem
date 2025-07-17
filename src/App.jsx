@@ -54,7 +54,6 @@ function App() {
               <Route path="/" element={<Homepage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/aboutus" element={<AboutUs />} />
-
               <Route path="/donate" element={<DonateBlood />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/news" element={<News />} />
@@ -71,7 +70,11 @@ function App() {
           </Route>
 
           {/* Các route yêu cầu đăng nhập */}
-          <Route element={<ProtectedRoute requireAuth={true} allowedRoles={["member"]} />}>
+          <Route
+            element={
+              <ProtectedRoute requireAuth={true} allowedRoles={["member"]} />
+            }
+          >
             <Route element={<LayoutDeFault />}>
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/emergency" element={<EmergencyRequest />} />

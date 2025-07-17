@@ -2,49 +2,112 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import useApi from "../../hooks/useApi";
 
-/**
- * Staff ► EmergencyRequestManagement
- * ------------------------------------------------------------
- *  • Hiển thị danh sách yêu cầu máu khẩn cấp (paginated)
- *  • Cho phép filter theo nhóm máu / trạng thái
- *  • Hành động: Xác nhận đã liên hệ, Đã giải quyết
- * ------------------------------------------------------------
- *  API hook (useApi) cần hỗ trợ:
- *   - getEmergencyRequests(filter?)
- *   - updateEmergencyRequest(id, { status })
- */
+const BLOOD_TYPES = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"];
+
 export default function ManageEmergencyPage() {
-  const { loading, getEmergencyRequests, updateEmergencyRequest } = useApi();
+  const { loading, getEmergencyRequestList, getProfileER, getPotentialDonorPlus, sendEmergencyEmail } = useApi();
 
+  const [filter, setFilter] = useState({
+    bloodGroup: "",
+    rhNeeded: "",
+    status: "PENDING",
+  });
   const [requests, setRequests] = useState([]);
-  const [filter, setFilter] = useState({ bloodGroup: "", status: "PENDING" });
-  const [refreshKey, setRefreshKey] = useState(0); // trigger refetch
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  /* ─────────────────────── FETCH DATA ─────────────────────── */
+  // State cho popup thông tin người yêu cầu
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+
+  // Thêm state cho popup danh sách ưu tiên
+  const [potentialList, setPotentialList] = useState([]);
+  const [showPotentialPopup, setShowPotentialPopup] = useState(false);
+  const [checkedDonors, setCheckedDonors] = useState([]);
+
   useEffect(() => {
     (async () => {
       try {
-        const res = await getEmergencyRequests(filter);
-        setRequests(res || []);
+        const res = await getEmergencyRequestList();
+        setRequests(res.data || []);
       } catch (err) {
         console.error("Failed to fetch emergency requests", err);
       }
     })();
   }, [filter, refreshKey]);
 
-  /* ─────────────────────── ACTIONS ─────────────────────── */
   const handleStatusChange = async (id, nextStatus) => {
+    // ...implement logic...
+    setRefreshKey((k) => k + 1);
+  };
+
+  const handleViewRequester = async (req) => {
     try {
-      await updateEmergencyRequest(id, { status: nextStatus });
-      setRefreshKey((k) => k + 1); // refetch
+      const res = await getProfileER(req.Requester_ID);
+      setSelectedProfile(res.data[0] || null);
     } catch (err) {
-      console.error("Update failed", err);
+      setSelectedProfile({ error: "Không lấy được thông tin người yêu cầu" });
     }
   };
 
-  /* ─────────────────────── UI ─────────────────────── */
+  const handleViewDonor = async (req) => {
+    try {
+      const res = await getProfileER(req.Donor_ID);
+      setSelectedProfile(res.data[0] || null);
+    } catch (err) {
+      setSelectedProfile({ error: "Không lấy được thông tin người yêu cầu" });
+    }
+  };
+
+  // Hàm lấy danh sách potential donor
+  const handleShowPotentialList = async (emergencyId) => {
+    try {
+      const res = await getPotentialDonorPlus(emergencyId); // bạn cần thêm hàm này vào useApi.jsx
+      setPotentialList(res.data || []);
+      setShowPotentialPopup(true);
+      setCheckedDonors([]); // reset checked
+    } catch (err) {
+      setPotentialList([]);
+      setShowPotentialPopup(true);
+    }
+  };
+
+  // Hàm xử lý check
+  const handleCheckDonor = (donorId) => {
+    setCheckedDonors((prev) =>
+      prev.includes(donorId)
+        ? prev.filter((id) => id !== donorId)
+        : [...prev, donorId]
+    );
+  };
+
+  // Hàm xử lý nút Add (sau này call API)
+  const handleAddDonor = (donor) => {
+    // TODO: call API add donor vào yêu cầu
+    alert(`Thêm ${donor.User_Name} vào yêu cầu!`);
+  };
+
+  // Hàm gửi email (sau này call API)
+  const handleSendEmail = async () => {
+    if (checkedDonors.length === 0) {
+      alert("Vui lòng chọn ít nhất một người để gửi email!");
+      return;
+    }
+    for (const donorId of checkedDonors) {
+      const donor = potentialList.find(d => d.User_ID === donorId);
+      if (donor) {
+        try {
+          await sendEmergencyEmail(donor.email, donor.userName);
+        } catch (err) {
+          console.error(`Gửi email thất bại cho ${donor.userName}`, err);
+        }
+      }
+    }
+    alert("Đã gửi email cho các người được chọn!");
+    setShowPotentialPopup(false);
+  };
+
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-red-600 mb-6">
         Quản lý yêu cầu máu khẩn cấp
       </h1>
@@ -52,19 +115,30 @@ export default function ManageEmergencyPage() {
       {/* FILTER BAR */}
       <div className="flex flex-wrap gap-4 items-end mb-6">
         <div>
-          <label className="block text-sm font-medium mb-1">Nhóm máu</label>
+          <label className="block text-sm font-medium mb-1">
+            Nhóm máu (kèm Rh)
+          </label>
           <select
-            value={filter.bloodGroup}
-            onChange={(e) =>
-              setFilter({ ...filter, bloodGroup: e.target.value })
+            value={
+              filter.bloodGroup && filter.rhNeeded
+                ? `${filter.bloodGroup}${filter.rhNeeded}`
+                : ""
             }
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "") {
+                setFilter({ ...filter, bloodGroup: "", rhNeeded: "" });
+              } else {
+                const group = val.replace(/[+-]/, "");
+                const rh = val.endsWith("+") ? "+" : "-";
+                setFilter({ ...filter, bloodGroup: group, rhNeeded: rh });
+              }
+            }}
             className="border border-gray-300 rounded px-3 py-2"
           >
             <option value="">Tất cả</option>
-            {["O", "A", "B", "AB"].map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
+            {BLOOD_TYPES.map((t) => (
+              <option key={t}>{t}</option>
             ))}
           </select>
         </div>
@@ -82,11 +156,9 @@ export default function ManageEmergencyPage() {
           </select>
         </div>
         <button
-          onClick={() => setRefreshKey((k) => k + 1)}
           className="ml-auto bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm"
-          disabled={loading}
         >
-          {loading ? "Đang tải..." : "Làm mới"}
+          Xem ngân hàng máu
         </button>
       </div>
 
@@ -95,11 +167,15 @@ export default function ManageEmergencyPage() {
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-100 text-gray-700 uppercase text-xs font-semibold">
             <tr>
-              <th className="px-4 py-3">#</th>
-              <th className="px-4 py-3">Ngày tạo</th>
-              <th className="px-4 py-3">Người yêu cầu</th>
-              <th className="px-4 py-3">Nhóm máu</th>
-              <th className="px-4 py-3">Số lượng (đv)</th>
+              <th className="px-4 py-3">Tên</th>
+              {/* con mắt hiện popup xem thông tin người yêu cầu*/}
+              <th className="px-4 py-3">Nhóm máu cần</th>
+              <th className="px-4 py-3">Lượng máu cần (ml)</th>
+              <th className="px-4 py-3">Cần khi nào</th>
+              <th className="px-4 py-3">Độ ưu tiên</th>
+              <th className="px-4 py-3">Nguồn cung cấp</th>
+              <th className="px-4 py-3">Người ưu tiên</th>
+              <th className="px-4 py-3">Địa điểm hiến máu</th>
               <th className="px-4 py-3">Trạng thái</th>
               <th className="px-4 py-3 text-right">Hành động</th>
             </tr>
@@ -107,7 +183,7 @@ export default function ManageEmergencyPage() {
           <tbody>
             {requests.length === 0 && (
               <tr>
-                <td colSpan="7" className="text-center p-6 text-gray-500">
+                <td colSpan="10" className="text-center p-6 text-gray-500">
                   {loading
                     ? "Đang tải dữ liệu..."
                     : "Không có yêu cầu phù hợp."}
@@ -116,46 +192,65 @@ export default function ManageEmergencyPage() {
             )}
             {requests.map((req, idx) => (
               <motion.tr
-                key={req.id}
+                key={idx}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.03 }}
                 className="border-b last:border-0"
               >
-                <td className="px-4 py-3 whitespace-nowrap">{idx + 1}</td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {new Date(req.createdAt).toLocaleString("vi-VN")}
-                </td>
-                <td className="px-4 py-3">{req.requesterName}</td>
-                <td className="px-4 py-3 font-semibold text-red-600">
-                  {req.bloodGroup}
-                </td>
-                <td className="px-4 py-3 text-center">{req.units}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={
-                      {
-                        PENDING: "text-yellow-600",
-                        CONTACTED: "text-blue-600",
-                        RESOLVED: "text-green-600",
-                      }[req.status]
-                    }
+                <td className="px-4 py-3 flex items-center justify-between gap-2">
+                  {req.User_Name}
+                  <button
+                    className="ml-auto text-blue-600 hover:text-blue-800"
+                    title="Xem thông tin người yêu cầu"
+                    onClick={() => handleViewRequester(req)}
                   >
-                    {req.status}
-                  </span>
+                    <i className="fa fa-eye" />
+                  </button>
                 </td>
-                <td className="px-4 py-3 text-right space-x-2">
-                  {req.status === "PENDING" && (
+                <td className="px-4 py-3">{req.BloodType}</td>
+                <td className="px-4 py-3">{req.Volume}</td>
+                <td className="px-4 py-3">
+                  {req.Needed_Before
+                    ? new Date(req.Needed_Before).toLocaleDateString("vi-VN")
+                    : "—"}
+                </td>
+                <td className="px-4 py-3">{req.Priority ?? "—"}</td>
+                <td className="px-4 py-3">{req.sourceType ?? "—"}</td>
+                <td className="px-4 py-3">
+                  {req.Donor_ID
+                    ? (
+                      <button
+                        className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
+                        onClick={() => handleViewDonor(req)}
+                      >
+                        Xem hồ sơ
+                      </button>
+                    )
+                    : (
+                      <button
+                        className="px-3 py-1 rounded bg-purple-500 hover:bg-purple-600 text-white text-xs"
+                        onClick={() => handleShowPotentialList(req.Emergency_ID)}
+                      >
+                        Danh sách ưu tiên
+                      </button>
+                    )
+                  }
+                </td>
+                <td className="px-4 py-3">{req.Place ?? "—"}</td>
+                <td className="px-4 py-3">{req.Status}</td>
+                <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                  {req.Status === "Pending" && (
                     <button
-                      onClick={() => handleStatusChange(req.id, "CONTACTED")}
+                      onClick={() => handleStatusChange(req.Potential_ID, "CONTACTED")}
                       className="px-3 py-1 rounded bg-blue-500 hover:bg-blue-600 text-white text-xs"
                     >
                       Đã liên hệ
                     </button>
                   )}
-                  {req.status !== "RESOLVED" && (
+                  {req.Status !== "Completed" && (
                     <button
-                      onClick={() => handleStatusChange(req.id, "RESOLVED")}
+                      onClick={() => handleStatusChange(req.Potential_ID, "Completed")}
                       className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
                     >
                       Đã giải quyết
@@ -167,6 +262,95 @@ export default function ManageEmergencyPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Popup hiển thị profile */}
+      {selectedProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 min-w-[320px] relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setSelectedProfile(null)}
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-bold mb-4">Thông tin hồ sơ</h2>
+            {selectedProfile.error ? (
+              <div className="text-red-500">{selectedProfile.error}</div>
+            ) : (
+              <div className="space-y-2">
+                <div><b>Tên:</b> {selectedProfile.User_Name}</div>
+                <div><b>Địa chỉ:</b> {selectedProfile.Full_Address ?? "—"}</div>
+                <div><b>Số điện thoại:</b> {selectedProfile.Phone ?? "—"}</div>
+                <div><b>Email:</b> {selectedProfile.Email ?? "—"}</div>
+                <div><b>Giới tính:</b>  {selectedProfile.Gender === "M"
+                  ? "Nam"
+                  : selectedProfile.Gender === "F"
+                    ? "Nữ"
+                    : "—"}</div>
+                <div><b>Năm sinh:</b> {selectedProfile.Date_Of_Birth ?? "—"}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Popup danh sách ưu tiên */}
+      {showPotentialPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 min-w-[600px] max-w-4xl w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowPotentialPopup(false)}
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-bold mb-4">Danh sách người ưu tiên</h2>
+            <table className="min-w-full text-sm mb-4">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Tên</th>
+                  <th>Nhóm máu</th>
+                  <th>Địa chỉ</th>
+                  <th>Email</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {potentialList.map((donor) => (
+                  <tr key={donor.User_ID}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={checkedDonors.includes(donor.User_ID)}
+                        onChange={() => handleCheckDonor(donor.User_ID)}
+                      />
+                    </td>
+                    <td>{donor.userName}</td>
+                    <td>{donor.bloodType}</td>
+                    <td>{donor.address}</td>
+                    <td>{donor.email}</td>
+                    <td>
+                      <button
+                        className="px-2 py-1 bg-green-500 text-white rounded text-xs"
+                        onClick={() => handleAddDonor(donor)}
+                      >
+                        Add
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+              onClick={handleSendEmail}
+            >
+              Send Email
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

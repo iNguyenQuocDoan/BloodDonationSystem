@@ -72,7 +72,7 @@ const HeaderStaff = () => {
                   </li>
                   <li>
                     <NavLink to="/confirm-blood" className={staffNavItemClass + ' whitespace-nowrap'}>
-                      Xác nhận nhóm máu
+                      Quản lý đăng ký hiến máu
                     </NavLink>
                   </li>
                   <li>
