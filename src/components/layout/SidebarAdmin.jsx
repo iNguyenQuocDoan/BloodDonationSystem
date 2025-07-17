@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaTachometerAlt,
   FaUserShield,
@@ -84,6 +84,14 @@ const AdminNavbar = () => {
           }
         >
           Quản lý kho máu
+        </Link>
+        <Link
+          to="/admin/blog"
+          className={({ isActive }) =>
+            `block w-full px-0 py-3 rounded-2xl font-semibold text-lg text-center transition-all duration-150 ${isActive ? 'bg-[#D32F2F] text-white shadow' : 'bg-white text-[#D32F2F] hover:bg-[#FCA5A5] hover:text-[#D32F2F]'} `
+          }
+        >
+          Quản lý tin tức
         </Link>
         <button
           onClick={logout}
