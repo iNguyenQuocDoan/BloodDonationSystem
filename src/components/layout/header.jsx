@@ -86,7 +86,7 @@ export default function Header() {
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/blogs" className={navItemClass}>
+                <NavLink to="/news" className={navItemClass}>
                   Bài viết
                 </NavLink>
               </li>

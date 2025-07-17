@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,6 +12,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line, Pie, Bar } from "react-chartjs-2";
+import useApi from "../../hooks/useApi";
 console.log("test");
 /* Đăng ký các thành phần Chart.js */
 ChartJS.register(
@@ -186,6 +187,147 @@ const AdminDashboard = () => {
           <Bar data={barChartData} options={barOptions} />
         </div>
       </div>
+    </div>
+  );
+};
+
+const BlogAdmin = () => {
+  const { callApi } = useApi();
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [form, setForm] = useState({ title: "", content: "", image_url: "" });
+  const [editingId, setEditingId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+
+  // Lấy danh sách blog
+  const fetchBlogs = () => {
+    setLoading(true);
+    callApi("/blogs")
+      .then((res) => {
+        setBlogs(res.data || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Không thể tải tin tức!");
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
+
+  // Xử lý submit tạo/sửa
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.title || !form.content) return alert("Vui lòng nhập đủ tiêu đề và nội dung!");
+    if (editingId) {
+      // Sửa
+      callApi(`/blogs/${editingId}`, {
+        method: "PUT",
+        body: JSON.stringify(form),
+      })
+        .then(() => {
+          setShowForm(false);
+          setEditingId(null);
+          setForm({ title: "", content: "", image_url: "" });
+          fetchBlogs();
+        })
+        .catch(() => alert("Lỗi khi sửa tin tức!"));
+    } else {
+      // Tạo mới
+      callApi("/blogs/create", {
+        method: "POST",
+        body: JSON.stringify(form),
+      })
+        .then(() => {
+          setShowForm(false);
+          setForm({ title: "", content: "", image_url: "" });
+          fetchBlogs();
+        })
+        .catch(() => alert("Lỗi khi tạo tin tức!"));
+    }
+  };
+
+  // Xử lý xóa
+  const handleDelete = (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa tin này?")) return;
+    callApi(`/blogs/${id}`, { method: "DELETE" })
+      .then(() => fetchBlogs())
+      .catch(() => alert("Lỗi khi xóa tin tức!"));
+  };
+
+  // Mở form sửa
+  const handleEdit = (blog) => {
+    setForm({ title: blog.title, content: blog.content, image_url: blog.image_url || "" });
+    setEditingId(blog.blogId || blog.id);
+    setShowForm(true);
+  };
+
+  // Mở form tạo mới
+  const handleAdd = () => {
+    setForm({ title: "", content: "", image_url: "" });
+    setEditingId(null);
+    setShowForm(true);
+  };
+
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4 text-[#D32F2F]">Quản lý tin tức (Blog)</h2>
+      <button onClick={handleAdd} className="mb-4 px-4 py-2 bg-[#D32F2F] text-white rounded">+ Thêm tin mới</button>
+      {loading ? (
+        <div>Đang tải...</div>
+      ) : error ? (
+        <div className="text-red-500">{error}</div>
+      ) : (
+        <table className="w-full border">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2 border">Tiêu đề</th>
+              <th className="p-2 border">Ảnh</th>
+              <th className="p-2 border">Nội dung</th>
+              <th className="p-2 border">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {blogs.map((blog) => (
+              <tr key={blog.blogId || blog.id}>
+                <td className="border p-2">{blog.title}</td>
+                <td className="border p-2">{blog.image_url && <img src={blog.image_url} alt="" className="w-24 h-16 object-cover" />}</td>
+                <td className="border p-2 max-w-xs truncate">{blog.content}</td>
+                <td className="border p-2">
+                  <button onClick={() => handleEdit(blog)} className="mr-2 px-2 py-1 bg-blue-500 text-white rounded">Sửa</button>
+                  <button onClick={() => handleDelete(blog.blogId || blog.id)} className="px-2 py-1 bg-red-500 text-white rounded">Xóa</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">{editingId ? "Sửa tin tức" : "Thêm tin tức mới"}</h3>
+            <div className="mb-2">
+              <label className="block mb-1">Tiêu đề</label>
+              <input type="text" className="w-full border p-2 rounded" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
+            </div>
+            <div className="mb-2">
+              <label className="block mb-1">Link ảnh (image_url)</label>
+              <input type="text" className="w-full border p-2 rounded" value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} />
+            </div>
+            <div className="mb-2">
+              <label className="block mb-1">Nội dung</label>
+              <textarea className="w-full border p-2 rounded" rows={5} value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} required />
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 bg-gray-300 rounded">Hủy</button>
+              <button type="submit" className="px-4 py-2 bg-[#D32F2F] text-white rounded">Lưu</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
