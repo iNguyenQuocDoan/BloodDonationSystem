@@ -59,7 +59,7 @@ const AdminNavbar = () => {
             `block w-full px-0 py-3 rounded-2xl font-semibold text-lg text-center transition-all duration-150 ${isActive ? 'bg-[#D32F2F] text-white shadow' : 'bg-white text-[#D32F2F] hover:bg-[#FCA5A5] hover:text-[#D32F2F]'} `
           }
         >
-          Quản lý Role
+          Quản lý Người dùng
         </Link>
         <Link
           to="/admin/create-slot"
@@ -69,14 +69,14 @@ const AdminNavbar = () => {
         >
           Tạo ca
         </Link>
-        <Link
+        {/* <Link
           to="/admin/emergency-request"
           className={({ isActive }) =>
             `block w-full px-0 py-3 rounded-2xl font-semibold text-lg text-center transition-all duration-150 ${isActive ? 'bg-[#D32F2F] text-white shadow' : 'bg-[#FCA5A5] text-[#D32F2F] hover:bg-[#D32F2F] hover:text-white'} `
           }
         >
-          Yêu cầu khẩn cấp
-        </Link>
+Yêu cầu khẩn cấp
+        </Link> */}
         <Link
           to="/admin/blood-inventory"
           className={({ isActive }) =>
