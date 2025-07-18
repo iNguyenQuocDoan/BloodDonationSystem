@@ -49,25 +49,6 @@ const EditBloodPage = () => {
         fetchData();
     }, [getAppointments, getSlotList]);
 
-    const handleSearch = () => {
-        let result = appointments;
-        // Lọc trạng thái trước
-        result = result.filter(item =>
-            item.Status === 'Processing' || item.Status === 'Completed'
-        );
-        if (nameSearch.trim()) {
-            result = result.filter(item =>
-                (item.User_Name || item.Name)?.toLowerCase().includes(nameSearch.toLowerCase())
-            );
-        }
-        if (phoneSearch.trim()) {
-            result = result.filter(item =>
-                item.Phone?.toLowerCase().includes(phoneSearch.toLowerCase())
-            );
-        }
-        setFiltered(result);
-    };
-
     const handleVolumeChange = (id, value) => {
         setVolumes(prev => ({
             ...prev,
@@ -92,8 +73,8 @@ const EditBloodPage = () => {
         // Popup xác nhận
         const result = await Swal.fire({
             title: 'Lưu ý quan trọng',
-            html: `            
-                    <div style="display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            html: `
+<div style="display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
             <span style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:#fee2e2;">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="12" fill="#dc2626"/>
@@ -150,7 +131,7 @@ const EditBloodPage = () => {
                     <p style="margin: 5px 0; font-size: 15px;"><strong>Tên:</strong> ${name}</p>
                     <p style="margin: 5px 0; font-size: 15px;"><strong>Ngày hiến:</strong> ${formatDateVN(date)}</p>
                     <p style="margin: 5px 0; font-size: 15px;"><strong>Khung giờ:</strong> ${formatTimeVN(startTime)} - ${formatTimeVN(endTime)}</p>
-                    <p style="margin: 5px 0; font-size: 15px;"><strong>Lưu lượng:</strong> ${volume} ml</p>
+<p style="margin: 5px 0; font-size: 15px;"><strong>Lưu lượng:</strong> ${volume} ml</p>
                 </div>
                 <div style="background: #eff6ff; padding: 15px; border-radius: 8px;">
                     <p style="margin: 0; font-size: 14px; color: #1d4ed8;">
@@ -198,29 +179,6 @@ const EditBloodPage = () => {
         return `${parseInt(h, 10)}h${m}`;
     };
 
-    // Helper lấy khung giờ từ slotList
-    const getSlotTime = (slotId, item) => {
-        const slot = slotList.find(s => s.Slot_ID === slotId);
-        if (slot) {
-            const start = formatTimeVN(slot.Start_Time);
-            const end = formatTimeVN(slot.End_Time);
-            return `${start} - ${end}`;
-        }
-        // Fallback: lấy từ item nếu có
-        if (item && item.Start_Time && item.End_Time) {
-            const start = formatTimeVN(item.Start_Time);
-            const end = formatTimeVN(item.End_Time);
-            return `${start} - ${end}`;
-        }
-        return '-';
-    };
-
-    const statusMap = {
-        'P': 'Chờ xác nhận',
-        'A': 'Được hiến',
-        'C': 'Đã hoàn thành',
-        'R': 'Từ chối',
-    };
     const formatDateVN = (dateString) => {
         if (!dateString) return "-";
         const d = new Date(dateString);
@@ -246,7 +204,7 @@ const EditBloodPage = () => {
                 <div className="relative w-72">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
+<path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
                         </svg>
                     </span>
                     <input
@@ -298,7 +256,7 @@ const EditBloodPage = () => {
                             appointments
                                 .filter(item =>
                                     (item.Status === "Processing" || item.Status === "Completed") &&
-                                    (!nameSearch || (item.User_Name || item.Name || "").toLowerCase().includes(nameSearch.toLowerCase())) &&
+(!nameSearch || (item.User_Name || item.Name || "").toLowerCase().includes(nameSearch.toLowerCase())) &&
                                     (!phoneSearch || (item.Phone || "").toLowerCase().includes(phoneSearch.toLowerCase()))
                                 )
                                 .map((item) => {
@@ -332,7 +290,7 @@ const EditBloodPage = () => {
                                                         min={1}
                                                         max={500}
                                                         step={1}
-                                                        value={volumes[item.Appointment_ID] || ""}
+value={volumes[item.Appointment_ID] || ""}
                                                         onChange={e => handleVolumeChange(item.Appointment_ID, e.target.value)}
                                                         placeholder="ml"
                                                     />
@@ -370,7 +328,7 @@ const EditBloodPage = () => {
                                                     </span>
                                                 ) : (
                                                     // Các trạng thái khác
-                                                    <span className="text-gray-400">-</span>
+<span className="text-gray-400">-</span>
                                                 )}
                                             </td>
                                         </tr>
