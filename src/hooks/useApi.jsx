@@ -22,42 +22,42 @@ const useApi = () => {
       setLoading(true);
       setError(null);
 
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {})
-        },
-        ...options
-      });
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          },
+          ...options
+        });
 
-      console.log('API response status:', response.status);
+        console.log('API response status:', response.status);
 
-      // Xử lý 401 - Authentication error
-      if (response.status === 401) {
-        if (window.location.pathname !== '/login') {
-          clearAuthData();
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 100);
+        // Xử lý 401 - Authentication error
+        if (response.status === 401) {
+          if (window.location.pathname !== '/login') {
+            clearAuthData();
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 100);
+          }
+          throw new Error('Session expired');
         }
-        throw new Error('Session expired');
-      }
 
-      const data = await response.json();
-      console.log('API response data:', data); // Debug log
+        const data = await response.json();
+        console.log('API response data:', data); // Debug log
 
-      // Xử lý response không thành công (400, 500, etc.)
-      if (!response.ok) {
-        // Ưu tiên message từ server response
-        const errorMessage = data.message || data.error || `HTTP Error: ${response.status}`;
-        throw new Error(errorMessage);
-      }
+        // Xử lý response không thành công (400, 500, etc.)
+        if (!response.ok) {
+          // Ưu tiên message từ server response
+          const errorMessage = data.message || data.error || `HTTP Error: ${response.status}`;
+          throw new Error(errorMessage);
+        }
 
-      // Xử lý trường hợp server trả về success: false
-      if (data.status === false && data.message) {
-        throw new Error(data.message);
-      }
+        // Xử lý trường hợp server trả về success: false
+        if (data.status === false && data.message) {
+          throw new Error(data.message);
+        }
 
         return data;
       } catch (err) {
@@ -111,7 +111,7 @@ const useApi = () => {
   );
 
   // Data APIs
-  const getCurrentUser = useCallback(async () => {
+const getCurrentUser = useCallback(async () => {
     return callApi("/getMe");
   }, [callApi]);
 
@@ -144,7 +144,7 @@ const useApi = () => {
   );
 
   const updateUser = useCallback(async (userData) => {
-    return callApi('//profile', {
+    return callApi('/profile', {
       method: 'PUT',
       body: JSON.stringify(userData)
     });
@@ -167,9 +167,89 @@ const useApi = () => {
 
   //Emergency Request API
   const addEmergencyRequest = useCallback(async (requestData) => {
-    return callApi('/addEmergencyRequest', {
+    return callApi('/requestEmergencyBlood', {
       method: 'POST',
       body: JSON.stringify(requestData)
+    });
+  }, [callApi]);
+
+  // Thêm API gọi addPatientDetail (BE: POST /appointment/:appointmentId/addPatient)
+  const addPatientDetail = useCallback(
+    async (appointmentId, description, status) => {
+      return callApi(`/patientDetail/${appointmentId}/patient`, {
+        method: "POST",
+        body: JSON.stringify({ description, status }),
+      });
+    },
+    [callApi]
+  );
+
+  const confirmBloodTypeByStaff = useCallback(
+    async (userId, bloodType) => {
+      return callApi(`/users/${userId}/confirmBloodTypeByStaff`, {
+        method: "PUT",
+        body: JSON.stringify({ bloodType }),
+      });
+    },
+    [callApi]
+  );
+
+  const updateStatusAppointmentByStaff = useCallback(
+    async (appointmentId, newStatus) => {
+      return callApi(`/appointment/${appointmentId}/status`, {
+        method: "PUT",
+        body: JSON.stringify({ newStatus }),
+      });
+    },
+    [callApi]
+  );
+
+  const rejectAppointment = useCallback(
+    async (appointmentId, reasonReject) => {
+      return callApi(`/appointment/${appointmentId}/reject`, {
+        method: "PUT",
+        body: JSON.stringify({ reasonReject }),
+      });
+    },
+    [callApi]
+  );
+
+  const historyAppointmentsByUser = useCallback(async () => {
+    return callApi(`/appointment/details`);
+  }, [callApi]);
+
+
+  const historyPatientByUser = useCallback(async (appointmentId) => {
+    return callApi(`/patientDetail/${appointmentId}`)
+  }, [callApi])
+const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
+    return callApi(`/patientDetail/${appointmentId}/update`, {
+      method: 'PUT',
+      body: JSON.stringify({ description, status })
+    })
+  }, [callApi])
+
+  const cancelAppointmentByUser = useCallback(async (appointmentId) => {
+    return callApi(`/appointment/${appointmentId}/cancelByMember`, {
+      method: 'PUT'
+    })
+  }, [callApi])
+
+  const getEmergencyRequestList = useCallback(async () => {
+    return callApi("/getEmergencyRequestList");
+  }, [callApi]);
+
+  const getProfileER = useCallback(async (userId) => {
+    return callApi(`/getProfileER/${userId}`);
+  }, [callApi]);
+
+  const getPotentialDonorPlus = useCallback(async (emergencyId) => {
+    return callApi(`/getPotentialDonorPlus/${emergencyId}`);
+  }, [callApi]);
+
+  const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
+    return callApi(`/sendEmergencyEmail/${donorEmail}/${donorName}`, {
+      method: "POST"
     });
   }, [callApi]);
 
@@ -186,12 +266,21 @@ const useApi = () => {
     });
   }, [callApi]);
 
+
   const updateBlog = useCallback(async (id, blog) => {
     return callApi(`/blogs/${id}`, {
       method: 'PUT',
       body: JSON.stringify(blog),
     });
   }, [callApi]);
+
+
+  const addDonorToEmergency = useCallback(async (emergencyId, potentialId) => {
+    return callApi(`/updateEmergencyRequest/${emergencyId}/${potentialId}`, {
+      method: "PUT"
+    });
+  }, [callApi]);
+
 
   const deleteBlog = useCallback(async (id) => {
     return callApi(`/blogs/${id}`, { method: 'DELETE' });
@@ -203,6 +292,52 @@ const useApi = () => {
     const paged = items.slice((currentPage - 1) * perPage, currentPage * perPage);
     return { paged, totalPages };
   }, []);
+
+  const handleEmergencyRequest = useCallback(async (emergencyId, payload) => {
+    return callApi(`/handleEmergencyRequest/${emergencyId}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }, [callApi]);
+
+  const rejectEmergencyRequest = useCallback(async (emergencyId, reason_Reject) => {
+    return callApi(`/rejectEmergency/${emergencyId}/reject`, {
+      method: "PUT",
+      body: JSON.stringify({ reason_Reject }),
+    });
+  }, [callApi]);
+
+  const getInfoEmergencyRequestsByMember = useCallback(async () => {
+    return callApi(`/getInfoEmergencyRequestsByMember`);
+  }, [callApi]);
+
+  const cancelEmergencyRequestByMember = useCallback(async (emergencyId) => {
+    return callApi(`/cancelEmergencyByMember/${emergencyId}/cancel`, {
+      method: "PUT"
+    });
+  }, [callApi]);
+const getAllUsers = useCallback(async () => {
+    return callApi("/getAllUsers");
+  }, [callApi]);
+
+  const banUser = useCallback(async (userId) => {
+    return callApi(`/bannedUser/${userId}`, {
+      method: "PUT"
+    });
+  }, [callApi]);
+
+  const unbanUser = useCallback(async (userId) => {
+    return callApi(`/unbanUser/${userId}`, {
+      method: "PUT"
+    });
+  }, [callApi]);
+
+  const createStaffAccount = useCallback(async (staffData) => {
+  return callApi("/signup/staff", {
+    method: "POST",
+    body: JSON.stringify(staffData),
+  });
+}, [callApi]);
 
   return {
     loading,
@@ -221,12 +356,33 @@ const useApi = () => {
     isLoggedIn: isLoggedIn(),
     addAppointmentVolume,
     addEmergencyRequest,
+    addPatientDetail,
+    confirmBloodTypeByStaff,
+    updateStatusAppointmentByStaff,
+    rejectAppointment,
+    historyAppointmentsByUser,
+    historyPatientByUser,
+    updatePatientByStaff,
+    cancelAppointmentByUser,
+    getEmergencyRequestList,
+    getProfileER,
+    getPotentialDonorPlus,
+    sendEmergencyEmail,
+    addDonorToEmergency,
     // Blog APIs
     fetchBlogs,
     createBlog,
     updateBlog,
     deleteBlog,
-    paginate
+    paginate,
+    handleEmergencyRequest,
+    rejectEmergencyRequest,
+    getInfoEmergencyRequestsByMember,
+    cancelEmergencyRequestByMember,
+    getAllUsers,
+    banUser,
+    unbanUser,
+    createStaffAccount
   };
 };
 
