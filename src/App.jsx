@@ -23,6 +23,7 @@ import EmergencyRequest from "./pages/home/EmergencyRequest";
 import DonateBlood from "./pages/home/DonateBlood";
 import { FAQPage } from "./pages/home/FAQ";
 import News from "./pages/home/News";
+import BlogDetail from "./pages/home/BlogDetail";
 
 // Staff pages
 import DashboardPage from "./pages/Staff/Dashboard";
@@ -41,6 +42,7 @@ import AdminLayout from "./Layouts/LayoutAdmin";
 import { RegisterPage } from "./pages/auth/Register";
 import ProfilePage from "./pages/auth/Profile";
 import BlogAdmin from "./pages/Admin/BlogAdmin";
+import EmergencyRequestHistory from "./pages/home/EmergencyRequestHistory";
 
 function App() {
   return (
@@ -57,6 +59,7 @@ function App() {
               <Route path="/donate" element={<DonateBlood />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/news" element={<News />} />
+              <Route path="/news/:id" element={<BlogDetail />} />
             </Route>
           </Route>
 
@@ -78,6 +81,7 @@ function App() {
             <Route element={<LayoutDeFault />}>
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/emergency" element={<EmergencyRequest />} />
+              <Route path="/emergency-history" element={<EmergencyRequestHistory />} />
             </Route>
           </Route>
 

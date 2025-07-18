@@ -145,6 +145,17 @@ const ProfilePage = () => {
           >
             Chỉnh sửa hồ sơ
           </button>
+          {user.user_role === "member" && (
+            <button
+              className="ml-4 bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
+              onClick={() => {
+                // Ví dụ: chuyển hướng sang trang lịch sử yêu cầu khẩn cấp
+                window.location.href = "/emergency-history";
+              }}
+            >
+              Xem lịch sử yêu cầu máu khẩn cấp
+            </button>
+          )}
         </div>
       </div>
 

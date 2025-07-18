@@ -14,9 +14,9 @@ const REJECT_REASONS = [
   "Khác"
 ];
 const PRIORITY_OPTIONS = [
-  { value: "high", label: "Cao" },
-  { value: "medium", label: "Trung bình" },
-  { value: "low", label: "Thấp" }
+  { value: "High", label: "Cao" },
+  { value: "Medium", label: "Trung bình" },
+  { value: "Low", label: "Thấp" }
 ];
 const SOURCE_OPTIONS = [
   { value: "donor", label: "Người hiến" },
@@ -30,7 +30,9 @@ export default function ManageEmergencyPage() {
     getProfileER,
     getPotentialDonorPlus,
     sendEmergencyEmail,
-    addDonorToEmergency, // <-- Thêm dòng này
+    addDonorToEmergency,
+    handleEmergencyRequest,
+    rejectEmergencyRequest, // <-- Thêm dòng này
   } = useApi();
 
   const [filter, setFilter] = useState({
@@ -60,6 +62,12 @@ export default function ManageEmergencyPage() {
 
   // Thêm state tạm cho từng dòng nếu chưa có:
   const [editRows, setEditRows] = useState({}); // { [Potential_ID]: { ...fields } }
+
+  // 1. Thêm state để lưu lý do cần máu của yêu cầu đang xem
+  const [currentReason, setCurrentReason] = useState("");
+
+  // Thêm state để phân biệt giữa profile người yêu cầu và profile người hiến
+  const [profileType, setProfileType] = useState("profile"); // "requester" hoặc "profile"
 
   useEffect(() => {
     (async () => {
@@ -91,22 +99,33 @@ export default function ManageEmergencyPage() {
       toast.warn("Vui lòng chọn hoặc nhập lý do từ chối!");
       return;
     }
-    // Gọi API cập nhật trạng thái rejected với lý do reason
-    // await updateStatus(rejectRow, "Rejected", reason);
-    setShowRejectPopup(false);
-    setRejectReason("");
-    setRejectOtherMsg("");
-    setRejectRow(null);
-    setRefreshKey((k) => k + 1);
-    toast.success("Đã cập nhật trạng thái từ chối!");
+    try {
+      console.log("Reject API:", {
+      emergencyId: rejectRow,
+      body: { reason_Reject: reason }
+    });
+      await rejectEmergencyRequest(rejectRow, reason); // <-- Sử dụng hàm từ useApi
+      toast.success("Đã cập nhật trạng thái từ chối!");
+      setShowRejectPopup(false);
+      setRejectReason("");
+      setRejectOtherMsg("");
+      setRejectRow(null);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      toast.error("Cập nhật trạng thái từ chối thất bại!");
+    }
   };
 
   const handleViewRequester = async (req) => {
     try {
       const res = await getProfileER(req.Requester_ID);
       setSelectedProfile(res.data[0] || null);
+      setCurrentReason(req.reason_Need ?? ""); // Lưu lý do từ request
+      setProfileType("requester"); // Đặt loại profile là "requester"
     } catch (err) {
       setSelectedProfile({ error: "Không lấy được thông tin người yêu cầu" });
+      setCurrentReason("");
+      setProfileType("requester");
     }
   };
 
@@ -114,8 +133,12 @@ export default function ManageEmergencyPage() {
     try {
       const res = await getProfileER(req.Donor_ID);
       setSelectedProfile(res.data[0] || null);
+      setCurrentReason(""); // Không hiển thị lý do khi xem donor
+      setProfileType("profile"); // Đặt loại profile là "profile"
     } catch (err) {
       setSelectedProfile({ error: "Không lấy được thông tin người yêu cầu" });
+      setCurrentReason("");
+      setProfileType("profile");
     }
   };
 
@@ -291,7 +314,9 @@ export default function ManageEmergencyPage() {
                 </td>
               </tr>
             )}
-            {requests.map((req, idx) => {
+            {requests
+              .filter(req => req.Status !== "Rejected") // <-- Lọc bỏ yêu cầu bị từ chối
+              .map((req, idx) => {
               const edit = editRows[req.Potential_ID] || {};
               const tempPriority = edit.Priority ?? req.Priority ?? "";
               const tempSource = edit.sourceType ?? req.sourceType ?? "";
@@ -325,7 +350,7 @@ export default function ManageEmergencyPage() {
                   </td>
                   <td className="px-4 py-3">
                     <select
-                      value={tempPriority}
+                      value={editRows[req.Potential_ID]?.Priority ?? req.Priority ?? ""}
                       onChange={e => handleEditRowChange(req.Potential_ID, "Priority", e.target.value)}
                       className="border border-gray-300 rounded px-2 py-1 text-xs"
                       disabled={req.Status === "Completed"}
@@ -350,16 +375,16 @@ export default function ManageEmergencyPage() {
                     </select>
                   </td>
                   <td className="px-4 py-3">
-                    {req.Donor_ID
-                      ? (
-                        <button
-                          className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
-                          onClick={() => handleViewDonor(req)}
-                        >
-                          Xem hồ sơ
-                        </button>
-                      )
-                      : (
+                    {req.Donor_ID ? (
+                      <button
+                        className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
+                        onClick={() => handleViewDonor(req)}
+                      >
+                        Xem hồ sơ
+                      </button>
+                    ) : (
+                      // Nếu nguồn cung cấp là bank thì không hiện nút danh sách ưu tiên
+                      req.sourceType !== "bank" && (
                         <button
                           className="px-3 py-1 rounded bg-purple-500 hover:bg-purple-600 text-white text-xs"
                           onClick={() => handleShowPotentialList(req.Emergency_ID)}
@@ -367,7 +392,7 @@ export default function ManageEmergencyPage() {
                           Danh sách ưu tiên
                         </button>
                       )
-                    }
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <select
@@ -385,12 +410,17 @@ export default function ManageEmergencyPage() {
                   <td className="px-4 py-3">
                     <select
                       value={tempStatus}
-                      onChange={e => handleEditRowChange(req.Potential_ID, "Status", e.target.value)}
+                      onChange={e => {
+                        handleEditRowChange(req.Potential_ID, "Status", e.target.value);
+                        if (e.target.value === "Rejected") {
+                          handleStatusChange(req.Emergency_ID, "Rejected");
+                        }
+                      }}
                       className="border border-gray-300 rounded px-2 py-1 text-xs"
                       disabled={req.Status === "Completed"}
                     >
                       <option value="Pending">Chờ xử lý</option>
-                      <option value="Contacted">Đã liên hệ</option>
+                      <option value="Processing">Đang xử lý</option>
                       <option value="Completed">Đã giải quyết</option>
                       <option value="Rejected">Từ chối</option>
                     </select>
@@ -398,13 +428,38 @@ export default function ManageEmergencyPage() {
                   <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                     {req.Status !== "Completed" && (
                       <button
-                        onClick={() => {
-                          if ((edit.Status ?? req.Status) === "Rejected") {
-                            setRejectRow(req.Potential_ID);
-                            setShowRejectPopup(true);
-                          } else {
-                            // Gọi API update với editRows[req.Potential_ID] ở đây
-                            // Xong thì xóa editRows[req.Potential_ID] và reload
+                        onClick={async () => {
+                          const edit = editRows[req.Potential_ID] || {};
+                          const tempSource = edit.sourceType ?? req.sourceType ?? "";
+                          // Nếu nguồn là donor và chưa có người hiến thì báo lỗi
+                          if (tempSource === "donor" && !req.Donor_ID) {
+                            toast.warn("Vui lòng chọn Người hiến trước khi cập nhật!", {
+                              position: "top-center",
+                              autoClose: 2000,
+                            });
+                            return;
+                          }
+                          const payload = {
+                            Priority: edit.Priority ?? req.Priority,
+                            sourceType: tempSource,
+                            Place: edit.Place ?? req.Place,
+                            Status: edit.Status ?? req.Status,
+                          };
+                          if (tempSource === "bank") {
+                            payload.Place = null;
+                          }
+                          console.log("Payload gửi lên API:", payload);
+                          try {
+                            await handleEmergencyRequest(req.Emergency_ID, payload);
+                            toast.success("Cập nhật thành công!");
+                            setRefreshKey(k => k + 1);
+                            setEditRows(prev => {
+                              const copy = { ...prev };
+                              delete copy[req.Potential_ID];
+                              return copy;
+                            });
+                          } catch (err) {
+                            toast.error("Cập nhật thất bại!");
                           }
                         }}
                         className="px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white text-xs"
@@ -435,7 +490,9 @@ export default function ManageEmergencyPage() {
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-pink-400 flex items-center justify-center shadow-lg mb-2 border-4 border-white">
                 <i className="fa fa-user text-white text-3xl" />
               </div>
-              <h2 className="text-xl font-bold text-red-600 drop-shadow mb-1">Thông tin hồ sơ</h2>
+              <h2 className="text-xl font-bold text-red-600 drop-shadow mb-1">
+                {profileType === "requester" ? "Thông tin người gửi yêu cầu" : "Thông tin hồ sơ"}
+              </h2>
             </div>
             {selectedProfile.error ? (
               <div className="text-red-500 text-center">{selectedProfile.error}</div>
@@ -460,6 +517,12 @@ export default function ManageEmergencyPage() {
                   </span>
                 </div>
                 <div><b className="text-gray-600">Năm sinh:</b> {selectedProfile.Date_Of_Birth ?? "—"}</div>
+                {/* Chỉ hiện lý do nếu có currentReason */}
+                {currentReason && (
+                  <div>
+                    <b className="text-amber-700">Lý do cần máu:</b> {currentReason}
+                  </div>
+                )}
               </div>
             )}
           </div>

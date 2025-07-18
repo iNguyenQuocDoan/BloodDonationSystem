@@ -166,17 +166,14 @@ const useApi = () => {
   }, [callApi]);
 
   //Emergency Request API
-  const addEmergencyRequest = useCallback(
-    async (requestData) => {
-      return callApi("/requestEmergencyBlood", {
-        method: "POST",
-        body: JSON.stringify(requestData),
-      });
-    },
-    [callApi]
-  );
+  const addEmergencyRequest = useCallback(async (requestData) => {
+    return callApi('/requestEmergencyBlood', {
+      method: 'POST',
+      body: JSON.stringify(requestData)
+    });
+  }, [callApi]);
 
-  // Thêm API gọi addPatientDetail (BE: POST /appointment/:appointmentId/addPatient)
+   // Thêm API gọi addPatientDetail (BE: POST /appointment/:appointmentId/addPatient)
   const addPatientDetail = useCallback(
     async (appointmentId, description, status) => {
       return callApi(`/patientDetail/${appointmentId}/patient`, {
@@ -238,29 +235,87 @@ const useApi = () => {
     })
   }, [callApi])
 
-  const getEmergencyRequestList = useCallback(async () => {
+   const getEmergencyRequestList = useCallback(async () => {
     return callApi("/getEmergencyRequestList");
   }, [callApi]);
 
   const getProfileER = useCallback(async (userId) => {
-    return callApi(`/getProfileER/${userId}`);
+  return callApi(`/getProfileER/${userId}`);
+}, [callApi]);
+
+const getPotentialDonorPlus = useCallback(async (emergencyId) => {
+  return callApi(`/getPotentialDonorPlus/${emergencyId}`);
+}, [callApi]);
+
+const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
+  return callApi(`/sendEmergencyEmail/${donorEmail}/${donorName}`, {
+    method: "POST"
+  });
+}, [callApi]);
+
+  // BLOG APIs
+  const fetchBlogs = useCallback(async () => {
+    const res = await callApi('/blogs');
+    return Array.isArray(res.data) ? res.data : (res.data.blogs || res.data.data || []);
   }, [callApi]);
 
-  const getPotentialDonorPlus = useCallback(async (emergencyId) => {
-    return callApi(`/getPotentialDonorPlus/${emergencyId}`);
-  }, [callApi]);
-
-  const sendEmergencyEmail = useCallback(async (donorEmail, donorName) => {
-    return callApi(`/sendEmergencyEmail/${donorEmail}/${donorName}`, {
-      method: "POST"
+  const createBlog = useCallback(async (blog) => {
+    return callApi('/blogs/create', {
+      method: 'POST',
+      body: JSON.stringify(blog),
     });
   }, [callApi]);
+
+
+  const updateBlog = useCallback(async (id, blog) => {
+    return callApi(`/blogs/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(blog),
+    });
+  }, [callApi]);
+
 
   const addDonorToEmergency = useCallback(async (emergencyId, potentialId) => {
     return callApi(`/updateEmergencyRequest/${emergencyId}/${potentialId}`, {
       method: "PUT"
     });
   }, [callApi]);
+      
+
+  const deleteBlog = useCallback(async (id) => {
+    return callApi(`/blogs/${id}`, { method: 'DELETE' });
+  }, [callApi]);
+
+  // Pagination helper for blogs
+   const paginate = useCallback((items, currentPage, perPage) => {
+    const totalPages = Math.ceil(items.length / perPage);
+    const paged = items.slice((currentPage - 1) * perPage, currentPage * perPage);
+    return { paged, totalPages };
+  }, []);
+
+  const handleEmergencyRequest = useCallback(async (emergencyId, payload) => {
+  return callApi(`/handleEmergencyRequest/${emergencyId}`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}, [callApi]);
+
+const rejectEmergencyRequest = useCallback(async (emergencyId, reason_Reject) => {
+  return callApi(`/rejectEmergency/${emergencyId}/reject`, {
+    method: "PUT",
+    body: JSON.stringify({ reason_Reject }),
+  });
+}, [callApi]);
+
+const getInfoEmergencyRequestsByMember = useCallback(async () => {
+  return callApi(`/getInfoEmergencyRequestsByMember`);
+}, [callApi]);
+
+const cancelEmergencyRequestByMember = useCallback(async (emergencyId) => {
+  return callApi(`/cancelEmergencyByMember/${emergencyId}/cancel`, {
+    method: "PUT"
+  });
+}, [callApi]);
 
   return {
     loading,
@@ -292,6 +347,16 @@ const useApi = () => {
     getPotentialDonorPlus,
     sendEmergencyEmail,
     addDonorToEmergency,
+    // Blog APIs
+    fetchBlogs,
+    createBlog,
+    updateBlog,
+    deleteBlog,
+    paginate,
+    handleEmergencyRequest,
+    rejectEmergencyRequest,
+    getInfoEmergencyRequestsByMember,
+    cancelEmergencyRequestByMember
   };
 };
 
