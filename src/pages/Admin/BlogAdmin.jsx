@@ -21,6 +21,8 @@ const BlogAdmin = () => {
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   useEffect(() => {
     fetchBlogs().then(setBlogs).catch(() => setBlogs([]));
@@ -93,16 +95,17 @@ const BlogAdmin = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc muốn xóa tin này?")) return;
+  const handleDelete = async () => {
+    if (!deleteId) return;
     try {
-      await deleteBlog(id);
+      await deleteBlog(deleteId);
       fetchBlogs().then(setBlogs);
       toast.success("Xóa tin tức thành công!");
-      // Đóng popup confirm (nếu có) NGAY khi xóa xong
     } catch {
       toast.error("Xóa thất bại!");
     }
+    setShowConfirmDelete(false);
+    setDeleteId(null);
   };
 
   const handleEdit = (blog) => {
@@ -143,13 +146,19 @@ const BlogAdmin = () => {
       ) : (
         <>
           {showForm && (
-            <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-              <form onSubmit={handleSubmit} className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200" style={{ minWidth: '400px' }}>
-                <h3 className="text-2xl font-extrabold mb-6 text-center text-[#D32F2F]">{editingId ? "Sửa tin tức" : "Thêm tin tức mới"}</h3>
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fadeIn">
+              <form
+                onSubmit={handleSubmit}
+                className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 animate-scaleIn"
+                style={{ minWidth: '400px' }}
+              >
+                <h3 className="text-2xl font-extrabold mb-6 text-center text-[#D32F2F]">
+                  {editingId ? "Sửa tin tức" : "Thêm tin tức mới"}
+                </h3>
                 {formError && <div className="text-red-500 mb-4">{formError}</div>}
                 <div className="mb-4">
                   <label className="block mb-2 font-semibold">Tiêu đề</label>
-                  <input type="text" className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
+                  <input type="text" className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition shadow-sm" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
                 </div>
                 <div className="mb-4">
                   <label className="block mb-2 font-semibold">Ảnh</label>
@@ -196,17 +205,17 @@ const BlogAdmin = () => {
                 </div>
                 <div className="mb-4">
                   <label className="block mb-2 font-semibold">Nội dung</label>
-                  <textarea className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition min-h-[100px]" value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} required />
+                  <textarea className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition min-h-[100px] shadow-sm" value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} required />
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
-                  <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Hủy</button>
-                  <button type="submit" className="px-6 py-2 rounded-lg bg-[#D32F2F] text-white font-bold hover:bg-red-700 transition" disabled={uploading}>Lưu</button>
+                  <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition font-semibold shadow">Hủy</button>
+                  <button type="submit" className="px-6 py-2 rounded-lg bg-[#D32F2F] text-white font-bold hover:bg-red-700 transition font-semibold shadow" disabled={uploading}>Lưu</button>
                 </div>
               </form>
             </div>
           )}
-          {/* Card grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 p-4">
+          {/* Card grid đẹp hơn */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 p-6">
             {paged.map((blog, idx) => {
               const imgKey = Object.keys(blog).find(
                 k => k.toLowerCase().includes('image') && k.toLowerCase().includes('url')
@@ -214,31 +223,16 @@ const BlogAdmin = () => {
               const imgSrc = imgKey ? blog[imgKey] : "";
               const fallbackImg = "https://via.placeholder.com/96x64?text=No+Image";
               return (
-                <div key={blog.Blog_ID || blog.blogId || blog.id || idx} className="bg-white rounded-2xl shadow-lg p-4 flex flex-col hover:shadow-2xl transition">
-                  <div className="mb-3 w-full h-36 flex items-center justify-center relative overflow-hidden rounded-xl">
+                <div key={blog.Blog_ID || blog.blogId || blog.id || idx} className="bg-white rounded-2xl shadow-xl p-5 flex flex-col hover:shadow-2xl hover:scale-[1.03] transition-all duration-200 border border-gray-100">
+                  <div className="mb-3 w-full h-40 flex items-center justify-center relative overflow-hidden rounded-xl">
                     <img
                       src={imgSrc || fallbackImg}
                       alt=""
-                      className="w-full h-36 object-cover rounded-xl hover:scale-105 transition"
+                      className="w-full h-40 object-cover rounded-xl hover:scale-105 transition"
                       style={{ opacity: imgSrc ? 1 : 0.5 }}
                     />
                     {!imgSrc && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          color: "#D32F2F",
-                          fontSize: "10px",
-                          background: "rgba(255,255,255,0.7)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: "bold"
-                        }}
-                      >
+                      <span className="absolute inset-0 flex items-center justify-center text-[#D32F2F] text-xs font-bold bg-white/70">
                         Chưa có ảnh
                       </span>
                     )}
@@ -248,14 +242,14 @@ const BlogAdmin = () => {
                   <div className="mt-auto flex gap-2">
                     <button
                       onClick={() => handleEdit(blog)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-500 hover:text-white transition font-semibold"
+                      className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-500 hover:text-white transition font-semibold shadow"
                       title="Sửa"
                     >
                       Sửa
                     </button>
                     <button
-                      onClick={() => handleDelete(blog.Blog_ID || blog.blogId || blog.id || idx)}
-                      className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-500 hover:text-white transition font-semibold"
+                      onClick={() => { setShowConfirmDelete(true); setDeleteId(blog.Blog_ID || blog.blogId || blog.id || idx); }}
+                      className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-500 hover:text-white transition font-semibold shadow"
                       title="Xóa"
                     >
                       Xóa
@@ -280,6 +274,28 @@ const BlogAdmin = () => {
             </div>
           )}
         </>
+      )}
+      {/* Modal xác nhận xóa đẹp, hiệu ứng fade/scale */}
+      {showConfirmDelete && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl min-w-[320px] flex flex-col items-center animate-scaleIn">
+            <div className="text-lg font-bold mb-4 text-center text-[#D32F2F]">Bạn có chắc muốn xóa tin này không?</div>
+            <div className="flex gap-4 mt-2">
+              <button
+                onClick={handleDelete}
+                className="px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 font-semibold shadow"
+              >
+                Đồng ý
+              </button>
+              <button
+                onClick={() => { setShowConfirmDelete(false); setDeleteId(null); }}
+                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold shadow"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
