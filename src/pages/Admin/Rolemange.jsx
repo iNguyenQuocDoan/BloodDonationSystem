@@ -169,93 +169,108 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
 
   return (
     <div className="bg-gray-100 min-h-screen p-6">
-      <h2 className="text-xl font-bold text-blue-600 mb-6">Quản lý tài khoản Staff</h2>
+      <h2 className="text-2xl font-extrabold text-[#D32F2F] mb-6 text-center">Quản lý tài khoản Staff</h2>
       <button
-        className="mb-4 px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+        className="mb-4 px-6 py-2.5 bg-[#D32F2F] text-white rounded-lg font-semibold shadow-md hover:bg-red-700 transition-all duration-200 flex items-center gap-2"
         onClick={() => setShowCreateModal(true)}
       >
-        + Tạo tài khoản staff
+        <span className="text-lg">+</span> Tạo tài khoản staff
       </button>
-      <div className="bg-white shadow-md rounded overflow-x-auto">
-        <table className="min-w-full text-sm text-left">
-<thead className="bg-blue-100 text-gray-700">
-            <tr>
-              <th className="px-4 py-2">Tên</th>
-              <th className="px-4 py-2">Email</th>
-              <th className="px-4 py-2">SĐT</th>
-              <th className="px-4 py-2">Giới tính</th>
-              <th className="px-4 py-2">Năm sinh</th>
-              <th className="px-4 py-2">Vai trò</th>
-              <th className="px-4 py-2">Loại máu</th>
-              <th className="px-4 py-2">Trạng thái</th>
-              <th className="px-4 py-2 text-center">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={9} className="text-center py-6 text-gray-500">Đang tải...</td>
+
+      <div className="flex justify-center">
+        <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl p-4 mt-6 overflow-x-auto">
+          <table className="min-w-full border-separate border-spacing-y-1">
+            <thead>
+              <tr className="bg-red-50">
+                <th className="py-3 px-4 text-left font-semibold text-[#D32F2F] rounded-tl-xl">Tên</th>
+                <th className="py-3 px-4 text-left font-semibold text-[#D32F2F]">Email</th>
+                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">SĐT</th>
+                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">Giới tính</th>
+                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">Năm sinh</th>
+                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">Vai trò</th>
+                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">Loại máu</th>
+                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F] min-w-[120px]">Trạng thái</th>
+                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F] rounded-tr-xl">Hành động</th>
               </tr>
-            ) : staffs.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="text-center py-6 text-gray-500">Không có staff nào.</td>
-              </tr>
-            ) : (
-              staffs.map((user) => (
-                <tr key={user.User_ID} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2">{user.User_Name}</td>
-                  <td className="px-4 py-2">{user.Email}</td>
-                  <td className="px-4 py-2">{user.Phone}</td>
-                  <td className="px-4 py-2">{user.Gender === "M" ? "Nam" : user.Gender === "F" ? "Nữ" : "—"}</td>
-                  <td className="px-4 py-2">
-                    {user.YOB
-                      ? (() => {
-                          const date = new Date(user.YOB);
-                          const day = String(date.getDate()).padStart(2, "0");
-                          const month = String(date.getMonth() + 1).padStart(2, "0");
-                          const year = date.getFullYear();
-                          return `${day}/${month}/${year}`;
-                        })()
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-2">{user.User_Role === "staff" ? "Nhân viên" : "Thành viên"}</td>
-                  <td className="px-4 py-2">
-                    {user.BloodGroup || "—"}
-                  </td>
-                  <td className="px-4 py-2">
-                    {user.isDelete === "1" || user.isDelete === true
-                      ? <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs">Đang mở khóa</span>
-                      : <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs">Đã khóa</span>
-                    }
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    {user.isDelete === "1" || user.isDelete === true ? (
-                      <button
-                        className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600"
-                        onClick={() => handleBan(user.User_ID)}
-                      >
-                        Khóa tài khoản
-                      </button>
-) : (
-                      <button
-                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
-                        onClick={() => handleUnban(user.User_ID)}
-                      >
-                        Mở khóa
-                      </button>
-                    )}
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-8 text-gray-500">
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D32F2F]"></div>
+                      <span className="ml-2">Đang tải...</span>
+                    </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : staffs.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-8 text-gray-500">Không có staff nào.</td>
+                </tr>
+              ) : (
+                staffs.map((user, idx) => (
+                  <tr
+                    key={user.User_ID}
+                    className={`transition-all duration-200 ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-red-50`}
+                  >
+                    <td className="py-3 px-4 font-medium">{user.User_Name}</td>
+                    <td className="py-3 px-4">{user.Email}</td>
+                    <td className="py-3 px-4 text-center">{user.Phone}</td>
+                    <td className="py-3 px-4 text-center">{user.Gender === "M" ? "Nam" : user.Gender === "F" ? "Nữ" : "—"}</td>
+                    <td className="py-3 px-4 text-center">
+                      {user.YOB
+                        ? (() => {
+                            const date = new Date(user.YOB);
+                            const day = String(date.getDate()).padStart(2, "0");
+                            const month = String(date.getMonth() + 1).padStart(2, "0");
+                            const year = date.getFullYear();
+                            return `${day}/${month}/${year}`;
+                          })()
+                        : "—"}
+                    </td>
+                    <td className="py-3 px-4 text-center">{user.User_Role === "staff" ? "Nhân viên" : "Thành viên"}</td>
+                    <td className="py-3 px-4 text-center">{user.BloodGroup || "—"}</td>
+                    <td className="py-3 px-4 text-center align-middle">
+                      {user.isDelete === "1" || user.isDelete === true ? (
+                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 w-28">
+                          Đang mở khóa
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200 w-28">
+                          Đã khóa
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {user.isDelete === "1" || user.isDelete === true ? (
+                        <button
+                          onClick={() => handleBan(user.User_ID)}
+                          className="px-4 py-1.5 bg-red-500 text-white text-sm rounded-full font-medium hover:bg-red-600 transition-all duration-200 shadow-sm"
+                        >
+                          Khóa
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUnban(user.User_ID)}
+                          className="px-4 py-1.5 bg-[#D32F2F] text-white text-sm rounded-full font-medium hover:bg-red-700 transition-all duration-200 shadow-sm"
+                        >
+                          Mở khóa
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
       {/* Modal tạo staff */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-8 min-w-[340px] max-w-sm w-full relative border-2 border-blue-300">
-            <h2 className="text-lg font-bold text-blue-600 mb-4 text-center">Tạo tài khoản staff</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 relative border-t-4 border-[#D32F2F]">
+            <h3 className="text-xl font-bold text-[#D32F2F] mb-6 text-center">Tạo tài khoản staff</h3>
             <form className="space-y-4" onSubmit={handleCreateStaff}>
               <div>
                 <label className="block font-medium mb-1">Email:</label>
@@ -364,18 +379,18 @@ value={form.confirm_password}
                 <p className="text-gray-500 text-xs mt-1">Độ tuổi: từ 18 đến 60</p>
 {errors.date_of_birth && <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>}
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
-                  className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
                   onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200"
                   disabled={creating}
                 >
-                  Đóng
+                  Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                  className="px-4 py-2 bg-[#D32F2F] text-white rounded-lg font-medium hover:bg-red-700 transition-all duration-200"
                   disabled={creating}
                 >
                   {creating ? "Đang tạo..." : "Tạo tài khoản"}
@@ -385,32 +400,33 @@ value={form.confirm_password}
           </div>
         </div>
       )}
-      {/* Modal xác nhận khóa/mở khóa */}
+
+      {/* Modal xác nhận */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-8 min-w-[340px] max-w-sm w-full relative border-2 border-blue-300">
-            <h2 className="text-lg font-bold text-blue-600 mb-4 text-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 relative border-t-4 border-[#D32F2F]">
+            <h3 className="text-xl font-bold text-[#D32F2F] mb-4 text-center">
               {actionType === "ban" ? "Xác nhận khóa tài khoản" : "Xác nhận mở khóa tài khoản"}
-            </h2>
-            <p className="mb-6 text-center text-gray-700">
+            </h3>
+            <p className="text-gray-600 text-center mb-6">
               {actionType === "ban"
                 ? "Bạn có chắc chắn muốn khóa tài khoản này không?"
                 : "Bạn có chắc chắn muốn mở khóa tài khoản này không?"}
             </p>
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-center gap-3">
               <button
-                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
                 onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200"
               >
-                Đóng
+                Hủy
               </button>
               <button
-                className={`px-4 py-2 rounded text-white font-semibold ${
+                onClick={confirmAction}
+                className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 ${
                   actionType === "ban"
                     ? "bg-red-500 hover:bg-red-600"
-                    : "bg-green-500 hover:bg-green-600"
+                    : "bg-[#D32F2F] hover:bg-red-700"
                 }`}
-                onClick={confirmAction}
               >
                 Xác nhận
               </button>
