@@ -20,6 +20,7 @@ const BlogAdmin = () => {
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchBlogs().then(setBlogs).catch(() => setBlogs([]));
@@ -82,14 +83,13 @@ const BlogAdmin = () => {
         toast.success("Tạo tin tức mới thành công!");
       }
       fetchBlogs().then(setBlogs);
-      setShowForm(false);
+      setShowForm(false); // Đóng popup NGAY khi thành công
       setEditingId(null);
       setForm({ title: "", content: "", imageUrl: "" });
       setFormError("");
     } catch (err) {
       setFormError(err.message || "Có lỗi xảy ra, vui lòng thử lại!");
       toast.error("Không thể lưu ảnh này! Vui lòng chọn ảnh khác hoặc thử lại.");
-      // KHÔNG reset form, KHÔNG reset fileInputRef, giữ nguyên các giá trị đã nhập
     }
   };
 
@@ -98,8 +98,10 @@ const BlogAdmin = () => {
     try {
       await deleteBlog(id);
       fetchBlogs().then(setBlogs);
+      toast.success("Xóa tin tức thành công!");
+      // Đóng popup confirm (nếu có) NGAY khi xóa xong
     } catch {
-      alert("Lỗi khi xóa tin tức!");
+      toast.error("Xóa thất bại!");
     }
   };
 
@@ -160,10 +162,7 @@ const BlogAdmin = () => {
                       onChange={async (e) => {
                         const file = e.target.files[0];
                         if (!file) return;
-                        if (!file.type.startsWith('image/')) {
-                          toast.error('Chỉ chọn file ảnh!');
-                          return;
-                        }
+                        setUploading(true);
                         const formData = new FormData();
                         formData.append('file', file);
                         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
@@ -182,9 +181,13 @@ const BlogAdmin = () => {
                         } catch {
                           toast.error('Lỗi upload ảnh!');
                         }
+                        setUploading(false);
                       }}
                     />
-                    <label htmlFor="customFileInput" className="px-4 py-2 bg-gray-200 rounded-lg cursor-pointer hover:bg-gray-300 transition">Chọn tệp</label>
+                    <label htmlFor="customFileInput" className="px-4 py-2 bg-gray-200 rounded-lg cursor-pointer hover:bg-gray-300 transition flex items-center gap-2">
+                      Chọn tệp
+                      {uploading && <span className="animate-spin inline-block w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"></span>}
+                    </label>
                     <span className="text-gray-500 text-sm">{form.imageUrl ? 'Đã chọn ảnh' : 'Chưa chọn tệp'}</span>
                   </div>
                   {form.imageUrl && (
@@ -197,7 +200,7 @@ const BlogAdmin = () => {
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
                   <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Hủy</button>
-                  <button type="submit" className="px-6 py-2 rounded-lg bg-[#D32F2F] text-white font-bold hover:bg-red-700 transition">Lưu</button>
+                  <button type="submit" className="px-6 py-2 rounded-lg bg-[#D32F2F] text-white font-bold hover:bg-red-700 transition" disabled={uploading}>Lưu</button>
                 </div>
               </form>
             </div>
