@@ -75,7 +75,7 @@ const AdminNavbar = () => {
             `block w-full px-0 py-3 rounded-2xl font-semibold text-lg text-center transition-all duration-150 ${isActive ? 'bg-[#D32F2F] text-white shadow' : 'bg-[#FCA5A5] text-[#D32F2F] hover:bg-[#D32F2F] hover:text-white'} `
           }
         >
-          Yêu cầu khẩn cấp
+Yêu cầu khẩn cấp
         </Link> */}
         <Link
           to="/admin/blood-inventory"

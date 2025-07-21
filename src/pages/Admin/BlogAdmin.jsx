@@ -20,6 +20,9 @@ const BlogAdmin = () => {
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   useEffect(() => {
     fetchBlogs().then(setBlogs).catch(() => setBlogs([]));
@@ -82,25 +85,27 @@ const BlogAdmin = () => {
         toast.success("Tạo tin tức mới thành công!");
       }
       fetchBlogs().then(setBlogs);
-      setShowForm(false);
+      setShowForm(false); // Đóng popup NGAY khi thành công
       setEditingId(null);
       setForm({ title: "", content: "", imageUrl: "" });
       setFormError("");
     } catch (err) {
       setFormError(err.message || "Có lỗi xảy ra, vui lòng thử lại!");
       toast.error("Không thể lưu ảnh này! Vui lòng chọn ảnh khác hoặc thử lại.");
-      // KHÔNG reset form, KHÔNG reset fileInputRef, giữ nguyên các giá trị đã nhập
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc muốn xóa tin này?")) return;
+  const handleDelete = async () => {
+    if (!deleteId) return;
     try {
-      await deleteBlog(id);
+      await deleteBlog(deleteId);
       fetchBlogs().then(setBlogs);
+      toast.success("Xóa tin tức thành công!");
     } catch {
-      alert("Lỗi khi xóa tin tức!");
+      toast.error("Xóa thất bại!");
     }
+    setShowConfirmDelete(false);
+    setDeleteId(null);
   };
 
   const handleEdit = (blog) => {
@@ -140,8 +145,77 @@ const BlogAdmin = () => {
         <div className="text-red-500">{error}</div>
       ) : (
         <>
-          {/* Card grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {showForm && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fadeIn">
+              <form
+                onSubmit={handleSubmit}
+                className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 animate-scaleIn"
+                style={{ minWidth: '400px' }}
+              >
+                <h3 className="text-2xl font-extrabold mb-6 text-center text-[#D32F2F]">
+                  {editingId ? "Sửa tin tức" : "Thêm tin tức mới"}
+                </h3>
+                {formError && <div className="text-red-500 mb-4">{formError}</div>}
+                <div className="mb-4">
+                  <label className="block mb-2 font-semibold">Tiêu đề</label>
+                  <input type="text" className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition shadow-sm" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
+                </div>
+                <div className="mb-4">
+                  <label className="block mb-2 font-semibold">Ảnh</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="customFileInput"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        setUploading(true);
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                        try {
+                          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                            method: 'POST',
+                            body: formData,
+                          });
+                          const data = await res.json();
+                          if (data.secure_url) {
+                            setForm(f => ({ ...f, imageUrl: data.secure_url }));
+                            toast.success('Tải ảnh lên thành công!');
+                          } else {
+                            toast.error('Tải ảnh lên thất bại!');
+                          }
+                        } catch {
+                          toast.error('Lỗi upload ảnh!');
+                        }
+                        setUploading(false);
+                      }}
+                    />
+                    <label htmlFor="customFileInput" className="px-4 py-2 bg-gray-200 rounded-lg cursor-pointer hover:bg-gray-300 transition flex items-center gap-2">
+                      Chọn tệp
+                      {uploading && <span className="animate-spin inline-block w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"></span>}
+                    </label>
+                    <span className="text-gray-500 text-sm">{form.imageUrl ? 'Đã chọn ảnh' : 'Chưa chọn tệp'}</span>
+                  </div>
+                  {form.imageUrl && (
+                    <img src={form.imageUrl} alt="preview" className="mt-2 rounded-xl w-40 h-28 object-cover border" />
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block mb-2 font-semibold">Nội dung</label>
+                  <textarea className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition min-h-[100px] shadow-sm" value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} required />
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition font-semibold shadow">Hủy</button>
+                  <button type="submit" className="px-6 py-2 rounded-lg bg-[#D32F2F] text-white font-bold hover:bg-red-700 transition font-semibold shadow" disabled={uploading}>Lưu</button>
+                </div>
+              </form>
+            </div>
+          )}
+          {/* Card grid đẹp hơn */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 p-6">
             {paged.map((blog, idx) => {
               const imgKey = Object.keys(blog).find(
                 k => k.toLowerCase().includes('image') && k.toLowerCase().includes('url')
@@ -149,40 +223,37 @@ const BlogAdmin = () => {
               const imgSrc = imgKey ? blog[imgKey] : "";
               const fallbackImg = "https://via.placeholder.com/96x64?text=No+Image";
               return (
-                <div key={blog.Blog_ID || blog.blogId || blog.id || idx} className="bg-white rounded shadow p-4 flex flex-col">
-                  <div className="mb-2 w-full h-32 flex items-center justify-center relative">
+                <div key={blog.Blog_ID || blog.blogId || blog.id || idx} className="bg-white rounded-2xl shadow-xl p-5 flex flex-col hover:shadow-2xl hover:scale-[1.03] transition-all duration-200 border border-gray-100">
+                  <div className="mb-3 w-full h-40 flex items-center justify-center relative overflow-hidden rounded-xl">
                     <img
                       src={imgSrc || fallbackImg}
                       alt=""
-                      className="w-full h-32 object-cover rounded"
+                      className="w-full h-40 object-cover rounded-xl hover:scale-105 transition"
                       style={{ opacity: imgSrc ? 1 : 0.5 }}
                     />
                     {!imgSrc && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          color: "#D32F2F",
-                          fontSize: "10px",
-                          background: "rgba(255,255,255,0.7)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: "bold"
-                        }}
-                      >
+                      <span className="absolute inset-0 flex items-center justify-center text-[#D32F2F] text-xs font-bold bg-white/70">
                         Chưa có ảnh
                       </span>
                     )}
                   </div>
-                  <div className="font-bold text-lg mb-1 truncate">{blog.Title || blog.title || blog.blog_title}</div>
-                  <div className="text-gray-700 text-sm mb-2 max-h-16 overflow-hidden">{blog.Content || blog.content || blog.blog_content}</div>
+                  <div className="font-bold text-xl mb-2 truncate text-[#D32F2F]">{blog.Title || blog.title || blog.blog_title}</div>
+                  <div className="text-gray-700 text-sm mb-3 max-h-16 overflow-hidden">{blog.Content || blog.content || blog.blog_content}</div>
                   <div className="mt-auto flex gap-2">
-                    <button onClick={() => handleEdit(blog)} className="px-2 py-1 bg-blue-500 text-white rounded">Sửa</button>
-                    <button onClick={() => handleDelete(blog.Blog_ID || blog.blogId || blog.id || idx)} className="px-2 py-1 bg-red-500 text-white rounded">Xóa</button>
+                    <button
+                      onClick={() => handleEdit(blog)}
+                      className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-500 hover:text-white transition font-semibold shadow"
+                      title="Sửa"
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      onClick={() => { setShowConfirmDelete(true); setDeleteId(blog.Blog_ID || blog.blogId || blog.id || idx); }}
+                      className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-500 hover:text-white transition font-semibold shadow"
+                      title="Xóa"
+                    >
+                      Xóa
+                    </button>
                   </div>
                 </div>
               );
@@ -204,75 +275,26 @@ const BlogAdmin = () => {
           )}
         </>
       )}
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">{editingId ? "Sửa tin tức" : "Thêm tin tức mới"}</h3>
-            {formError && <div className="text-red-500 mb-2">{formError}</div>}
-            <div className="mb-2">
-              <label className="block mb-1">Tiêu đề</label>
-              <input type="text" className="w-full border p-2 rounded" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
+      {/* Modal xác nhận xóa đẹp, hiệu ứng fade/scale */}
+      {showConfirmDelete && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl min-w-[320px] flex flex-col items-center animate-scaleIn">
+            <div className="text-lg font-bold mb-4 text-center text-[#D32F2F]">Bạn có chắc muốn xóa tin này không?</div>
+            <div className="flex gap-4 mt-2">
+              <button
+                onClick={handleDelete}
+                className="px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 font-semibold shadow"
+              >
+                Đồng ý
+              </button>
+              <button
+                onClick={() => { setShowConfirmDelete(false); setDeleteId(null); }}
+                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold shadow"
+              >
+                Hủy
+              </button>
             </div>
-            <div className="mb-2">
-              <label className="block mb-1">Ảnh</label>
-              <div className="flex items-center gap-2">
-                <input
-                  id="customFileInput"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    if (!file.type.startsWith('image/')) {
-                      toast.error('Chỉ chọn file ảnh!');
-                      return;
-                    }
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-                    try {
-                      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                        method: 'POST',
-                        body: formData,
-                      });
-                      const data = await res.json();
-                      if (data.secure_url) {
-                        setForm(f => ({ ...f, imageUrl: data.secure_url, fileName: file.name }));
-                        toast.success('Tải ảnh lên Cloudinary thành công!');
-                      } else {
-                        console.error('Cloudinary upload error:', data);
-                        toast.error(
-                          (data.error && data.error.message)
-                            ? `Lỗi Cloudinary: ${data.error.message}`
-                            : 'Tải ảnh lên Cloudinary thất bại! Vui lòng kiểm tra preset, cloud_name hoặc chọn ảnh khác.'
-                        );
-                      }
-                    } catch (err) {
-                      toast.error('Tải ảnh lên Cloudinary thất bại! Lỗi mạng hoặc file quá lớn.');
-                    }
-                  }}
-                />
-                <label htmlFor="customFileInput" className="px-4 py-2 bg-gray-200 rounded cursor-pointer font-semibold text-gray-700 hover:bg-gray-300">Chọn tệp</label>
-                <span className="ml-2 text-sm text-gray-600">
-                  {form.fileName ? form.fileName : 'Chưa chọn tệp'}
-                </span>
-              </div>
-              {form.imageUrl && (
-                <div className="mt-2 flex justify-center">
-                  <img src={form.imageUrl} alt="preview" className="max-h-32 rounded shadow" />
-                </div>
-              )}
-            </div>
-            <div className="mb-2">
-              <label className="block mb-1">Nội dung</label>
-              <textarea className="w-full border p-2 rounded" rows={5} value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} required />
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setFormError(""); }} className="px-4 py-2 bg-gray-300 rounded">Hủy</button>
-              <button type="submit" className="px-4 py-2 bg-[#D32F2F] text-white rounded">Lưu</button>
-            </div>
-          </form>
+          </div>
         </div>
       )}
     </div>

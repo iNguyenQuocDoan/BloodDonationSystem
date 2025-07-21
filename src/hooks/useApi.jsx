@@ -111,7 +111,7 @@ const useApi = () => {
   );
 
   // Data APIs
-  const getCurrentUser = useCallback(async () => {
+const getCurrentUser = useCallback(async () => {
     return callApi("/getMe");
   }, [callApi]);
 
@@ -222,7 +222,7 @@ const useApi = () => {
   const historyPatientByUser = useCallback(async (appointmentId) => {
     return callApi(`/patientDetail/${appointmentId}`)
   }, [callApi])
-  const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
+const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
     return callApi(`/patientDetail/${appointmentId}/update`, {
       method: 'PUT',
       body: JSON.stringify({ description, status })
@@ -316,8 +316,7 @@ const useApi = () => {
       method: "PUT"
     });
   }, [callApi]);
-
-  const getAllUsers = useCallback(async () => {
+const getAllUsers = useCallback(async () => {
     return callApi("/getAllUsers");
   }, [callApi]);
 

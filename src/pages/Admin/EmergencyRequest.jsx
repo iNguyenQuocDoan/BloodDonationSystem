@@ -1,79 +1,119 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import useApi from "../../hooks/useApi";
 
-const emergencyRequests = [
-  {
-    id: "E001",
-    patient: "Nguyễn Thị X",
-    bloodType: "O",
-    hospital: "BV A",
-    unit: 2,
-    date: "10/06/2025",
-    status: "Chờ",
-  },
-  {
-    id: "E002",
-    patient: "Trần Văn Y",
-    bloodType: "A",
-    hospital: "BV B",
-    unit: 3,
-    date: "12/06/2025",
-    status: "Đã Xác Minh",
-  },
-];
-
-const ManageEmergencyRequest = () => {
-  return (
-    <div className="flex-1 bg-gray-100 p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-blue-600">
-          Quản lý Yêu cầu Khẩn Cấp
-        </h2>
-        <button className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 text-sm">
-          Tải lại
-        </button>
-      </div>
-
-      <div className="bg-white shadow-md rounded overflow-x-auto">
-        <table className="min-w-full text-sm text-left">
-          <thead className="bg-blue-100 text-gray-700">
-            <tr>
-              <th className="px-4 py-2">ID</th>
-              <th className="px-4 py-2">Bệnh Nhân</th>
-              <th className="px-4 py-2">Nhóm Máu</th>
-              <th className="px-4 py-2">Đơn vị</th>
-              <th className="px-4 py-2">Ngày</th>
-              <th className="px-4 py-2">Trạng Thái</th>
-              <th className="px-4 py-2">Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {emergencyRequests.map((req) => (
-              <tr key={req.id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-2">{req.id}</td>
-                <td className="px-4 py-2">{req.patient}</td>
-                <td className="px-4 py-2">{req.bloodType}</td>
-                <td className="px-4 py-2">{req.hospital}</td>
-                <td className="px-4 py-2">{req.unit}</td>
-                <td className="px-4 py-2">{req.date}</td>
-                <td className="px-4 py-2">{req.status}</td>
-                <td className="px-4 py-2">
-                  {req.status === "Chờ" ? (
-                    <button className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
-                      Xác Minh
-                    </button>
-                  ) : (
-                    <button className="bg-blue-700 text-white px-3 py-1 rounded text-xs hover:bg-blue-800">
-                      Hoàn Thiện
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+const statusColor = {
+    Pending: "bg-yellow-100 text-yellow-700",
+    Contacted: "bg-blue-100 text-blue-700",
+    Completed: "bg-green-100 text-green-700",
+    Rejected: "bg-red-100 text-red-700"
 };
 
-export default ManageEmergencyRequest;
+export default function EmergencyRequestHistory() {
+    const { getInfoEmergencyRequestsByMember, loading, cancelEmergencyRequestByMember } = useApi();
+    const [requests, setRequests] = useState([]);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [cancelId, setCancelId] = useState(null);
+
+    const fetchHistory = async () => {
+        const res = await getInfoEmergencyRequestsByMember();
+        setRequests(res.data || []);
+    };
+
+    useEffect(() => {
+        fetchHistory();
+    }, []);
+
+    // Mở popup xác nhận
+    const handleCancel = (emergencyId) => {
+        setCancelId(emergencyId);
+        setShowConfirm(true);
+    };
+
+    // Xác nhận hủy
+    const confirmCancel = async () => {
+        await cancelEmergencyRequestByMember(cancelId);
+        setShowConfirm(false);
+        setCancelId(null);
+        fetchHistory();
+    };
+
+    return (
+        <div className="max-w-3xl mx-auto mt-8 bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-red-700 mb-6 text-center">Lịch sử yêu cầu máu khẩn cấp</h2>
+            {loading && <div className="text-center text-gray-500">Đang tải...</div>}
+            {requests.length === 0 ? (
+                <div className="text-center text-gray-500">Bạn chưa có yêu cầu khẩn cấp nào.</div>
+            ) : (
+                <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm rounded-lg overflow-hidden shadow border border-gray-200">
+                        <thead>
+                            <tr className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700">
+                                <th className="py-3 px-2 text-center">Lý do cần máu</th>
+                                <th className="py-3 px-2 text-center">Loại máu</th>
+                                <th className="py-3 px-2 text-center">Lượng (ml)</th>
+                                <th className="py-3 px-2 text-center">Ngày cần</th>
+                                <th className="py-3 px-2 text-center">Trạng thái</th>
+                                <th className="py-3 px-2 text-center">Ngày tạo</th>
+                                <th className="py-3 px-2 text-center">Lý do từ chối</th>
+                                <th className="py-3 px-2 text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {requests.map((req) => (
+                                <tr key={req.Emergency_ID} className="hover:bg-pink-50 transition">
+<td className="py-2 px-2 text-center">{req.reason_Need ? req.reason_Need : "—"}</td>
+                                    <td className="py-2 px-2 text-center">
+                                        <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">{req.BloodGroup}</span>
+                                    </td>
+                                    <td className="py-2 px-2 text-center">{req.Volume}</td>
+                                    <td className="py-2 px-2 text-center">{req.Needed_Before?.split("T")[0]}</td>
+                                    <td className="py-2 px-2 text-center">
+                                        <span className={`px-3 py-1 rounded-full font-semibold ${statusColor[req.Status] || "bg-gray-100 text-gray-700"}`}>
+                                            {req.Status}
+                                        </span>
+                                    </td>
+                                    <td className="py-2 px-2 text-center">{req.Created_At?.split("T")[0]}</td>
+                                    <td className="py-2 px-2 text-center">
+                                        {req.Status === "Rejected" ? (req.reason_Reject || "—") : "—"}
+                                    </td>
+                                    <td className="py-2 px-2 text-center">
+                                        {req.Status !== "Completed" && req.Status !== "Rejected" && req.Status !== "Cancelled" && (
+                                            <button
+                                                className="px-4 py-1 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full shadow hover:scale-105 hover:from-pink-600 hover:to-red-700 transition font-semibold"
+                                                onClick={() => handleCancel(req.Emergency_ID)}
+                                            >
+                                                Hủy yêu cầu
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+            {showConfirm && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl shadow-xl p-8 min-w-[340px] max-w-sm w-full relative border-2 border-red-300">
+                        <h2 className="text-lg font-bold text-red-600 mb-4 text-center">Xác nhận hủy yêu cầu</h2>
+                        <p className="mb-6 text-center text-gray-700">Bạn có chắc chắn muốn hủy yêu cầu này không?</p>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+onClick={() => setShowConfirm(false)}
+                            >
+                                Đóng
+                            </button>
+                            <button
+                                className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white font-semibold"
+                                onClick={confirmCancel}
+                            >
+                                Xác nhận
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

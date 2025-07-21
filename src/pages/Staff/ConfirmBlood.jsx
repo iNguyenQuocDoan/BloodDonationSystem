@@ -53,7 +53,7 @@ const ConfirmBloodPage = () => {
     } catch (err) {
       setConfirmList([]);
       console.error("[BUG][FE] Lỗi fetch API getAppointments:", err);
-    } finally {
+} finally {
       setLoading(false);
     }
 
@@ -163,7 +163,7 @@ const ConfirmBloodPage = () => {
   };
 
   const formatTimeVN = (timeString) => {
-    if (!timeString) return "-";
+if (!timeString) return "-";
     // Lấy phần sau chữ T, ví dụ: "13:00:00.000Z"
     const tIndex = timeString.indexOf("T");
     if (tIndex === -1) return "-";
@@ -257,7 +257,7 @@ const ConfirmBloodPage = () => {
         editPatientAppointmentId,
         editPatientDescription,
         editPatientStatus
-      );
+);
       setShowEditPatientModal(false);
       setEditPatientAppointmentId(null);
       await fetchConfirmList();
@@ -316,7 +316,7 @@ const ConfirmBloodPage = () => {
                 <th className="px-3 py-2 text-center text-[#D32F2F]">Hồ sơ bệnh án</th>
                 <th className="px-3 py-2 text-center text-[#D32F2F]">Ngày hiến</th>
                 <th className="px-3 py-2 text-center text-[#D32F2F]">Khung giờ</th>
-                <th className="px-3 py-2 text-center text-[#D32F2F]">Trạng thái</th>
+<th className="px-3 py-2 text-center text-[#D32F2F]">Trạng thái</th>
                 <th className="px-3 py-2 text-center text-[#D32F2F]">Hành động</th>
               </tr>
             </thead>
@@ -365,7 +365,7 @@ const ConfirmBloodPage = () => {
                           </button>
                         </div>
                       </td>
-                      <td className="px-3 py-2 text-center">{formatDateVN(item.DATE)}</td>
+<td className="px-3 py-2 text-center">{formatDateVN(item.DATE)}</td>
                       <td className="px-3 py-2 text-center  whitespace-nowrap">{item.Start_Time && item.End_Time
                         ? `${formatTimeVN(item.Start_Time)} - ${formatTimeVN(item.End_Time)}`
                         : "-"}</td>
@@ -411,7 +411,7 @@ const ConfirmBloodPage = () => {
                           >
                             Chỉnh sửa
                           </button>
-                        )}
+)}
                       </td>
                     </tr>
                   ))
@@ -490,7 +490,7 @@ const ConfirmBloodPage = () => {
       {showRejectConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
           <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h2 className="text-lg font-semibold mb-4">
+<h2 className="text-lg font-semibold mb-4">
               Bạn chắc chắn muốn từ chối ca hiến máu này?
             </h2>
             <div className="flex justify-end gap-2">
@@ -559,7 +559,7 @@ const ConfirmBloodPage = () => {
                 );
               })()}
             </div>
-            <div className="flex justify-end mt-4">
+<div className="flex justify-end mt-4">
               <button
                 className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
                 onClick={() => setShowDeclarationModal(false)}
@@ -628,7 +628,7 @@ const ConfirmBloodPage = () => {
               value={pendingBloodType}
               onChange={e => setPendingBloodType(e.target.value)}
             >
-              <option value="">-- Chọn nhóm máu --</option>
+<option value="">-- Chọn nhóm máu --</option>
               <option value="A+">A+</option>
               <option value="A-">A-</option>
               <option value="B+">B+</option>
@@ -696,7 +696,7 @@ const ConfirmBloodPage = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block mb-1 font-medium">Trạng thái</label>
+<label className="block mb-1 font-medium">Trạng thái</label>
               <select
                 className="w-full border rounded p-2"
                 value={editPatientStatus}
