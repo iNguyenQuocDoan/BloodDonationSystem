@@ -196,7 +196,7 @@ export default function ManageEmergencyPage() {
     setSendingEmail(true);
     let hasError = false;
     for (const donorId of checkedDonors) {
-      const donor = potentialList.find(d => d.User_ID === donorId);
+      const donor = potentialList.find(d => d.userId === donorId);
       if (donor) {
         try {
           await sendEmergencyEmail(donor.email, donor.userName);
@@ -219,11 +219,15 @@ export default function ManageEmergencyPage() {
     setSendingEmail(false);
   };
 
-  const handleEditRowChange = (id, field, value) => {
+  // Tạo key duy nhất cho mỗi dòng
+  const getRowKey = (req) => `${req.Emergency_ID}_${req.Potential_ID ?? ""}`;
+
+  // Sửa lại hàm thay đổi editRows
+  const handleEditRowChange = (rowKey, field, value) => {
     setEditRows(prev => ({
       ...prev,
-      [id]: {
-        ...(prev[id] || {}),
+      [rowKey]: {
+        ...(prev[rowKey] || {}),
         [field]: value
       }
     }));
@@ -315,9 +319,10 @@ export default function ManageEmergencyPage() {
               </tr>
             )}
             {requests
-              .filter(req => req.Status !== "Rejected") // <-- Lọc bỏ yêu cầu bị từ chối
+              .filter(req => req.Status !== "Rejected")
               .map((req, idx) => {
-              const edit = editRows[req.Potential_ID] || {};
+              const rowKey = getRowKey(req);
+              const edit = editRows[rowKey] || {};
               const tempPriority = edit.Priority ?? req.Priority ?? "";
               const tempSource = edit.sourceType ?? req.sourceType ?? "";
               const tempPlace = edit.Place ?? req.Place ?? "";
@@ -325,7 +330,7 @@ export default function ManageEmergencyPage() {
 
               return (
                 <motion.tr
-                  key={idx}
+                  key={rowKey}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.03 }}
@@ -350,8 +355,8 @@ export default function ManageEmergencyPage() {
                   </td>
                   <td className="px-4 py-3">
                     <select
-                      value={editRows[req.Potential_ID]?.Priority ?? req.Priority ?? ""}
-                      onChange={e => handleEditRowChange(req.Potential_ID, "Priority", e.target.value)}
+                      value={tempPriority}
+                      onChange={e => handleEditRowChange(rowKey, "Priority", e.target.value)}
                       className="border border-gray-300 rounded px-2 py-1 text-xs"
                       disabled={req.Status === "Completed"}
                     >
@@ -364,7 +369,7 @@ export default function ManageEmergencyPage() {
                   <td className="px-4 py-3">
                     <select
                       value={tempSource}
-                      onChange={e => handleEditRowChange(req.Potential_ID, "sourceType", e.target.value)}
+                      onChange={e => handleEditRowChange(rowKey, "sourceType", e.target.value)}
                       className="border border-gray-300 rounded px-2 py-1 text-xs"
                       disabled={req.Status === "Completed"}
                     >
@@ -383,8 +388,7 @@ export default function ManageEmergencyPage() {
                         Xem hồ sơ
                       </button>
                     ) : (
-                      // Nếu nguồn cung cấp là bank thì không hiện nút danh sách ưu tiên
-                      req.sourceType !== "bank" && (
+                      tempSource !== "bank" && (
                         <button
                           className="px-3 py-1 rounded bg-purple-500 hover:bg-purple-600 text-white text-xs"
                           onClick={() => handleShowPotentialList(req.Emergency_ID)}
@@ -397,7 +401,7 @@ export default function ManageEmergencyPage() {
                   <td className="px-4 py-3">
                     <select
                       value={tempPlace}
-                      onChange={e => handleEditRowChange(req.Potential_ID, "Place", e.target.value)}
+                      onChange={e => handleEditRowChange(rowKey, "Place", e.target.value)}
                       className="border border-gray-300 rounded px-2 py-1 text-xs"
                       disabled={req.Status === "Completed"}
                     >
@@ -411,7 +415,7 @@ export default function ManageEmergencyPage() {
                     <select
                       value={tempStatus}
                       onChange={e => {
-                        handleEditRowChange(req.Potential_ID, "Status", e.target.value);
+                        handleEditRowChange(rowKey, "Status", e.target.value);
                         if (e.target.value === "Rejected") {
                           handleStatusChange(req.Emergency_ID, "Rejected");
                         }
@@ -429,9 +433,8 @@ export default function ManageEmergencyPage() {
                     {req.Status !== "Completed" && (
                       <button
                         onClick={async () => {
-                          const edit = editRows[req.Potential_ID] || {};
+                          const edit = editRows[rowKey] || {};
                           const tempSource = edit.sourceType ?? req.sourceType ?? "";
-                          // Nếu nguồn là donor và chưa có người hiến thì báo lỗi
                           if (tempSource === "donor" && !req.Donor_ID) {
                             toast.warn("Vui lòng chọn Người hiến trước khi cập nhật!", {
                               position: "top-center",
@@ -448,14 +451,13 @@ export default function ManageEmergencyPage() {
                           if (tempSource === "bank") {
                             payload.Place = null;
                           }
-                          console.log("Payload gửi lên API:", payload);
                           try {
                             await handleEmergencyRequest(req.Emergency_ID, payload);
                             toast.success("Cập nhật thành công!");
                             setRefreshKey(k => k + 1);
                             setEditRows(prev => {
                               const copy = { ...prev };
-                              delete copy[req.Potential_ID];
+                              delete copy[rowKey];
                               return copy;
                             });
                           } catch (err) {
@@ -562,8 +564,8 @@ export default function ManageEmergencyPage() {
                     <td>
                       <input
                         type="checkbox"
-                        checked={checkedDonors.includes(donor.User_ID)}
-                        onChange={() => handleCheckDonor(donor.User_ID)}
+                        checked={checkedDonors.includes(donor.userId)}
+                        onChange={() => handleCheckDonor(donor.userId)}
                         className="accent-red-500 w-4 h-4"
                       />
                     </td>

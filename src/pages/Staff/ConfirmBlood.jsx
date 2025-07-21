@@ -30,7 +30,6 @@ const ConfirmBloodPage = () => {
   const [addPatientAppointmentId, setAddPatientAppointmentId] = useState(null);
   const [addPatientLoading, setAddPatientLoading] = useState(false);
   const [slotList, setSlotList] = useState([]);
-  const [searchId, setSearchId] = useState("");
   const [searchName, setSearchName] = useState("");
   const [searchPhone, setSearchPhone] = useState("");
   const [viewDeclaration, setViewDeclaration] = useState(null);
@@ -103,33 +102,7 @@ const ConfirmBloodPage = () => {
   };
 
 
-  const handleEdit = (id) => {
-    setEditingId(id);
-    setShowEditConfirm(true);
-  };
-  const handleEditConfirm = async () => {
-    setShowEditConfirm(false);
-    if (!editingId) return;
-    setLoading(true);
-    setConfirmList((prev) => prev.map(item =>
-      item.Appointment_ID === editingId ? { ...item, Status: "P" } : item
-    ));
-    try {
-      await fetch("/api/appointments/confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          Appointment_ID: editingId,
-          Status: "P",
-          Verified_BloodType: bloodTypeMap[editingId] // Lưu nhóm máu staff chọn khi chỉnh sửa
-        }),
-      });
-      await fetchConfirmList();
-    } finally {
-      setLoading(false);
-      setEditingId(null);
-    }
-  };
+
   const handleEditCancel = () => {
     setShowEditConfirm(false);
     setEditingId(null);

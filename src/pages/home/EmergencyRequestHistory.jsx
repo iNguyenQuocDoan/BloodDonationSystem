@@ -63,7 +63,7 @@ export default function EmergencyRequestHistory() {
                                 <tr key={req.Emergency_ID} className="hover:bg-pink-50 transition">
                                     <td className="py-2 px-2 text-center">{req.reason_Need ? req.reason_Need : "—"}</td>
                                     <td className="py-2 px-2 text-center">
-                                        <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">{req.BloodType}</span>
+                                        <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">{req.BloodGroup}</span>
                                     </td>
                                     <td className="py-2 px-2 text-center">{req.Volume}</td>
                                     <td className="py-2 px-2 text-center">{req.Needed_Before?.split("T")[0]}</td>

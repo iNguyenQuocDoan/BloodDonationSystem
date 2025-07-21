@@ -88,7 +88,7 @@ const BlogAdmin = () => {
       setFormError("");
     } catch (err) {
       setFormError(err.message || "Có lỗi xảy ra, vui lòng thử lại!");
-toast.error("Không thể lưu ảnh này! Vui lòng chọn ảnh khác hoặc thử lại.");
+      toast.error("Không thể lưu ảnh này! Vui lòng chọn ảnh khác hoặc thử lại.");
       // KHÔNG reset form, KHÔNG reset fileInputRef, giữ nguyên các giá trị đã nhập
     }
   };
@@ -164,7 +164,7 @@ toast.error("Không thể lưu ảnh này! Vui lòng chọn ảnh khác hoặc t
                           top: 0,
                           left: 0,
                           width: "100%",
-height: "100%",
+                          height: "100%",
                           color: "#D32F2F",
                           fontSize: "10px",
                           background: "rgba(255,255,255,0.7)",
@@ -194,10 +194,10 @@ height: "100%",
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i}
-                  onClick={() => setCurrentPage(i+1)}
-                  className={`px-3 py-1 rounded ${currentPage === i+1 ? 'bg-[#D32F2F] text-white' : 'bg-gray-200 text-gray-700'}`}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-[#D32F2F] text-white' : 'bg-gray-200 text-gray-700'}`}
                 >
-                  {i+1}
+                  {i + 1}
                 </button>
               ))}
             </div>
@@ -224,7 +224,7 @@ height: "100%",
                   onChange={async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
-if (!file.type.startsWith('image/')) {
+                    if (!file.type.startsWith('image/')) {
                       toast.error('Chỉ chọn file ảnh!');
                       return;
                     }
