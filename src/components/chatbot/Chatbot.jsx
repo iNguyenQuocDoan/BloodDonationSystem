@@ -37,6 +37,24 @@ export default function GeminiChatbot() {
   const [showFAQ, setShowFAQ] = useState(false);
   const [isUserScrolling, setIsUserScrolling] = useState(false); // State phát hiện người dùng kéo
   const [autoScrollLocked, setAutoScrollLocked] = useState(false); // Khóa auto scroll khi user kéo lên
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
+  const [chatHistory, setChatHistory] = useState([]);
+
+  // Thêm ref cho chatbot container
+  const chatbotRef = useRef(null);
+
+  // Đóng chatbot khi click ra ngoài
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (event) => {
+      if (chatbotRef.current && !chatbotRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   // Dispatch custom event khi chatbot mở/đóng để ẩn/hiện nút scroll to top
   useEffect(() => {
@@ -217,6 +235,15 @@ export default function GeminiChatbot() {
     return null;
   };
 
+  // Lưu câu hỏi vào lịch sử
+  const saveToHistory = (question) => {
+    const newHistory = [
+      question,
+      ...chatHistory.filter(q => q !== question) // Loại bỏ trùng lặp
+    ].slice(0, 10); // Giữ tối đa 10 câu hỏi gần nhất
+    setChatHistory(newHistory);
+  };
+
   // Hàm xử lý chuyển đổi kích thước ngay lập tức
   const handleToggleExpand = (e) => {
     e.preventDefault();
@@ -383,9 +410,18 @@ export default function GeminiChatbot() {
 
     // Nếu là "Các câu hỏi thường gặp" thì toggle hiển thị danh sách, không gửi lên chat
     if (question.trim() === "Các câu hỏi thường gặp") {
-      setShowFAQ(!showFAQ); // Toggle thay vì chỉ set true
+      setShowFAQ(!showFAQ);
       return;
     }
+
+    // Lưu vào lịch sử nếu không phải FAQ
+    if (!isFAQ) {
+      saveToHistory(question);
+    }
+
+    // Đóng suggestions khi gửi câu hỏi
+    setShowSuggestions(false);
+    setShowHistory(false);
 
     setMessages([
       ...messages,
@@ -461,43 +497,19 @@ export default function GeminiChatbot() {
         </div>
       )}
       {!isAuthPage && open && (
-        <div className={`chatbot-window ${isExpanded ? "expanded" : "normal"}`}>
+        <div
+          ref={chatbotRef}
+          className={`chatbot-window ${isExpanded ? "expanded" : "normal"}`}
+        >
           {/* Header */}
           <div className="chatbot-header">
             <div className="chatbot-header-info">
               <img src={botAvatar} alt="bot" className="chatbot-avatar" />
               <div>
-                <div className="chatbot-title">
-                  🩸 DaiVietBlood AI Assistant
-                </div>
-                <div className="chatbot-subtitle">
-                  Tư vấn hiến máu • Nhóm máu • Sức khỏe 24/7
-                </div>
-                <div className="chatbot-greeting">
-                  Xin chào <b>{userName || "Bạn"}</b>! Tôi có thể giúp gì cho
-                  bạn?
-                </div>
+                <div className="chatbot-title">🩸 DaiVietBlood AI Assistant</div>
+                <div className="chatbot-subtitle">Tư vấn hiến máu • Nhóm máu • Sức khỏe 24/7</div>
+                <div className="chatbot-greeting">Xin chào <b>{userName || "Bạn"}</b>! Tôi có thể giúp gì cho bạn?</div>
               </div>
-            </div>
-            <div className="chatbot-controls">
-              <button
-                onClick={handleToggleExpand}
-                className="chatbot-control-btn expand"
-                title={
-                  isExpanded
-                    ? "📱 Thu nhỏ để tiếp tục duyệt web"
-                    : "🔍 Phóng to để trò chuyện thoải mái hơn"
-                }
-              >
-                {isExpanded ? "🗗" : "🗖"}
-              </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="chatbot-control-btn close"
-                title="❌ Đóng trò chuyện - Hẹn gặp lại!"
-              >
-                ×
-              </button>
             </div>
           </div>
           {/* Nội dung chat */}
@@ -562,23 +574,92 @@ export default function GeminiChatbot() {
             </div>
           )}
 
+          {/* Nút mở lại suggestions khi đã đóng */}
+          {!showSuggestions && !showHistory && (
+            <div className="ask-more-container">
+              <div className="ask-more-buttons">
+                <button
+                  className="ask-more-btn"
+                  onClick={() => setShowSuggestions(true)}
+                >
+                  💭 Hỏi câu khác
+                </button>
+                {chatHistory.length > 0 && (
+                  <button
+                    className="history-btn"
+                    onClick={() => setShowHistory(true)}
+                  >
+                    📋 Lịch sử chat
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Lịch sử chat */}
+          {showHistory && (
+            <div className="history-wrapper">
+              <div className="history-header">
+                <span>Lịch sử câu hỏi</span>
+                <button
+                  className="close-history-btn"
+                  onClick={() => setShowHistory(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="history-container">
+                {chatHistory.length === 0 ? (
+                  <div className="empty-history">
+                    <span>Chưa có câu hỏi nào</span>
+                  </div>
+                ) : (
+                  chatHistory.map((question, idx) => (
+                    <button
+                      key={idx}
+                      className="history-item"
+                      onClick={() => handleSend(question)}
+                      disabled={loading}
+                    >
+                      <span className="history-text">{question}</span>
+                      <span className="history-icon">↻</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Gợi ý câu hỏi */}
-          <div className="suggestions-container">
-            {suggestions.slice(0, 6).map((s, idx) => (
-              <button
-                key={idx}
-                className={`suggestion-btn ${
-                  s === "Các câu hỏi thường gặp" && showFAQ
-                    ? "active"
-                    : "normal"
-                }`}
-                disabled={loading}
-                onClick={() => handleSend(s)}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+          {showSuggestions && (
+            <div className="suggestions-wrapper">
+              <div className="suggestions-header">
+                <span>Câu hỏi thường gặp</span>
+                <button
+                  className="close-suggestions-btn"
+                  onClick={() => setShowSuggestions(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="suggestions-container">
+                {suggestions.slice(0, 6).map((s, idx) => (
+                  <button
+                    key={idx}
+                    className={`suggestion-btn ${
+                      s === "Các câu hỏi thường gặp" && showFAQ
+                        ? "active"
+                        : "normal"
+                    }`}
+                    disabled={loading}
+                    onClick={() => handleSend(s)}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* FAQ List */}
           {showFAQ && (
