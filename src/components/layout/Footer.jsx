@@ -18,6 +18,13 @@ const isAuthRoute = (pathname) => {
 const Footer = () => {
   const location = useLocation();
   const isAuthPage = isAuthRoute(location.pathname);
+  const [showScrollTop, setShowScrollTop] = React.useState(false);
+  React.useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 200);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
     <>
@@ -74,33 +81,60 @@ const Footer = () => {
 
         {/* Floating Emergency Button - Ẩn ở trang auth */}
         {!isAuthPage && (
-          <div
-            className="fixed-button-base emergency-btn
-                     md:bottom-[80px] md:right-[15px] 
-                     max-[480px]:bottom-[70px] max-[480px]:right-[10px]"
-          >
-            <a
-              href="/emergency"
-              className="flex items-center gap-2 bg-[#D32F2F] text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition font-bold text-lg"
-              title="🚨 Yêu cầu hiến máu khẩn cấp - Hỗ trợ tức thì!"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-6 h-6"
+          <>
+            {/* Nút Scroll to Top - chỉ hiện khi lướt xuống */}
+            {showScrollTop && (
+              <button
+                className="fixed-button-base scroll-to-top-btn bg-white/80 hover:bg-white text-[#D32F2F] shadow-lg flex items-center justify-center w-14 h-14 md:w-12 md:h-12 rounded-full transition-all border border-[#D32F2F] backdrop-blur-sm"
+                style={{ backdropFilter: 'blur(4px)', fontWeight: 700 }}
+                onClick={scrollToTop}
+                aria-label="Lên đầu trang"
+                title="Lên đầu trang"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Hiến máu khẩn cấp
-            </a>
-          </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-7 h-7"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 15l7-7 7 7"
+                  />
+                </svg>
+              </button>
+            )}
+            <div
+              className="fixed-button-base emergency-btn
+                       md:bottom-[80px] md:right-[15px] 
+                       max-[480px]:bottom-[70px] max-[480px]:right-[10px]"
+            >
+              <a
+                href="/emergency"
+                className="flex items-center gap-2 bg-[#D32F2F] text-white px-5 py-3 rounded-full shadow-lg hover:bg-red-700 transition font-bold text-lg"
+                title="🚨 Yêu cầu hiến máu khẩn cấp - Hỗ trợ tức thì!"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Hiến máu khẩn cấp
+              </a>
+            </div>
+          </>
         )}
 
         {/* Floating Chatbot - Độc lập */}
