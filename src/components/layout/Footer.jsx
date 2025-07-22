@@ -57,7 +57,7 @@ const Footer = () => {
               <FaMapMarkerAlt className="text-green-400 mr-2 text-lg" />
               <span className="font-semibold text-xl">Lịch khám</span>
             </div>
-            <p className="text-base">Thứ 2 – Thứ 6: 6h30 – 17h00</p>
+            <p className="text-base">Thứ 2 – Thứ 6: 7h00 – 17h00</p>
             <p className="text-base">Thứ 7: 7h30 – 17h00</p>
             <p className="text-base">Tổng đài Đặt lịch khám: 1900 96 96 70</p>
           </div>
@@ -72,7 +72,7 @@ const Footer = () => {
             <p className="text-base">
               Hiến máu tình nguyện: 7h00 – 18h00 (Tất cả các ngày)
             </p>
-            <p className="text-base">Tổng đài: 0976 99 00 66</p>
+            <p className="text-base">Tổng đài: 0123 456 789</p>
           </div>
         </div>
         <div className="w-max mx-auto mt-6 text-[#b0b6c3] font-medium text-base">
