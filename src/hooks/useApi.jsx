@@ -111,7 +111,7 @@ const useApi = () => {
   );
 
   // Data APIs
-const getCurrentUser = useCallback(async () => {
+  const getCurrentUser = useCallback(async () => {
     return callApi("/getMe");
   }, [callApi]);
 
@@ -176,7 +176,7 @@ const getCurrentUser = useCallback(async () => {
   // Thêm API gọi addPatientDetail (BE: POST /appointment/:appointmentId/addPatient)
   const addPatientDetail = useCallback(
     async (appointmentId, description, status) => {
-      return callApi(`/patientDetail/${appointmentId}/patient`, {
+      return callApi(`/patientDetailV2/${appointmentId}/patient`, {
         method: "POST",
         body: JSON.stringify({ description, status }),
       });
@@ -222,7 +222,7 @@ const getCurrentUser = useCallback(async () => {
   const historyPatientByUser = useCallback(async (appointmentId) => {
     return callApi(`/patientDetail/${appointmentId}`)
   }, [callApi])
-const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
+  const updatePatientByStaff = useCallback(async (appointmentId, description, status) => {
     return callApi(`/patientDetail/${appointmentId}/update`, {
       method: 'PUT',
       body: JSON.stringify({ description, status })
@@ -316,7 +316,7 @@ const updatePatientByStaff = useCallback(async (appointmentId, description, stat
       method: "PUT"
     });
   }, [callApi]);
-const getAllUsers = useCallback(async () => {
+  const getAllUsers = useCallback(async () => {
     return callApi("/getAllUsers");
   }, [callApi]);
 
@@ -333,11 +333,22 @@ const getAllUsers = useCallback(async () => {
   }, [callApi]);
 
   const createStaffAccount = useCallback(async (staffData) => {
-  return callApi("/signup/staff", {
-    method: "POST",
-    body: JSON.stringify(staffData),
-  });
-}, [callApi]);
+    return callApi("/signup/staff", {
+      method: "POST",
+      body: JSON.stringify(staffData),
+    });
+  }, [callApi]);
+
+  // Hàm lấy bệnh án cũ nhất của user
+  const getLatestPatientDetail = useCallback(async (userId) => {
+
+    return callApi(`/patientDetail/latest/${userId}`, {
+    })
+  },[callApi]);
+
+  const getBloodBank = useCallback(async () => {
+    return callApi(`/getBloodBank`);
+  }, [callApi]);
 
   const getAllPatientHistoryByMember = useCallback(async () => {
     return callApi('/patientDetail/all');
@@ -387,6 +398,8 @@ const getAllUsers = useCallback(async () => {
     banUser,
     unbanUser,
     createStaffAccount,
+    getLatestPatientDetail,
+    getBloodBank,
     getAllPatientHistoryByMember
   };
 };
