@@ -265,10 +265,10 @@ const BlogAdmin = () => {
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i}
-                  onClick={() => setCurrentPage(i+1)}
-                  className={`px-3 py-1 rounded ${currentPage === i+1 ? 'bg-[#D32F2F] text-white' : 'bg-gray-200 text-gray-700'}`}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-[#D32F2F] text-white' : 'bg-gray-200 text-gray-700'}`}
                 >
-                  {i+1}
+                  {i + 1}
                 </button>
               ))}
             </div>
@@ -301,4 +301,4 @@ const BlogAdmin = () => {
   );
 };
 
-export default BlogAdmin; 
+export default BlogAdmin;

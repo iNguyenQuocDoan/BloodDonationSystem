@@ -42,6 +42,7 @@ import AdminLayout from "./Layouts/LayoutAdmin";
 import { RegisterPage } from "./pages/auth/Register";
 import ProfilePage from "./pages/auth/Profile";
 import BlogAdmin from "./pages/Admin/BlogAdmin";
+import EmergencyRequestHistory from "./pages/home/EmergencyRequestHistory";
 
 function App() {
   return (
@@ -80,6 +81,7 @@ function App() {
             <Route element={<LayoutDeFault />}>
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/emergency" element={<EmergencyRequest />} />
+              <Route path="/emergency-history" element={<EmergencyRequestHistory />} />
             </Route>
           </Route>
 
