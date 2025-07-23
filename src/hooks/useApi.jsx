@@ -339,6 +339,10 @@ const getAllUsers = useCallback(async () => {
   });
 }, [callApi]);
 
+  const getAllPatientHistoryByMember = useCallback(async () => {
+    return callApi('/patientDetail/all');
+  }, [callApi]);
+
   return {
     loading,
     error,
@@ -382,7 +386,8 @@ const getAllUsers = useCallback(async () => {
     getAllUsers,
     banUser,
     unbanUser,
-    createStaffAccount
+    createStaffAccount,
+    getAllPatientHistoryByMember
   };
 };
 

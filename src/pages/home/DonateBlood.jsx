@@ -590,6 +590,7 @@ const DonateBlood = () => {
       )}
 
       {/* Hiển thị lịch sử đăng ký hiến máu của bạn */}
+      {/* XÓA đoạn sau khỏi return:
       {localStorage.getItem("isLoggedIn") === "true" && user && (
         <div className="mt-10 mb-8">
           <h2 className="text-2xl font-bold text-red-600 mb-6 text-center uppercase tracking-wide drop-shadow">
@@ -680,7 +681,7 @@ const DonateBlood = () => {
             </div>
           )}
         </div>
-      )}
+      )} */}
 
       {/* Popup xem hồ sơ bệnh án */}
       {showPatientModal && (
