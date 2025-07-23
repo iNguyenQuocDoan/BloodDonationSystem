@@ -350,6 +350,10 @@ const useApi = () => {
     return callApi(`/getBloodBank`);
   }, [callApi]);
 
+  const getAllPatientHistoryByMember = useCallback(async () => {
+    return callApi('/patientDetail/all');
+  }, [callApi]);
+
   return {
     loading,
     error,
@@ -395,7 +399,8 @@ const useApi = () => {
     unbanUser,
     createStaffAccount,
     getLatestPatientDetail,
-    getBloodBank
+    getBloodBank,
+    getAllPatientHistoryByMember
   };
 };
 
