@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import History from "../home/history";
 import useApi from "../../hooks/useApi";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
-  const { getCurrentUser, updateUser } = useApi();
+  const { historyAppointmentsByUser, getCurrentUser, updateUser } = useApi();
   const [user, setUser] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -13,12 +15,19 @@ const ProfilePage = () => {
     Gender: "",
     Address: "", // thêm dòng này
   });
+  const [historyType, setHistoryType] = useState("");
+  const [myRegistrations, setMyRegistrations] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getCurrentUser()
       .then((res) => setUser(res.data))
       .catch(() => setUser(null));
-  }, [getCurrentUser]);
+    // Lấy lịch sử đăng ký hiến máu
+    historyAppointmentsByUser()
+      .then((res) => setMyRegistrations(res.data || []))
+      .catch(() => setMyRegistrations([]));
+  }, [getCurrentUser, historyAppointmentsByUser]);
 
   const handleEditClick = () => {
     setEditForm({
@@ -101,7 +110,7 @@ const ProfilePage = () => {
     return <div className="text-center py-8">Đang tải thông tin...</div>;
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 shadow-lg rounded-lg overflow-hidden bg-white">
+    <div className="w-full max-w-3xl mx-auto mt-10 shadow-lg rounded-lg overflow-hidden bg-white px-6">
       <div className="bg-[#D32F2F] p-8 flex flex-col items-center relative">
         <h2 className="text-3xl font-bold text-white mb-2">{user.user_name}</h2>
         <p className="text-white mb-4">
@@ -138,24 +147,39 @@ const ProfilePage = () => {
             {user.date_of_birth || "Chưa cập nhật"}
           </div>
         </div>
-        <div className="mt-8 flex justify-start">
+        <div className="mt-8 flex flex-col md:flex-row flex-wrap gap-4 items-center justify-start w-full">
+          <select
+            className="bg-white border-2 border-gray-400 text-black px-3 py-1 rounded shadow font-semibold text-base focus:outline-none focus:ring-2 focus:ring-gray-400 transition h-[40px] min-w-[160px] max-w-full md:w-auto"
+            value={historyType}
+            onChange={e => {
+              const value = e.target.value;
+              setHistoryType(value);
+              if (value === "donate") {
+                navigate("/history?type=donate");
+              } else if (value === "emergency") {
+                navigate("/history?type=emergency");
+              }
+            }}
+            style={{ minWidth: 160, maxWidth: '100%' }}
+          >
+            <option value="" disabled>Chọn loại lịch sử...</option>
+            <option value="donate">Lịch sử hiến máu </option>
+            <option value="emergency">Lịch sử hiến máu khẩn cấp</option>
+          </select>
           <button
-            className="bg-[#D32F2F] text-white px-6 py-2 rounded shadow hover:bg-red-700 transition"
+            className="bg-[#D32F2F] text-white px-3 py-1 rounded shadow hover:bg-red-700 transition font-semibold text-base h-[40px] min-w-[100px] max-w-full flex-1"
             onClick={handleEditClick}
+            style={{ minWidth: 100, maxWidth: '100%' }}
           >
             Chỉnh sửa hồ sơ
           </button>
-          {user.user_role === "member" && (
-            <button
-              className="ml-4 bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-800 transition"
-              onClick={() => {
-                // Ví dụ: chuyển hướng sang trang lịch sử yêu cầu khẩn cấp
-                window.location.href = "/emergency-history";
-              }}
-            >
-              Xem lịch sử yêu cầu máu khẩn cấp
-            </button>
-          )}
+          <button
+            className="bg-blue-600 text-white px-3 py-1 rounded shadow hover:bg-blue-800 transition font-semibold text-base h-[40px] min-w-[100px] max-w-full flex-1"
+            onClick={() => navigate('/patienthistory')}
+            style={{ minWidth: 100, maxWidth: '100%' }}
+          >
+            Xem hồ sơ bệnh án
+          </button>
         </div>
       </div>
 
