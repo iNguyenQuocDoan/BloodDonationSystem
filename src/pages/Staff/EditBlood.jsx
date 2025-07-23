@@ -49,25 +49,6 @@ const EditBloodPage = () => {
         fetchData();
     }, [getAppointments, getSlotList]);
 
-    const handleSearch = () => {
-        let result = appointments;
-        // Lọc trạng thái trước
-        result = result.filter(item =>
-            item.Status === 'Processing' || item.Status === 'Completed'
-        );
-        if (nameSearch.trim()) {
-            result = result.filter(item =>
-                (item.User_Name || item.Name)?.toLowerCase().includes(nameSearch.toLowerCase())
-            );
-        }
-        if (phoneSearch.trim()) {
-            result = result.filter(item =>
-                item.Phone?.toLowerCase().includes(phoneSearch.toLowerCase())
-            );
-        }
-        setFiltered(result);
-    };
-
     const handleVolumeChange = (id, value) => {
         setVolumes(prev => ({
             ...prev,
@@ -198,29 +179,6 @@ const EditBloodPage = () => {
         return `${parseInt(h, 10)}h${m}`;
     };
 
-    // Helper lấy khung giờ từ slotList
-    const getSlotTime = (slotId, item) => {
-        const slot = slotList.find(s => s.Slot_ID === slotId);
-        if (slot) {
-            const start = formatTimeVN(slot.Start_Time);
-            const end = formatTimeVN(slot.End_Time);
-            return `${start} - ${end}`;
-        }
-        // Fallback: lấy từ item nếu có
-        if (item && item.Start_Time && item.End_Time) {
-            const start = formatTimeVN(item.Start_Time);
-            const end = formatTimeVN(item.End_Time);
-            return `${start} - ${end}`;
-        }
-        return '-';
-    };
-
-    const statusMap = {
-        'P': 'Chờ xác nhận',
-        'A': 'Được hiến',
-        'C': 'Đã hoàn thành',
-        'R': 'Từ chối',
-    };
     const formatDateVN = (dateString) => {
         if (!dateString) return "-";
         const d = new Date(dateString);
