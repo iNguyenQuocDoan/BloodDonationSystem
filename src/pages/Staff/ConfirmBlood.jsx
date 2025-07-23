@@ -14,14 +14,9 @@ const ConfirmBloodPage = () => {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [showEditConfirm, setShowEditConfirm] = useState(false);
-  const { getSlotList, getAppointments, addPatientDetail, confirmBloodTypeByStaff, updateStatusAppointmentByStaff, rejectAppointment, historyPatientByUser, updatePatientByStaff } = useApi();
 
-  // State cho popup chỉnh sửa bệnh án
-  const [showEditPatientModal, setShowEditPatientModal] = useState(false);
-  const [editPatientDescription, setEditPatientDescription] = useState("");
-  const [editPatientStatus, setEditPatientStatus] = useState("");
-  const [editPatientAppointmentId, setEditPatientAppointmentId] = useState(null);
-  const [editPatientLoading, setEditPatientLoading] = useState(false);
+  // Thêm state cho bệnh án cũ nhất
+  const [latestPatientDetail, setLatestPatientDetail] = useState(null);
 
   // Thêm state cho popup thêm bệnh nhân
   const [showAddPatientModal, setShowAddPatientModal] = useState(false);
@@ -39,6 +34,14 @@ const ConfirmBloodPage = () => {
   const [pendingBloodType, setPendingBloodType] = useState("");
   const [pendingAppointment, setPendingAppointment] = useState(null);
   const [showBloodTypeConfirm, setShowBloodTypeConfirm] = useState(false);
+  const { getSlotList, getAppointments, addPatientDetail, confirmBloodTypeByStaff, updateStatusAppointmentByStaff, rejectAppointment, historyPatientByUser, updatePatientByStaff, getLatestPatientDetail } = useApi();
+
+  // State cho popup chỉnh sửa bệnh án
+  const [showEditPatientModal, setShowEditPatientModal] = useState(false);
+  const [editPatientDescription, setEditPatientDescription] = useState("");
+  const [editPatientStatus, setEditPatientStatus] = useState("");
+  const [editPatientAppointmentId, setEditPatientAppointmentId] = useState(null);
+  const [editPatientLoading, setEditPatientLoading] = useState(false);
 
   // Fetch danh sách xác nhận từ BE
   const fetchConfirmList = async () => {
@@ -108,17 +111,29 @@ const ConfirmBloodPage = () => {
     setEditingId(null);
   };
 
-  // Hàm mở popup thêm bệnh nhân
-  const handleOpenAddPatient = (appointmentId) => {
+  // Hàm mở popup thêm bệnh nhân (CHỈNH LẠI)
+  const handleOpenAddPatient = async (appointmentId) => {
     const appointment = confirmList.find(item => item.Appointment_ID === appointmentId);
-    console.log("appointment:", appointment); // Thêm dòng này
+    console.log(appointment);
+    
     if (!appointment?.BloodType) {
       setPendingAppointment(appointment);
       setShowBloodTypePrompt(true);
     } else {
       setAddPatientAppointmentId(appointmentId);
-      setAddPatientDescription("");
-      setAddPatientStatus("");
+      // Gọi API lấy bệnh án cũ nhất qua useApi
+      try {
+        const res = await getLatestPatientDetail(appointment.User_ID);
+        const detail = res.data || null;
+        setLatestPatientDetail(detail);
+        // Nếu có bệnh án cũ thì set luôn vào input
+        setAddPatientDescription(detail?.Description || "");
+        setAddPatientStatus(detail?.Status || "");
+      } catch {
+        setLatestPatientDetail(null);
+        setAddPatientDescription("");
+        setAddPatientStatus("");
+      }
       setShowAddPatientModal(true);
     }
   };
@@ -239,6 +254,7 @@ if (!timeString) return "-";
     setEditPatientLoading(true);
     try {
       const res = await historyPatientByUser(appointmentId);
+      console.log("Dữ liệu bệnh án chỉnh sửa:", res);
       setEditPatientDescription(res.data?.Description || "");
       setEditPatientStatus(res.data?.Status || "");
       setShowEditPatientModal(true);
