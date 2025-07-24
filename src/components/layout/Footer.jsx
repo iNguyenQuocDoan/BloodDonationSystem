@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import GeminiChatbot from "../chatbot/Chatbot";
@@ -18,12 +18,25 @@ const isAuthRoute = (pathname) => {
 const Footer = () => {
   const location = useLocation();
   const isAuthPage = isAuthRoute(location.pathname);
-  const [showScrollTop, setShowScrollTop] = React.useState(false);
-  React.useEffect(() => {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+
+  useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 200);
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    // Lắng nghe custom event từ chatbot
+    const handleChatbotToggle = (event) => {
+      setChatbotOpen(event.detail.isOpen);
+    };
+    window.addEventListener("chatbotToggle", handleChatbotToggle);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("chatbotToggle", handleChatbotToggle);
+    };
   }, []);
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
@@ -82,8 +95,8 @@ const Footer = () => {
         {/* Floating Emergency Button - Ẩn ở trang auth */}
         {!isAuthPage && (
           <>
-            {/* Nút Scroll to Top - chỉ hiện khi lướt xuống */}
-            {showScrollTop && (
+            {/* Nút Scroll to Top - chỉ hiện khi lướt xuống & chatbot đang đóng */}
+            {showScrollTop && !chatbotOpen && (
               <button
                 className="fixed-button-base scroll-to-top-btn bg-white/80 hover:bg-white text-[#D32F2F] shadow-lg flex items-center justify-center w-14 h-14 md:w-12 md:h-12 rounded-full transition-all border border-[#D32F2F] backdrop-blur-sm"
                 style={{ backdropFilter: 'blur(4px)', fontWeight: 700 }}
