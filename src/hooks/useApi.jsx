@@ -354,6 +354,26 @@ const useApi = () => {
     return callApi('/patientDetail/all');
   }, [callApi]);
 
+  const createReport = useCallback(async (reportData) => {
+    return callApi("/createReport", {
+      method: "POST",
+      body: JSON.stringify(reportData),
+      headers: { "Content-Type": "application/json" },
+    });
+  }, [callApi]);
+
+  const getLatestReport = useCallback(async () => {
+    return callApi("/getLatestReport", { method: "GET" });
+  }, [callApi]);
+
+  const updateReport = useCallback(async (summaryBlood_Id, Report_Detail_ID, reportData) => {
+    return callApi(`/updateReport/${summaryBlood_Id}/${Report_Detail_ID}`, {
+      method: "PUT",
+      body: JSON.stringify(reportData),
+      headers: { "Content-Type": "application/json" },
+    });
+  }, [callApi]);
+
   return {
     loading,
     error,
@@ -400,7 +420,10 @@ const useApi = () => {
     createStaffAccount,
     getLatestPatientDetail,
     getBloodBank,
-    getAllPatientHistoryByMember
+    getAllPatientHistoryByMember,
+    createReport,
+    getLatestReport,
+    updateReport
   };
 };
 

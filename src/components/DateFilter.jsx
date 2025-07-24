@@ -130,7 +130,7 @@ export function DateFilter({ onSearch, onDateChange, startDate, endDate, modernS
             value={getDisplayText()}
             onClick={() => setIsOpen(!isOpen)}
             readOnly
-            placeholder="03/07/2025 - 03/08/2025"
+            placeholder="Chọn ngày hiến máu"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-700"
           />
           <FaCalendarAlt 
