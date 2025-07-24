@@ -11,6 +11,9 @@ const EditBloodPage = () => {
     const [filtered, setFiltered] = useState([]);
     const [volumes, setVolumes] = useState({});
     const [successMsg, setSuccessMsg] = useState("");
+    const [statDate, setStatDate] = useState("");
+    const [statBloodType, setStatBloodType] = useState("");
+    const [totalVolume, setTotalVolume] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -48,6 +51,27 @@ const EditBloodPage = () => {
         };
         fetchData();
     }, [getAppointments, getSlotList]);
+
+    //tính tổng lượng máu
+    useEffect(() => {
+        if (!statDate) {
+            setTotalVolume(0);
+            return;
+        }
+        const total = appointments
+            .filter(item =>
+                item.Status === "Completed" &&
+                item.DATE &&
+                item.Volume &&
+                item.DATE.slice(0, 10) === statDate &&
+                (
+                    !statBloodType || // Nếu chưa chọn nhóm máu, lấy tất cả
+                    item.BloodType === statBloodType
+                )
+            )
+            .reduce((sum, item) => sum + Number(item.Volume || 0), 0);
+        setTotalVolume(total);
+    }, [statDate, statBloodType, appointments]);
 
     const handleVolumeChange = (id, value) => {
         setVolumes(prev => ({
@@ -200,34 +224,64 @@ const EditBloodPage = () => {
                 </div>
             )}
 
-            <div className="mb-4 flex justify-end gap-4">
-                <div className="relative w-72">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
-                        </svg>
-                    </span>
+            <div className="flex flex-row items-center gap-4 mb-6">
+                {/* Nhóm filter đầu */}
+                <div className="flex flex-row items-center gap-4">
                     <input
-                        type="text"
-                        placeholder="Tìm theo tên"
-                        className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-full focus:outline-none focus:border-[#D32F2F] shadow-sm transition-all"
-                        value={nameSearch}
-                        onChange={e => setNameSearch(e.target.value)}
+                        type="date"
+                        className="border rounded px-3 py-2 w-[150px]"
+                        value={statDate}
+                        onChange={e => setStatDate(e.target.value)}
                     />
+                    <select
+                        className="border rounded px-3 py-2 w-[185px]"
+                        value={statBloodType}
+                        onChange={e => setStatBloodType(e.target.value)}
+                    >
+                        <option value="">Tất cả nhóm máu</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                    </select>
+                    <div className="text-lg font-semibold text-red-700">
+                        Tổng lưu lượng máu: <span className="text-blue-700">{totalVolume}</span> ml
+                    </div>
                 </div>
-                <div className="relative w-72">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
-                        </svg>
-                    </span>
-                    <input
-                        type="text"
-                        placeholder="Tìm theo số điện thoại"
-                        className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-full focus:outline-none focus:border-[#D32F2F] shadow-sm transition-all"
-                        value={phoneSearch}
-                        onChange={e => setPhoneSearch(e.target.value)}
-                    />
+                {/* Nhóm tìm kiếm, đẩy về cuối hàng */}
+                <div className="flex flex-row items-center gap-4 ml-auto">
+                    <div className="relative w-72">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
+                            </svg>
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Tìm theo tên"
+                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-full focus:outline-none focus:border-[#D32F2F] shadow-sm transition-all"
+                            value={nameSearch}
+                            onChange={e => setNameSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="relative w-72">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
+                            </svg>
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Tìm theo số điện thoại"
+                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-full focus:outline-none focus:border-[#D32F2F] shadow-sm transition-all"
+                            value={phoneSearch}
+                            onChange={e => setPhoneSearch(e.target.value)}
+                        />
+                    </div>
                 </div>
             </div>
 

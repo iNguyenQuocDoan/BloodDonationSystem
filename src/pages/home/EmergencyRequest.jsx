@@ -8,7 +8,8 @@ const EmergencyRequest = () => {
   const [form, setForm] = useState({
     bloodType: "",
     volume: "",
-    neededDate: ""
+    neededDate: "",
+    reason_Need : "" // Thêm trường này
   });
   const [errors, setErrors] = useState({});
   const [user, setUser] = useState(null);
@@ -71,6 +72,10 @@ const EmergencyRequest = () => {
       newErrors.neededDate = "Ngày cần máu phải là ngày trong tương lai.";
     }
     
+    if (!form.reason_Need ) {
+      newErrors.reason_Need  = "Vui lòng nhập lý do cần máu.";
+    }
+    
     return newErrors;
   };
 
@@ -99,7 +104,8 @@ const EmergencyRequest = () => {
       const requestData = {
         BloodType_ID: bloodTypeMapping[form.bloodType],
         Volume: parseInt(form.volume),
-        Needed_Before: form.neededDate,  
+        Needed_Before: form.neededDate,
+        reason_Need: form.reason_Need  // Truyền lên BE
       };
 
       // Gọi API thông qua hook
@@ -114,7 +120,8 @@ const EmergencyRequest = () => {
         setForm({
           bloodType: "",
           volume: "",
-          neededDate: ""
+          neededDate: "",
+          reason_Need: ""
         });
         setErrors({});
       } else {
@@ -262,6 +269,27 @@ const EmergencyRequest = () => {
             </p>
             {errors.neededDate && (
               <p className="text-red-500 text-sm mt-2">{errors.neededDate}</p>
+            )}
+          </div>
+
+          {/* Lý do cần máu */}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">
+              <span className="text-red-500">*</span> Lý do cần máu
+            </label>
+            <input
+              type="text"
+              name="reason_Need"
+              value={form.reason_Need}
+              onChange={handleChange}
+              placeholder="Nhập lý do cần máu..."
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F] text-lg ${
+                errors.reason_Need  ? "border-red-500" : "border-gray-300"
+              }`}
+              required
+            />
+            {errors.reason_Need  && (
+              <p className="text-red-500 text-sm mt-2">{errors.reason_Need }</p>
             )}
           </div>
 

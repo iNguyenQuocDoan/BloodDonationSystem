@@ -100,7 +100,7 @@ export default function History() {
     const showEmergency = type === "emergency" || type === "all";
 
     return (
-        <div className="max-w-5xl mx-auto mt-8 bg-white rounded-xl shadow-lg p-8">
+        <div className="max-w-7xl mx-auto mt-8 bg-white rounded-xl shadow-lg p-8">
             {/* Đã xóa dropdown chọn loại lịch sử, giữ lại các phần còn lại */}
             <div className="flex mb-4">
                 <select
@@ -143,11 +143,11 @@ export default function History() {
                                     <table className="w-full table-auto bg-white rounded-xl shadow-lg border border-gray-200 text-base">
                                         <thead className="bg-red-100">
                                             <tr>
-                                                <th className="px-6 py-3 font-semibold">Ngày</th>
-                                                <th className="px-6 py-3 font-semibold">Khung giờ</th>
-                                                <th className="px-6 py-3 font-semibold">Lượng máu (ml)</th>
-                                                <th className="px-6 py-3 font-semibold">Trạng thái</th>
-                                                <th className="px-6 py-3 font-semibold">Lý do từ chối</th>
+                                                <th className="px-6 py-3 font-semibold text-center">Ngày</th>
+                                                <th className="px-6 py-3 font-semibold text-center">Khung giờ</th>
+                                                <th className="px-6 py-3 font-semibold text-center">Lượng máu (ml)</th>
+                                                <th className="px-6 py-3 font-semibold text-center">Trạng thái</th>
+                                                <th className="px-6 py-3 font-semibold text-center">Lý do từ chối</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -159,23 +159,21 @@ export default function History() {
                                                 else if (reg.Status === "Canceled") statusColor = "text-red-700 bg-red-50";
                                                 return (
                                                     <tr key={reg.Appointment_ID} className="border-b hover:bg-gray-100 transition">
-                                                        <td className="px-6 py-3 font-medium">{formatDateVN(reg.Slot_Date)}</td>
-                                                        <td className="px-6 py-3 font-mono text-blue-700">
+                                                        <td className="px-6 py-3 font-medium text-center">{formatDateVN(reg.Slot_Date)}</td>
+                                                        <td className="px-6 py-3 font-mono text-blue-700 text-center">
                                                             {reg.Start_Time && reg.End_Time ? `${formatTimeVN(reg.Start_Time)} - ${formatTimeVN(reg.End_Time)}` : "-"}
                                                         </td>
-                                                        <td className="px-6 py-3 font-semibold">
+                                                        <td className="px-6 py-3 font-semibold text-center">
                                                             {reg.Status === "Completed" && reg.Volume ? (
                                                                 <span className="inline-block bg-green-50 text-green-700 px-3 py-1 rounded-full">{reg.Volume} ml</span>
                                                             ) : (
                                                                 <span className="text-gray-400">-</span>
                                                             )}
                                                         </td>
-                                                        <td className={`px-6 py-3 font-semibold rounded ${statusColor}`}>{getStatusLabel(reg.Status)}</td>
-                                                        <td className="px-6 py-3">
+                                                        <td className={`px-6 py-3 font-semibold rounded text-center ${statusColor}`}>{getStatusLabel(reg.Status)}</td>
+                                                        <td className="px-6 py-3 whitespace-pre-line text-center">
                                                             {reg.Status === "Canceled" && reg.Reason_Reject ? (
-                                                                <span className="inline-block bg-red-50 text-red-700 px-3 py-1 rounded-full" title={reg.Reason_Reject}>
-                                                                    {reg.Reason_Reject.length > 30 ? reg.Reason_Reject.slice(0, 30) + "..." : reg.Reason_Reject}
-                                                                </span>
+                                                                reg.Reason_Reject
                                                             ) : (
                                                                 <span className="text-gray-400">-</span>
                                                             )}
@@ -202,17 +200,17 @@ export default function History() {
                                 <div className="text-center text-gray-500 py-8">Bạn chưa có yêu cầu khẩn cấp nào.</div>
                             ) : (
                                 <div className="overflow-x-auto mb-8">
-                                    <table className="min-w-full text-sm rounded-lg overflow-hidden shadow border border-gray-200">
+                                    <table className="min-w-full text-base md:text-lg rounded-lg overflow-hidden shadow border border-gray-200">
                                         <thead>
                                             <tr className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700">
-                                                <th className="py-3 px-2 text-center">Lý do cần máu</th>
-                                                <th className="py-3 px-2 text-center">Loại máu</th>
-                                                <th className="py-3 px-2 text-center">Lượng (ml)</th>
-                                                <th className="py-3 px-2 text-center">Ngày cần</th>
-                                                <th className="py-3 px-2 text-center">Trạng thái</th>
-                                                <th className="py-3 px-2 text-center">Ngày tạo</th>
-                                                <th className="py-3 px-2 text-center">Lý do từ chối</th>
-                                                <th className="py-3 px-2 text-center">Hành động</th>
+                                                <th className="py-3 px-2 text-center font-semibold">Lý do cần máu</th>
+                                                <th className="py-3 px-2 text-center font-semibold">Loại máu</th>
+                                                <th className="py-3 px-2 text-center font-semibold">Lượng (ml)</th>
+                                                <th className="py-3 px-2 text-center font-semibold">Ngày cần</th>
+                                                <th className="py-3 px-2 text-center font-semibold">Trạng thái</th>
+                                                <th className="py-3 px-2 text-center font-semibold">Ngày tạo</th>
+                                                <th className="py-3 px-2 text-center font-semibold w-48">Lý do từ chối</th> {/* Giới hạn độ rộng */}
+                                                <th className="py-3 px-2 text-center font-semibold">Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -230,7 +228,7 @@ export default function History() {
                                                         </span>
                                                     </td>
                                                     <td className="py-2 px-2 text-center">{req.Created_At?.split("T")[0]}</td>
-                                                    <td className="py-2 px-2 text-center">
+                                                    <td className="py-2 px-2 text-center break-words whitespace-pre-line w-48">
                                                         {req.Status === "Rejected" ? (req.reason_Reject || "—") : "—"}
                                                     </td>
                                                     <td className="py-2 px-2 text-center">
@@ -310,4 +308,4 @@ export default function History() {
             )}
         </div>
     );
-} 
+}
