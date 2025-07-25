@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import VanillaTilt from "vanilla-tilt";
-import BloodCompatibilityDiagram from "../../components/custom/BloodCompatibilityDiagram";
 import DonateBlood from "./DonateBlood";
 import { DateFilter } from "../../components/DateFilter";
 import { FAQPage } from "./FAQ";
@@ -130,10 +129,6 @@ const ScrollToTopButton = () => {
 };
 
 const Homepage = () => {
-  const [withRh, setWithRh] = useState(false); // State cho bảng
-  const [diagramWithRh, setDiagramWithRh] = useState(false); // State cho sơ đồ
-  const [showDonation, setShowDonation] = useState(true); // State cho chế độ hiến/nhận (true = hiến, false = nhận)
-
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -208,7 +203,7 @@ const Homepage = () => {
         }
       });
     };
-  }, [withRh, diagramWithRh]); // Re-init when states change
+  }, []); // Remove dependencies
 
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
@@ -383,6 +378,210 @@ const Homepage = () => {
             ))}
           </motion.div>
 
+          {/* About Us Section */}
+          <motion.section variants={itemVariants} className="mt-12">
+            <motion.h4
+              className="text-center text-3xl font-bold text-[#D32F2F] mb-8"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", duration: 0.8 }}
+            >
+              Về chúng tôi
+            </motion.h4>
+
+            <motion.div
+              className="bg-white rounded-lg shadow-lg p-8 border border-gray-100"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+            >
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <motion.div
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                >
+                  <motion.h5
+                    className="text-2xl font-bold text-[#D32F2F] mb-4"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    DaiVietBlood - Kết nối yêu thương
+                  </motion.h5>
+                  <motion.p
+                    className="text-gray-700 mb-4 leading-relaxed"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6, duration: 0.6 }}
+                  >
+                    DaiVietBlood là nền tảng hiến máu trực tuyến hàng đầu Việt
+                    Nam, được thành lập với sứ mệnh kết nối những tấm lòng nhân
+                    ái với những người đang cần máu gấp. Chúng tôi tin rằng mỗi
+                    giọt máu hiến tặng đều mang trong mình tình yêu thương và hy
+                    vọng cho cuộc sống.
+                  </motion.p>
+                  <motion.p
+                    className="text-gray-700 mb-6 leading-relaxed"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8, duration: 0.6 }}
+                  >
+                    Với hệ thống hiện đại và quy trình an toàn, chúng tôi đã tạo
+                    ra một cầu nối tin cậy giữa người hiến máu và những bệnh
+                    nhân cần được cứu chữa khẩn cấp.
+                  </motion.p>
+
+                  <motion.div
+                    className="flex flex-wrap gap-4"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: { opacity: 0 },
+                      visible: {
+                        opacity: 1,
+                        transition: {
+                          staggerChildren: 0.1,
+                        },
+                      },
+                    }}
+                  >
+                    {[
+                      { icon: "❤️", label: "An toàn & Tin cậy" },
+                      { icon: "⚡", label: "Nhanh chóng & Hiệu quả" },
+                      { icon: "🏥", label: "Kết nối Bệnh viện" },
+                      { icon: "🌟", label: "Hỗ trợ 24/7" },
+                    ].map((feature, index) => (
+                      <motion.div
+                        key={index}
+                        className="text-center bg-[#FFE6E6] p-4 rounded-lg flex-1 min-w-[120px]"
+                        variants={{
+                          hidden: { y: 20, opacity: 0 },
+                          visible: {
+                            y: 0,
+                            opacity: 1,
+                            transition: {
+                              duration: 0.5,
+                            },
+                          },
+                        }}
+                        whileHover={{
+                          scale: 1.05,
+                          backgroundColor: "#FFD6D6",
+                        }}
+                      >
+                        <motion.div
+                          className="text-2xl mb-2"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{
+                            delay: 1 + index * 0.1,
+                            type: "spring",
+                          }}
+                        >
+                          {feature.icon}
+                        </motion.div>
+                        <div className="text-sm text-gray-600 font-medium">
+                          {feature.label}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </motion.div>
+
+                <motion.div
+                  className="relative"
+                  initial={{ x: 50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                >
+                  <motion.div
+                    className="bg-gradient-to-br from-[#D32F2F] to-[#B71C1C] p-8 rounded-lg text-white shadow-xl"
+                    whileHover={{
+                      scale: 1.02,
+                      boxShadow: "0 25px 50px -12px rgba(211, 47, 47, 0.3)",
+                    }}
+                  >
+                    <motion.h6
+                      className="text-xl font-bold mb-4"
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.6, duration: 0.6 }}
+                    >
+                      Tầm nhìn của chúng tôi
+                    </motion.h6>
+                    <motion.p
+                      className="mb-4 leading-relaxed"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8, duration: 0.6 }}
+                    >
+                      Trở thành hệ thống hiến máu trực tuyến hàng đầu, góp phần
+                      xây dựng một cộng đồng khỏe mạnh và đầy tình yêu thương.
+                    </motion.p>
+
+                    <motion.h6
+                      className="text-xl font-bold mb-4"
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 1, duration: 0.6 }}
+                    >
+                      Sứ mệnh của chúng tôi
+                    </motion.h6>
+                    <motion.p
+                      className="leading-relaxed"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.2, duration: 0.6 }}
+                    >
+                      Kết nối và hỗ trợ hoạt động hiến máu nhân đạo một cách
+                      hiệu quả, an toàn và minh bạch, mang lại hy vọng cho hàng
+                      ngàn gia đình.
+                    </motion.p>
+
+                    <motion.div
+                      className="mt-6"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.4, duration: 0.6 }}
+                    >
+                      <Link
+                        to="/blood-type-info"
+                        className="inline-block bg-white text-[#D32F2F] px-6 py-3 rounded-lg font-semibold border-2 border-white hover:bg-transparent hover:text-white transition-all duration-300 shadow-lg"
+                      >
+                        Tìm hiểu về nhóm máu →
+                      </Link>
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Decorative elements */}
+                  <motion.div
+                    className="absolute -top-4 -right-4 w-8 h-8 bg-[#FFE6E6] rounded-full"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 180, 360],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                  <motion.div
+                    className="absolute -bottom-2 -left-2 w-6 h-6 bg-[#D32F2F] rounded-full"
+                    animate={{
+                      scale: [1, 0.8, 1],
+                      opacity: [1, 0.7, 1],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.section>
+
           {/* Eligibility */}
           <motion.section variants={itemVariants} className="mt-12">
             <motion.h4
@@ -479,335 +678,6 @@ const Homepage = () => {
                   </motion.div>
                 ))}
               </motion.div>
-            </motion.div>
-          </motion.section>
-
-          {/* Compatibility Table */}
-          <motion.section variants={itemVariants} className="mt-12">
-            <motion.h4
-              className="text-center text-3xl font-bold text-[#D32F2F] mb-4"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", duration: 0.8 }}
-            >
-              Bảng tương thích nhóm máu
-            </motion.h4>
-
-            {/* Nút chuyển chế độ cho bảng */}
-            <motion.div
-              className="flex justify-center gap-3 mb-6"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-            >
-              {/* Nút chế độ hiến/nhận */}
-              <motion.div
-                className="flex bg-gray-100 rounded-lg p-1 mr-4"
-                whileHover={{ scale: 1.02 }}
-              >
-                <motion.button
-                  onClick={() => setShowDonation(true)}
-                  className={`px-3 py-2 rounded-md font-semibold transition-all duration-300 ${
-                    showDonation
-                      ? "bg-[#D32F2F] text-white shadow-md"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Hiến
-                </motion.button>
-                <motion.button
-                  onClick={() => setShowDonation(false)}
-                  className={`px-3 py-2 rounded-md font-semibold transition-all duration-300 ${
-                    !showDonation
-                      ? "bg-[#D32F2F] text-white shadow-md"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Nhận
-                </motion.button>
-              </motion.div>
-
-              {/* Nút chế độ cơ bản/chi tiết */}
-              <motion.button
-                onClick={() => setWithRh(false)}
-                className={`px-4 py-2 rounded-lg border font-semibold transition-all duration-300 ${
-                  !withRh
-                    ? "bg-[#D32F2F] text-white shadow-lg transform scale-105"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Chế độ cơ bản
-              </motion.button>
-              <motion.button
-                onClick={() => setWithRh(true)}
-                className={`px-4 py-2 rounded-lg border font-semibold transition-all duration-300 ${
-                  withRh
-                    ? "bg-[#D32F2F] text-white shadow-lg transform scale-105"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Chế độ chi tiết
-              </motion.button>
-            </motion.div>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`table-${withRh}-${showDonation}`}
-                className="rounded-md shadow overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                whileHover={{
-                  boxShadow:
-                    "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                }}
-              >
-                <table className="w-full table-fixed">
-                  <thead className="bg-gradient-to-r from-[#D32F2F] to-[#B71C1C] text-white">
-                    <tr>
-                      <th className="py-4 px-4 w-1/3 text-left font-bold text-sm sm:text-base transition-all duration-300">
-                        Nhóm máu
-                      </th>
-                      <th className="py-4 px-4 w-2/3 text-left font-bold text-sm sm:text-base transition-all duration-300">
-                        {showDonation ? "Có thể hiến cho" : "Có thể nhận từ"}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody key={`table-${withRh}-${showDonation}`}>
-                    {withRh
-                      ? // Bảng ABO + Rh
-                        showDonation
-                        ? // Chế độ hiến
-                          [
-                            ["O-", "O-, O+, A-, A+, B-, B+, AB-, AB+"],
-                            ["O+", "O+, A+, B+, AB+"],
-                            ["A-", "A-, A+, AB-, AB+"],
-                            ["A+", "A+, AB+"],
-                            ["B-", "B-, B+, AB-, AB+"],
-                            ["B+", "B+, AB+"],
-                            ["AB-", "AB-, AB+"],
-                            ["AB+", "AB+"],
-                          ].map(([t, r], i) => (
-                            <tr
-                              key={`rh-donate-${t}`}
-                              className={
-                                "transition-all duration-300 hover:bg-[#fdeaea] hover:shadow-sm border-b border-gray-100 " +
-                                (i % 2 ? "bg-gray-50/50" : "bg-white")
-                              }
-                              style={{
-                                animation: `fadeInUp 0.5s ease-out ${
-                                  i * 0.1
-                                }s both`,
-                              }}
-                            >
-                              <td className="py-4 px-4 font-bold text-[#D32F2F] transition-all duration-300 hover:text-[#B71C1C] text-left text-lg">
-                                {t}
-                              </td>
-                              <td className="py-4 px-4 transition-all duration-300 hover:text-gray-800 hover:font-medium text-left">
-                                <div className="flex flex-wrap gap-2">
-                                  {r.split(", ").map((bloodType, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-colors duration-200"
-                                    >
-                                      {bloodType}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                        : // Chế độ nhận
-                          [
-                            ["O-", "O-"],
-                            ["O+", "O-, O+"],
-                            ["A-", "O-, A-"],
-                            ["A+", "O-, O+, A-, A+"],
-                            ["B-", "O-, B-"],
-                            ["B+", "O-, O+, B-, B+"],
-                            ["AB-", "O-, A-, B-, AB-"],
-                            ["AB+", "O-, O+, A-, A+, B-, B+, AB-, AB+"],
-                          ].map(([t, r], i) => (
-                            <tr
-                              key={`rh-receive-${t}`}
-                              className={
-                                "transition-all duration-300 hover:bg-[#fdeaea] hover:shadow-sm border-b border-gray-100 " +
-                                (i % 2 ? "bg-gray-50/50" : "bg-white")
-                              }
-                              style={{
-                                animation: `fadeInUp 0.5s ease-out ${
-                                  i * 0.1
-                                }s both`,
-                              }}
-                            >
-                              <td className="py-4 px-4 font-bold text-[#D32F2F] transition-all duration-300 hover:text-[#B71C1C] text-left text-lg">
-                                {t}
-                              </td>
-                              <td className="py-4 px-4 transition-all duration-300 hover:text-gray-800 hover:font-medium text-left">
-                                <div className="flex flex-wrap gap-2">
-                                  {r.split(", ").map((bloodType, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-colors duration-200"
-                                    >
-                                      {bloodType}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                      : // Bảng ABO thường
-                      showDonation
-                      ? // Chế độ hiến
-                        [
-                          ["O", "O, A, B, AB"],
-                          ["A", "A, AB"],
-                          ["B", "B, AB"],
-                          ["AB", "AB"],
-                        ].map(([t, r], i) => (
-                          <tr
-                            key={`abo-donate-${t}`}
-                            className={
-                              "transition-all duration-300 hover:bg-[#fdeaea] hover:shadow-sm border-b border-gray-100 " +
-                              (i % 2 ? "bg-gray-50/50" : "bg-white")
-                            }
-                            style={{
-                              animation: `fadeInUp 0.5s ease-out ${
-                                i * 0.1
-                              }s both`,
-                            }}
-                          >
-                            <td className="py-4 px-4 font-bold text-[#D32F2F] transition-all duration-300 hover:text-[#B71C1C] text-left text-lg">
-                              {t}
-                            </td>
-                            <td className="py-4 px-4 transition-all duration-300 hover:text-gray-800 hover:font-medium text-left">
-                              <div className="flex flex-wrap gap-2">
-                                {r.split(", ").map((bloodType, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-red-200 transition-colors duration-200"
-                                  >
-                                    {bloodType}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      : // Chế độ nhận
-                        [
-                          ["O", "O"],
-                          ["A", "O, A"],
-                          ["B", "O, B"],
-                          ["AB", "O, A, B, AB"],
-                        ].map(([t, r], i) => (
-                          <tr
-                            key={`abo-receive-${t}`}
-                            className={
-                              "transition-all duration-300 hover:bg-[#fdeaea] hover:shadow-sm border-b border-gray-100 " +
-                              (i % 2 ? "bg-gray-50/50" : "bg-white")
-                            }
-                            style={{
-                              animation: `fadeInUp 0.5s ease-out ${
-                                i * 0.1
-                              }s both`,
-                            }}
-                          >
-                            <td className="py-4 px-4 font-bold text-[#D32F2F] transition-all duration-300 hover:text-[#B71C1C] text-left text-lg">
-                              {t}
-                            </td>
-                            <td className="py-4 px-4 transition-all duration-300 hover:text-gray-800 hover:font-medium text-left">
-                              <div className="flex flex-wrap gap-2">
-                                {r.split(", ").map((bloodType, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-200 transition-colors duration-200"
-                                  >
-                                    {bloodType}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                  </tbody>
-                </table>
-              </motion.div>
-            </AnimatePresence>
-          </motion.section>
-
-          {/* Diagram */}
-          <motion.section variants={itemVariants} className="mt-12 mb-12">
-            <motion.h4
-              className="text-center text-4xl font-bold text-[#D32F2F] mb-6"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", duration: 0.8 }}
-            >
-              Sơ đồ tương thích nhóm máu
-            </motion.h4>
-            <motion.div
-              className="max-w-5xl mx-auto p-4"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-            >
-              {/* Nút chuyển chế độ cho sơ đồ */}
-              <motion.div
-                className="flex justify-center gap-3 mb-6"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
-              >
-                <motion.button
-                  onClick={() => setDiagramWithRh(false)}
-                  className={`px-6 py-3 rounded-lg border-2 font-semibold transition-all duration-300 ${
-                    !diagramWithRh
-                      ? "bg-[#D32F2F] text-white border-[#D32F2F] shadow-lg transform scale-105"
-                      : "bg-white text-[#D32F2F] border-[#D32F2F] hover:bg-gray-50"
-                  }`}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Chế độ cơ bản
-                </motion.button>
-                <motion.button
-                  onClick={() => setDiagramWithRh(true)}
-                  className={`px-6 py-3 rounded-lg border-2 font-semibold transition-all duration-300 ${
-                    diagramWithRh
-                      ? "bg-[#D32F2F] text-white border-[#D32F2F] shadow-lg transform scale-105"
-                      : "bg-white text-[#D32F2F] border-[#D32F2F] hover:bg-gray-50"
-                  }`}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Chế độ chi tiết
-                </motion.button>
-              </motion.div>
-
-              {/* Container cho sơ đồ với overflow hidden */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={diagramWithRh ? "rh-mode" : "basic-mode"}
-                  className="w-full overflow-hidden rounded-lg"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <BloodCompatibilityDiagram withRh={diagramWithRh} />
-                </motion.div>
-              </AnimatePresence>
             </motion.div>
           </motion.section>
 

@@ -19,6 +19,7 @@ import LayoutAdmin from "./Layouts/LayoutAdmin";
 import Homepage from "./pages/home";
 import Contact from "./pages/home/Contact";
 import AboutUs from "./pages/home/AboutUs";
+import BloodTypeInfo from "./pages/home/BloodTypeInfo";
 import EmergencyRequest from "./pages/home/EmergencyRequest";
 import DonateBlood from "./pages/home/DonateBlood";
 import { FAQPage } from "./pages/home/FAQ";
@@ -57,6 +58,7 @@ function App() {
               <Route path="/" element={<Homepage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/aboutus" element={<AboutUs />} />
+              <Route path="/blood-type-info" element={<BloodTypeInfo />} />
               <Route path="/donate" element={<DonateBlood />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/news" element={<News />} />
