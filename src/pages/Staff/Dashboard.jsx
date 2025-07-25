@@ -506,69 +506,83 @@ export default function DashboardPage() {
       {/* Popup quản lý lô máu */}
       {showBloodUnitModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-[600px] max-w-full shadow-lg relative">
-            <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl"
-              onClick={() => setShowBloodUnitModal(false)}
-            >×</button>
-            <h2 className="text-xl font-bold mb-4 text-center">Quản lý lô máu</h2>
-            <button
-              className="mb-3 bg-green-600 text-white px-4 py-2 rounded"
-              onClick={() => setShowCreateBloodUnit(true)}
-            >
-              + Tạo lô máu mới
-            </button>
-            <table className="min-w-full text-sm mb-4 rounded-xl overflow-hidden shadow">
-              <thead>
-                <tr className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700">
-                  <th>ID</th>
-                  <th>Nhóm máu</th>
-                  <th>Lượng máu</th>
-                  <th>Ngày thu</th>
-                  <th>Hạn dùng</th>
-                  <th>Trạng thái</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {bloodUnits.map((item, idx) => (
-                  <tr key={item.BloodUnit_ID} className="hover:bg-pink-50 transition">
-                    <td>{item.BloodUnit_ID}</td>
-                    <td>{item.BloodGroup}</td>
-                    <td>{item.Volume}</td>
-                    <td>{item.Collected_Date?.slice(0,10)}</td>
-                    <td>{item.Expiration_Date?.slice(0,10)}</td>
-                    <td>{item.Status}</td>
-                    <td>
-                      <button
-                        className="text-blue-600 underline"
-                        onClick={() => setEditBloodUnit({
-                          BloodUnit_ID: item.BloodUnit_ID,
-                          Status: item.Status,
-                          Expiration_Date: item.Expiration_Date?.slice(0,10) || ""
-                        })}
-                      >
-                        Sửa
-                      </button>
-                    </td>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-[800px] max-w-full relative border-2 border-red-200">
+            <div className="flex items-center mb-6 gap-3">
+              <i className="fa fa-tint text-red-500 text-2xl" />
+              <h2 className="text-2xl font-bold text-red-600 flex-1">Quản lý lô máu</h2>
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold shadow"
+                onClick={() => setShowCreateBloodUnit(true)}
+              >
+                + Tạo lô máu mới
+              </button>
+            </div>
+            <div className="overflow-x-auto rounded-xl border border-gray-200">
+              <table className="min-w-[700px] w-full text-sm mb-4">
+                <thead>
+                  <tr className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700">
+                    <th className="py-2 px-3">Nhóm máu</th>
+                    <th className="py-2 px-3">Lượng máu</th>
+                    <th className="py-2 px-3">Ngày thu</th>
+                    <th className="py-2 px-3">Hạn dùng</th>
+                    <th className="py-2 px-3">Trạng thái</th>
+                    <th className="py-2 px-3"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {bloodUnits.map((item) => (
+                    <tr key={item.BloodUnit_ID} className="hover:bg-pink-50 transition">
+                      <td className="py-2 px-3">{item.BloodGroup}</td>
+                      <td className="py-2 px-3">{item.Volume}</td>
+                      <td className="py-2 px-3">{item.Collected_Date?.slice(0,10)}</td>
+                      <td className="py-2 px-3">{item.Expiration_Date?.slice(0,10)}</td>
+                      <td className="py-2 px-3">
+                        <span className={
+                          item.Status === "Available" ? "text-green-600 font-semibold" :
+                          item.Status === "Expired" ? "text-gray-500 font-semibold" :
+                          "text-orange-600 font-semibold"
+                        }>
+                          {item.Status === "Available" && "Còn sử dụng"}
+                          {item.Status === "Expired" && "Hết hạn"}
+                          {item.Status === "Used" && "Hết máu"}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3">
+                        <button
+                          className="text-blue-600 underline font-semibold"
+                          onClick={() => setEditBloodUnit({
+                            BloodUnit_ID: item.BloodUnit_ID,
+                            Status: item.Status,
+                            Expiration_Date: item.Expiration_Date?.slice(0,10) || ""
+                          })}
+                        >
+                          Sửa
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold"
+                onClick={() => setShowBloodUnitModal(false)}
+              >
+                Đóng
+              </button>
+            </div>
+
             {/* Popup tạo lô máu */}
             {showCreateBloodUnit && (
-              <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-60">
-                <div className="bg-white rounded-lg p-6 w-[340px] shadow-lg relative">
-                  <button
-                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl"
-                    onClick={() => setShowCreateBloodUnit(false)}
-                  >×</button>
-                  <h3 className="font-bold mb-3">Tạo lô máu mới</h3>
-                  <div className="flex flex-col gap-2">
+              <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60">
+                <div className="bg-white rounded-xl p-8 w-[350px] shadow-xl relative border-2 border-green-200">
+                  <h3 className="font-bold mb-4 text-lg text-green-700">Tạo lô máu mới</h3>
+                  <div className="flex flex-col gap-3">
                     <label>
                       Nhóm máu
                       <select
-                        className="border rounded px-2 py-1 w-full"
+                        className="border rounded px-2 py-1 w-full mt-1"
                         value={newBloodUnit.BloodType}
                         onChange={e => setNewBloodUnit({ ...newBloodUnit, BloodType: e.target.value })}
                       >
@@ -581,7 +595,7 @@ export default function DashboardPage() {
                     <label>
                       Lượng máu (ml)
                       <input
-                        className="border rounded px-2 py-1 w-full"
+                        className="border rounded px-2 py-1 w-full mt-1"
                         type="number"
                         value={newBloodUnit.Volume}
                         onChange={e => setNewBloodUnit({ ...newBloodUnit, Volume: e.target.value })}
@@ -591,55 +605,67 @@ export default function DashboardPage() {
                     <label>
                       Hạn dùng
                       <input
-                        className="border rounded px-2 py-1 w-full"
+                        className="border rounded px-2 py-1 w-full mt-1"
                         type="date"
                         value={newBloodUnit.Expiration_Date}
                         onChange={e => setNewBloodUnit({ ...newBloodUnit, Expiration_Date: e.target.value })}
                       />
                     </label>
                     <button
-                      className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-3 font-semibold"
                       onClick={handleCreateBloodUnit}
                     >
                       Tạo
+                    </button>
+                    <button
+                      className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold mt-2"
+                      onClick={() => setShowCreateBloodUnit(false)}
+                    >
+                      Đóng
                     </button>
                   </div>
                 </div>
               </div>
             )}
+
             {/* Popup sửa lô máu */}
             {editBloodUnit && (
-              <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-60">
-                <div className="bg-white rounded-lg p-6 w-[340px] shadow-lg relative">
-                  <button
-                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl"
-                    onClick={() => setEditBloodUnit(null)}
-                  >×</button>
-                  <h3 className="font-bold mb-3">Cập nhật lô máu</h3>
-                  <div className="flex flex-col gap-2">
+              <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60">
+                <div className="bg-white rounded-xl p-8 w-[350px] shadow-xl relative border-2 border-blue-200">
+                  <h3 className="font-bold mb-4 text-lg text-blue-700">Cập nhật lô máu</h3>
+                  <div className="flex flex-col gap-3">
                     <label>
                       Trạng thái
-                      <input
-                        className="border rounded px-2 py-1 w-full"
+                      <select
+                        className="border rounded px-2 py-1 w-full mt-1"
                         value={editBloodUnit.Status}
                         onChange={e => setEditBloodUnit({ ...editBloodUnit, Status: e.target.value })}
-                        placeholder="Status"
-                      />
+                      >
+                        <option value="Available">Còn sử dụng được</option>
+                        <option value="Expired">Hết hạn sử dụng</option>
+                        <option value="Used">Hết máu</option>
+                      </select>
                     </label>
                     <label>
                       Hạn dùng
                       <input
-                        className="border rounded px-2 py-1 w-full"
+                        className="border rounded px-2 py-1 w-full mt-1"
                         type="date"
                         value={editBloodUnit.Expiration_Date}
                         onChange={e => setEditBloodUnit({ ...editBloodUnit, Expiration_Date: e.target.value })}
                       />
                     </label>
                     <button
-                      className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-3 font-semibold"
                       onClick={handleUpdateBloodUnit}
                     >
                       Lưu
+                    </button>
+                    <button
+                      className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold mt-2"
+                      onClick={() => setEditBloodUnit(null)}
+                    >
+                      Đóng
                     </button>
                   </div>
                 </div>

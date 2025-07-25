@@ -693,39 +693,41 @@ export default function ManageEmergencyPage() {
       {/* Popup ngân hàng máu */}
       {showBloodBank && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-8 min-w-[340px] max-w-sm w-full relative border-2 border-red-300">
-            <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl transition"
-              onClick={() => setShowBloodBank(false)}
-              title="Đóng"
-            >
-              <i className="fa fa-times-circle" />
-            </button>
-            <h2 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
-              <i className="fa fa-tint text-red-500" /> Ngân hàng máu
-            </h2>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[500px] max-w-lg w-full relative border-2 border-red-300">
+            <div className="flex items-center gap-3 mb-4">
+              <i className="fa fa-tint text-red-500 text-2xl" />
+              <h2 className="text-xl font-bold text-red-600 flex-1">Ngân hàng máu</h2>
+            </div>
             {loadingBloodBank ? (
-              <div className="text-center py-6">Đang tải dữ liệu...</div>
+              <div className="text-center py-8 text-lg text-gray-500">Đang tải dữ liệu...</div>
             ) : bloodBankList.length === 0 ? (
-              <div className="text-center py-6 text-gray-500">Không có dữ liệu.</div>
+              <div className="text-center py-8 text-gray-500">Không có dữ liệu.</div>
             ) : (
-              <table className="min-w-full text-sm mb-4 rounded-xl overflow-hidden shadow">
+              <table className="min-w-full text-base mb-4 rounded-xl overflow-hidden shadow">
                 <thead>
                   <tr className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700">
-                    <th>Nhóm máu</th>
-                    <th>Lượng máu (ml)</th>
+                    <th className="py-2 px-4 text-center">Nhóm máu</th>
+                    <th className="py-2 px-4 text-center">Lượng máu (ml)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bloodBankList.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-pink-50 transition">
-                      <td className="font-semibold text-gray-800">{item.BloodGroup}</td>
-                      <td className="text-red-600 font-bold">{item.Volume}</td>
+                    <tr key={idx} className="hover:bg-pink-50 transition text-center">
+                      <td className="font-semibold text-gray-800 py-2 px-4">{item.BloodGroup}</td>
+                      <td className="text-red-600 font-bold py-2 px-4">{item.Volume}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
+            <div className="flex justify-end mt-4">
+              <button
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold"
+                onClick={() => setShowBloodBank(false)}
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}
