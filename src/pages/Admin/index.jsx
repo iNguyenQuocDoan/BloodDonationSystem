@@ -59,30 +59,19 @@ const AdminDashboard = () => {
     fetchBloodBank();
   }, [getBloodBank]);
 
-  const pieChartData = {
-    labels: pieData.map((p) => p.name),
-    datasets: [
-      {
-        data: pieData.map((p) => p.value),
-        backgroundColor: COLORS,
-        hoverOffset: 6,
-      },
-    ],
-  };
-  const pieOptions = {
-    responsive: true,
-    plugins: { legend: { position: "bottom" } },
-  };
+  // Tính tổng kho máu thực tế từ pieData
+  const totalVolume = pieData.reduce((sum, p) => sum + p.value, 0);
 
-  /* ==================== DỮ LIỆU DEMO ==================== */
-  const demoStats = [
+  // Thống kê nhanh (chỉ Tổng kho máu lấy từ dữ liệu thật, các số khác demo)
+  const stats = [
     { label: "Đơn vị thu hôm nay", value: 42 },
     { label: "Tổng ca hiến trong ngày", value: 5 },
     { label: "Người hiến mới / tuần", value: 23 },
     { label: "Yêu cầu khẩn cấp", value: 3 },
-    { label: "Tổng kho máu (đv)", value: 560 },
+    { label: "Tổng kho máu (đv)", value: totalVolume },
   ];
 
+  // Demo dữ liệu cho các biểu đồ khác
   const demoLine = [
     { month: "Th1", units: 260 },
     { month: "Th2", units: 310 },
@@ -93,14 +82,6 @@ const AdminDashboard = () => {
     { month: "Th7", units: 480 },
   ];
 
-  const demoPie = [
-    { name: "A", value: 180 },
-    { name: "B", value: 140 },
-    { name: "O", value: 160 },
-    { name: "AB", value: 80 },
-  ];
-
-  /* Histogram: tổng người hiến mỗi tháng */
   const demoHist = [
     { month: "Th1", donors: 35 },
     { month: "Th2", donors: 41 },
@@ -130,6 +111,22 @@ const AdminDashboard = () => {
     plugins: { legend: { display: false } },
   };
 
+  /* ---------- Pie chart ---------- */
+  const pieChartData = {
+    labels: pieData.map((p) => p.name),
+    datasets: [
+      {
+        data: pieData.map((p) => p.value),
+        backgroundColor: COLORS,
+        hoverOffset: 6,
+      },
+    ],
+  };
+  const pieOptions = {
+    responsive: true,
+    plugins: { legend: { position: "bottom" } },
+  };
+
   /* ---------- Histogram (Bar) ---------- */
   const barChartData = {
     labels: demoHist.map((h) => h.month),
@@ -153,7 +150,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-100 p-6">
       {/* ===== THỐNG KÊ NHANH ===== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        {demoStats.map((s) => (
+        {stats.map((s) => (
           <div
             key={s.label}
             className="rounded-lg bg-white shadow flex flex-col items-center py-6"

@@ -12,6 +12,11 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: true
+      },
+      '/email': { // Thêm dòng này để proxy email API
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: true
       }
     }
   }
