@@ -81,6 +81,11 @@ export default function Header() {
                 </NavLink>
               </li>
               <li>
+                <NavLink to="/blood-type-info" className={navItemClass}>
+                  Thông tin nhóm máu
+                </NavLink>
+              </li>
+              <li>
                 <NavLink to="/faq" className={navItemClass}>
                   FAQ
                 </NavLink>
@@ -172,6 +177,7 @@ export default function Header() {
             <ul className="flex flex-col px-4 py-3 gap-y-2 text-[15px]">
               {[
                 { to: "/", label: "Trang chủ", exact: true },
+                { to: "/blood-type-info", label: "Thông tin nhóm máu" },
                 { to: "/faq", label: "FAQ" },
                 { to: "/news", label: "Tin tức" },
                 { to: "/contact", label: "Liên hệ" },
