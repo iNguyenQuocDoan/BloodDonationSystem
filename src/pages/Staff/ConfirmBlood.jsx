@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import useApi from "../../hooks/useApi";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import { toast } from "react-toastify";
+import Pagination from "../../components/Pagination";
 
 const ConfirmBloodPage = () => {
   const [confirmList, setConfirmList] = useState([]);
@@ -34,14 +35,29 @@ const ConfirmBloodPage = () => {
   const [pendingBloodType, setPendingBloodType] = useState("");
   const [pendingAppointment, setPendingAppointment] = useState(null);
   const [showBloodTypeConfirm, setShowBloodTypeConfirm] = useState(false);
-  const { getSlotList, getAppointments, addPatientDetail, confirmBloodTypeByStaff, updateStatusAppointmentByStaff, rejectAppointment, historyPatientByUser, updatePatientByStaff, getLatestPatientDetail } = useApi();
+  const {
+    getSlotList,
+    getAppointments,
+    addPatientDetail,
+    confirmBloodTypeByStaff,
+    updateStatusAppointmentByStaff,
+    rejectAppointment,
+    historyPatientByUser,
+    updatePatientByStaff,
+    getLatestPatientDetail,
+  } = useApi();
 
   // State cho popup chỉnh sửa bệnh án
   const [showEditPatientModal, setShowEditPatientModal] = useState(false);
   const [editPatientDescription, setEditPatientDescription] = useState("");
   const [editPatientStatus, setEditPatientStatus] = useState("");
-  const [editPatientAppointmentId, setEditPatientAppointmentId] = useState(null);
+  const [editPatientAppointmentId, setEditPatientAppointmentId] =
+    useState(null);
   const [editPatientLoading, setEditPatientLoading] = useState(false);
+
+  // State cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch danh sách xác nhận từ BE
   const fetchConfirmList = async () => {
@@ -56,10 +72,9 @@ const ConfirmBloodPage = () => {
     } catch (err) {
       setConfirmList([]);
       console.error("[BUG][FE] Lỗi fetch API getAppointments:", err);
-} finally {
+    } finally {
       setLoading(false);
     }
-
   };
 
   // Fetch danh sách slot từ BE
@@ -104,8 +119,6 @@ const ConfirmBloodPage = () => {
     setShowRejectConfirm(false);
   };
 
-
-
   const handleEditCancel = () => {
     setShowEditConfirm(false);
     setEditingId(null);
@@ -113,9 +126,11 @@ const ConfirmBloodPage = () => {
 
   // Hàm mở popup thêm bệnh nhân (CHỈNH LẠI)
   const handleOpenAddPatient = async (appointmentId) => {
-    const appointment = confirmList.find(item => item.Appointment_ID === appointmentId);
+    const appointment = confirmList.find(
+      (item) => item.Appointment_ID === appointmentId
+    );
     console.log(appointment);
-    
+
     if (!appointment?.BloodType) {
       setPendingAppointment(appointment);
       setShowBloodTypePrompt(true);
@@ -152,7 +167,7 @@ const ConfirmBloodPage = () => {
     try {
       await confirmBloodTypeByStaff(
         pendingAppointment.User_ID, // userId truyền vào param
-        pendingBloodType           // bloodType truyền vào body
+        pendingBloodType // bloodType truyền vào body
       );
       await fetchConfirmList(); // render lại danh sách
       // KHÔNG mở popup thêm bệnh án ở đây nữa!
@@ -178,7 +193,7 @@ const ConfirmBloodPage = () => {
   };
 
   const formatTimeVN = (timeString) => {
-if (!timeString) return "-";
+    if (!timeString) return "-";
     // Lấy phần sau chữ T, ví dụ: "13:00:00.000Z"
     const tIndex = timeString.indexOf("T");
     if (tIndex === -1) return "-";
@@ -191,9 +206,9 @@ if (!timeString) return "-";
     setAddPatientLoading(true);
     try {
       await addPatientDetail(
-        addPatientAppointmentId,      // Appointment_ID vào param
-        addPatientDescription,        // description vào body
-        addPatientStatus              // status vào body
+        addPatientAppointmentId, // Appointment_ID vào param
+        addPatientDescription, // description vào body
+        addPatientStatus // status vào body
       );
       setShowAddPatientModal(false);
       setAddPatientDescription("");
@@ -213,24 +228,24 @@ if (!timeString) return "-";
     "Không đủ điều kiện sức khỏe",
     "Không đạt yêu cầu về tuổi/cân nặng",
     "Đang mắc bệnh truyền nhiễm",
-    "Lý do khác"
+    "Lý do khác",
   ];
-  
+
   const handleApproveSubmit = async () => {
-  if (!selectedId) return;
-  setLoading(true);
-  try {
-    await updateStatusAppointmentByStaff(selectedId, "Processing"); // Gọi API cập nhật trạng thái
-    await fetchConfirmList(); // Refresh lại danh sách
-    toast.success("Chấp thuận thành công!");
-    setShowApproveModal(false);
-    setSelectedId(null);
-  } catch (err) {
-    toast.error(err?.message);
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!selectedId) return;
+    setLoading(true);
+    try {
+      await updateStatusAppointmentByStaff(selectedId, "Processing"); // Gọi API cập nhật trạng thái
+      await fetchConfirmList(); // Refresh lại danh sách
+      toast.success("Chấp thuận thành công!");
+      setShowApproveModal(false);
+      setSelectedId(null);
+    } catch (err) {
+      toast.error(err?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRejectConfirmSubmit = async () => {
     if (!selectedId || !rejectReason.trim()) return;
@@ -275,7 +290,7 @@ if (!timeString) return "-";
         editPatientAppointmentId,
         editPatientDescription,
         editPatientStatus
-);
+      );
       setShowEditPatientModal(false);
       setEditPatientAppointmentId(null);
       await fetchConfirmList();
@@ -297,8 +312,18 @@ if (!timeString) return "-";
         <div className="mb-4 flex justify-end gap-4">
           <div className="relative w-72">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z"
+                />
               </svg>
             </span>
             <input
@@ -306,13 +331,23 @@ if (!timeString) return "-";
               placeholder="Tìm theo tên"
               className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-full focus:outline-none focus:border-[#D32F2F] shadow-sm transition-all"
               value={searchName}
-              onChange={e => setSearchName(e.target.value)}
+              onChange={(e) => setSearchName(e.target.value)}
             />
           </div>
           <div className="relative w-72">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4-4m0 0A7 7 0 104 4a7 7 0 0013 13z"
+                />
               </svg>
             </span>
             <input
@@ -320,7 +355,7 @@ if (!timeString) return "-";
               placeholder="Tìm theo số điện thoại"
               className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-full focus:outline-none focus:border-[#D32F2F] shadow-sm transition-all"
               value={searchPhone}
-              onChange={e => setSearchPhone(e.target.value)}
+              onChange={(e) => setSearchPhone(e.target.value)}
             />
           </div>
         </div>
@@ -329,64 +364,127 @@ if (!timeString) return "-";
             <thead className="bg-[#F1F1F1]">
               <tr>
                 <th className="px-3 py-2 text-center text-[#D32F2F]">Họ tên</th>
-                <th className="px-3 py-2 text-center text-[#D32F2F]">Số điện thoại</th>
-                <th className="px-3 py-2 text-center text-[#D32F2F]">Nhóm máu</th> {/* Thêm dòng này */}
-                <th className="px-3 py-2 text-center text-[#D32F2F]">Hồ sơ bệnh án</th>
-                <th className="px-3 py-2 text-center text-[#D32F2F]">Ngày hiến</th>
-                <th className="px-3 py-2 text-center text-[#D32F2F]">Khung giờ</th>
-<th className="px-3 py-2 text-center text-[#D32F2F]">Trạng thái</th>
-                <th className="px-3 py-2 text-center text-[#D32F2F]">Hành động</th>
+                <th className="px-3 py-2 text-center text-[#D32F2F]">
+                  Số điện thoại
+                </th>
+                <th className="px-3 py-2 text-center text-[#D32F2F]">
+                  Nhóm máu
+                </th>{" "}
+                {/* Thêm dòng này */}
+                <th className="px-3 py-2 text-center text-[#D32F2F]">
+                  Hồ sơ bệnh án
+                </th>
+                <th className="px-3 py-2 text-center text-[#D32F2F]">
+                  Ngày hiến
+                </th>
+                <th className="px-3 py-2 text-center text-[#D32F2F]">
+                  Khung giờ
+                </th>
+                <th className="px-3 py-2 text-center text-[#D32F2F]">
+                  Trạng thái
+                </th>
+                <th className="px-3 py-2 text-center text-[#D32F2F]">
+                  Hành động
+                </th>
               </tr>
             </thead>
             <tbody className="border-t min-h-[300px] align-middle">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-24 text-lg text-gray-400 align-middle">
+                  <td
+                    colSpan={7}
+                    className="text-center py-24 text-lg text-gray-400 align-middle"
+                  >
                     Đang tải...
                   </td>
                 </tr>
               ) : confirmList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-24 text-lg text-gray-400 align-middle">
+                  <td
+                    colSpan={7}
+                    className="text-center py-24 text-lg text-gray-400 align-middle"
+                  >
                     Không có dữ liệu
                   </td>
                 </tr>
               ) : (
-                confirmList
-                  .filter(item =>
-                    (item.Status === "Pending" || item.Status === "Processing") &&
-                    (!searchName || (item.Name && item.Name.toLowerCase().includes(searchName.toLowerCase()))) &&
-                    (!searchPhone || (item.Phone && item.Phone.toLowerCase().includes(searchPhone.toLowerCase())))
-                  )
-                  .map((item) => (
-                    <tr key={item.Appointment_ID} className="hover:bg-[#FFF5F5] transition-all border-b border-gray-100">
-                      <td className="px-3 py-2 text-center whitespace-nowrap">{item.Name}</td>
-                      <td className="px-3 py-2 text-center">{item.Phone || item.phone || "-"}</td>
+                (() => {
+                  // Logic phân trang
+                  const filteredData = confirmList.filter(
+                    (item) =>
+                      (item.Status === "Pending" ||
+                        item.Status === "Processing") &&
+                      (!searchName ||
+                        (item.Name &&
+                          item.Name.toLowerCase().includes(
+                            searchName.toLowerCase()
+                          ))) &&
+                      (!searchPhone ||
+                        (item.Phone &&
+                          item.Phone.toLowerCase().includes(
+                            searchPhone.toLowerCase()
+                          )))
+                  );
+
+                  const totalPages = Math.ceil(
+                    filteredData.length / itemsPerPage
+                  );
+                  const startIndex = (currentPage - 1) * itemsPerPage;
+                  const endIndex = startIndex + itemsPerPage;
+                  const currentData = filteredData.slice(startIndex, endIndex);
+
+                  return currentData.map((item) => (
+                    <tr
+                      key={item.Appointment_ID}
+                      className="hover:bg-[#FFF5F5] transition-all border-b border-gray-100"
+                    >
+                      <td className="px-3 py-2 text-center whitespace-nowrap">
+                        {item.Name}
+                      </td>
                       <td className="px-3 py-2 text-center">
-                        {item.BloodType ? item.BloodType : <span className="text-gray-400 italic">Chưa xác định</span>}
+                        {item.Phone || item.phone || "-"}
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {item.BloodType ? (
+                          item.BloodType
+                        ) : (
+                          <span className="text-gray-400 italic">
+                            Chưa xác định
+                          </span>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-center">
                         <div className="flex justify-center gap-2">
                           <button
                             className={`bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-medium shadow-sm hover:bg-blue-100 hover:border-blue-300 transition
     ${item.Status === "Processing" ? "opacity-50 cursor-not-allowed" : ""}`}
-                            onClick={() => handleOpenAddPatient(item.Appointment_ID)}
+                            onClick={() =>
+                              handleOpenAddPatient(item.Appointment_ID)
+                            }
                             disabled={item.Status === "Processing"}
                           >
                             Thêm
                           </button>
                           <button
                             className="bg-white border border-blue-500 text-blue-600 px-3 py-1 rounded-full text-xs font-semibold shadow hover:bg-blue-50 hover:text-blue-800 transition"
-                            onClick={() => handleOpenEditPatient(item.Appointment_ID)}
+                            onClick={() =>
+                              handleOpenEditPatient(item.Appointment_ID)
+                            }
                           >
                             Chỉnh sửa
                           </button>
                         </div>
                       </td>
-<td className="px-3 py-2 text-center">{formatDateVN(item.DATE)}</td>
-                      <td className="px-3 py-2 text-center  whitespace-nowrap">{item.Start_Time && item.End_Time
-                        ? `${formatTimeVN(item.Start_Time)} - ${formatTimeVN(item.End_Time)}`
-                        : "-"}</td>
+                      <td className="px-3 py-2 text-center">
+                        {formatDateVN(item.DATE)}
+                      </td>
+                      <td className="px-3 py-2 text-center  whitespace-nowrap">
+                        {item.Start_Time && item.End_Time
+                          ? `${formatTimeVN(item.Start_Time)} - ${formatTimeVN(
+                              item.End_Time
+                            )}`
+                          : "-"}
+                      </td>
                       <td className="px-3 py-2 text-center ">
                         {item.Status === "Pending" && (
                           <span className="inline-block px-2 py-1 rounded-full bg-gray-100 text-gray-800 font-semibold text-xs">
@@ -429,14 +527,40 @@ if (!timeString) return "-";
                           >
                             Chỉnh sửa
                           </button>
-)}
+                        )}
                       </td>
                     </tr>
-                  ))
+                  ));
+                })()
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Phân trang */}
+        {(() => {
+          const filteredData = confirmList.filter(
+            (item) =>
+              (item.Status === "Pending" || item.Status === "Processing") &&
+              (!searchName ||
+                (item.Name &&
+                  item.Name.toLowerCase().includes(
+                    searchName.toLowerCase()
+                  ))) &&
+              (!searchPhone ||
+                (item.Phone &&
+                  item.Phone.toLowerCase().includes(searchPhone.toLowerCase())))
+          );
+          const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+          return totalPages > 1 ? (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          ) : null;
+        })()}
       </div>
       {/* Modal xác nhận đồng ý */}
       {showApproveModal && (
@@ -470,11 +594,13 @@ if (!timeString) return "-";
             <select
               className="w-full border rounded p-2 mb-2"
               value={rejectReason}
-              onChange={e => setRejectReason(e.target.value)}
+              onChange={(e) => setRejectReason(e.target.value)}
             >
               <option value="">-- Chọn lý do --</option>
               {rejectReasons.map((reason, idx) => (
-                <option key={idx} value={reason}>{reason}</option>
+                <option key={idx} value={reason}>
+                  {reason}
+                </option>
               ))}
             </select>
             {rejectReason === "Lý do khác" && (
@@ -482,7 +608,7 @@ if (!timeString) return "-";
                 className="w-full border rounded p-2 mb-4"
                 rows={3}
                 value={rejectReason === "Lý do khác" ? "" : rejectReason}
-                onChange={e => setRejectReason(e.target.value)}
+                onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="Nhập lý do..."
               />
             )}
@@ -508,7 +634,7 @@ if (!timeString) return "-";
       {showRejectConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
           <div className="bg-white p-6 rounded shadow-lg w-96">
-<h2 className="text-lg font-semibold mb-4">
+            <h2 className="text-lg font-semibold mb-4">
               Bạn chắc chắn muốn từ chối ca hiến máu này?
             </h2>
             <div className="flex justify-end gap-2">
@@ -532,7 +658,10 @@ if (!timeString) return "-";
       {showEditConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
           <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h2 className="text-lg font-semibold mb-4">Bạn có chắc muốn chuyển về trạng thái chờ xác nhận để chỉnh sửa không?</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              Bạn có chắc muốn chuyển về trạng thái chờ xác nhận để chỉnh sửa
+              không?
+            </h2>
             <div className="flex justify-end gap-2">
               <button
                 className="px-4 py-2 bg-gray-300 rounded"
@@ -553,31 +682,46 @@ if (!timeString) return "-";
       {showDeclarationModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
           <div className="bg-white p-6 rounded shadow-lg w-[400px] max-h-[80vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4 text-center text-red-700">Khai báo y tế</h2>
+            <h2 className="text-lg font-semibold mb-4 text-center text-red-700">
+              Khai báo y tế
+            </h2>
             <div className="bg-blue-50 rounded-lg p-4 mb-2">
               {(() => {
                 let declaration = viewDeclaration;
-                if (typeof declaration === 'string') {
+                if (typeof declaration === "string") {
                   try {
                     declaration = JSON.parse(declaration);
-                  } catch { }
+                  } catch {}
                 }
-                if (!declaration || typeof declaration !== 'object') {
-                  return <div className="text-gray-500 text-center">Không có dữ liệu khai báo y tế.</div>;
+                if (!declaration || typeof declaration !== "object") {
+                  return (
+                    <div className="text-gray-500 text-center">
+                      Không có dữ liệu khai báo y tế.
+                    </div>
+                  );
                 }
                 return (
                   <ul className="space-y-3">
-                    {Object.entries(declaration).map(([question, answer], idx) => (
-                      <li key={idx} className="bg-white rounded shadow p-3 flex flex-col">
-                        <span className="font-medium text-gray-800 mb-1">{question}</span>
-                        <span className="text-blue-700 font-semibold">{answer}</span>
-                      </li>
-                    ))}
+                    {Object.entries(declaration).map(
+                      ([question, answer], idx) => (
+                        <li
+                          key={idx}
+                          className="bg-white rounded shadow p-3 flex flex-col"
+                        >
+                          <span className="font-medium text-gray-800 mb-1">
+                            {question}
+                          </span>
+                          <span className="text-blue-700 font-semibold">
+                            {answer}
+                          </span>
+                        </li>
+                      )
+                    )}
                   </ul>
                 );
               })()}
             </div>
-<div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-4">
               <button
                 className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
                 onClick={() => setShowDeclarationModal(false)}
@@ -592,14 +736,16 @@ if (!timeString) return "-";
       {showAddPatientModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
           <div className="bg-white p-6 rounded shadow-lg w-[400px]">
-            <h2 className="text-lg font-semibold mb-4 text-center text-blue-700">Thêm hồ sơ bệnh án</h2>
+            <h2 className="text-lg font-semibold mb-4 text-center text-blue-700">
+              Thêm hồ sơ bệnh án
+            </h2>
             <div className="mb-3">
               <label className="block mb-1 font-medium">Mô tả</label>
               <textarea
                 className="w-full border rounded p-2"
                 rows={3}
                 value={addPatientDescription}
-                onChange={e => setAddPatientDescription(e.target.value)}
+                onChange={(e) => setAddPatientDescription(e.target.value)}
                 placeholder="Nhập mô tả bệnh án..."
               />
             </div>
@@ -608,7 +754,7 @@ if (!timeString) return "-";
               <select
                 className="w-full border rounded p-2"
                 value={addPatientStatus}
-                onChange={e => setAddPatientStatus(e.target.value)}
+                onChange={(e) => setAddPatientStatus(e.target.value)}
               >
                 <option value="">-- Chọn trạng thái --</option>
                 <option value="Đang điều trị">Đang điều trị</option>
@@ -626,7 +772,11 @@ if (!timeString) return "-";
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded"
                 onClick={handleAddPatientSubmit}
-                disabled={addPatientLoading || !addPatientDescription || !addPatientStatus}
+                disabled={
+                  addPatientLoading ||
+                  !addPatientDescription ||
+                  !addPatientStatus
+                }
               >
                 {addPatientLoading ? "Đang lưu..." : "Lưu"}
               </button>
@@ -644,9 +794,9 @@ if (!timeString) return "-";
             <select
               className="w-full border rounded p-2 mb-4"
               value={pendingBloodType}
-              onChange={e => setPendingBloodType(e.target.value)}
+              onChange={(e) => setPendingBloodType(e.target.value)}
             >
-<option value="">-- Chọn nhóm máu --</option>
+              <option value="">-- Chọn nhóm máu --</option>
               <option value="A+">A+</option>
               <option value="A-">A-</option>
               <option value="B+">B+</option>
@@ -659,7 +809,11 @@ if (!timeString) return "-";
             <div className="flex justify-end gap-2">
               <button
                 className="px-4 py-2 bg-gray-300 rounded"
-                onClick={() => { setShowBloodTypePrompt(false); setPendingBloodType(""); setPendingAppointment(null); }}
+                onClick={() => {
+                  setShowBloodTypePrompt(false);
+                  setPendingBloodType("");
+                  setPendingAppointment(null);
+                }}
               >
                 Hủy
               </button>
@@ -679,12 +833,18 @@ if (!timeString) return "-";
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-lg font-semibold mb-4">
-              Bạn có chắc chắn xác nhận nhóm máu <span className="text-red-600">{pendingBloodType}</span> cho người này không?
+              Bạn có chắc chắn xác nhận nhóm máu{" "}
+              <span className="text-red-600">{pendingBloodType}</span> cho người
+              này không?
             </h2>
             <div className="flex justify-end gap-2">
               <button
                 className="px-4 py-2 bg-gray-300 rounded"
-                onClick={() => { setShowBloodTypeConfirm(false); setPendingBloodType(""); setPendingAppointment(null); }}
+                onClick={() => {
+                  setShowBloodTypeConfirm(false);
+                  setPendingBloodType("");
+                  setPendingAppointment(null);
+                }}
               >
                 Hủy
               </button>
@@ -702,23 +862,25 @@ if (!timeString) return "-";
       {showEditPatientModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
           <div className="bg-white p-6 rounded shadow-lg w-[400px]">
-            <h2 className="text-lg font-semibold mb-4 text-center text-blue-700">Chỉnh sửa hồ sơ bệnh án</h2>
+            <h2 className="text-lg font-semibold mb-4 text-center text-blue-700">
+              Chỉnh sửa hồ sơ bệnh án
+            </h2>
             <div className="mb-3">
               <label className="block mb-1 font-medium">Mô tả</label>
               <textarea
                 className="w-full border rounded p-2"
                 rows={3}
                 value={editPatientDescription}
-                onChange={e => setEditPatientDescription(e.target.value)}
+                onChange={(e) => setEditPatientDescription(e.target.value)}
                 placeholder="Nhập mô tả bệnh án..."
               />
             </div>
             <div className="mb-4">
-<label className="block mb-1 font-medium">Trạng thái</label>
+              <label className="block mb-1 font-medium">Trạng thái</label>
               <select
                 className="w-full border rounded p-2"
                 value={editPatientStatus}
-                onChange={e => setEditPatientStatus(e.target.value)}
+                onChange={(e) => setEditPatientStatus(e.target.value)}
               >
                 <option value="">-- Chọn trạng thái --</option>
                 <option value="Đang điều trị">Đang điều trị</option>
@@ -736,7 +898,11 @@ if (!timeString) return "-";
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded"
                 onClick={handleEditPatientSubmit}
-                disabled={editPatientLoading || !editPatientDescription || !editPatientStatus}
+                disabled={
+                  editPatientLoading ||
+                  !editPatientDescription ||
+                  !editPatientStatus
+                }
               >
                 {editPatientLoading ? "Đang lưu..." : "Lưu"}
               </button>
