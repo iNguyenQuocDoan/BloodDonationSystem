@@ -1,16 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, useNavigate, Link } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import useApi from "../../hooks/useApi";
+import "./header.css";
 
 /* -----------------------------------------------------------
  * 1. Tiện ích dựng sẵn class cho <NavLink>
  * --------------------------------------------------------- */
 const navItemClass = ({ isActive }) =>
   [
-    "px-3 py-2 rounded-md transition-colors duration-200 font-medium border-b-2 border-b-transparent",
+    "px-3 py-2 rounded-md transition-colors duration-200 font-medium border-b-2 border-b-transparent whitespace-nowrap",
     isActive
       ? "border-b-red-500 text-[#D32F2F] bg-[#FDE8E8]"
-      : "text-black hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40",
+      : "text-gray-700 hover:text-red-500 hover:border-b-red-500 hover:bg-gray-100/40",
   ].join(" ");
 
 export default function Header() {
@@ -18,7 +19,6 @@ export default function Header() {
   const [dropdown, setDropdown] = useState(false);
   const [user, setUser] = useState(null);
   const dropdownRef = useRef(null);
-  const navigate = useNavigate();
 
   const isLoggedIn = !!localStorage.getItem("isLoggedIn");
   const { getCurrentUser, logout } = useApi();
@@ -54,27 +54,28 @@ export default function Header() {
    * 4. JSX
    * --------------------------------------------------------- */
   return (
-    <header className="w-full bg-white shadow">
-      <div className="max-w-screen-xl mx-auto w-full px-1 sm:px-2 md:px-4">
-        <div className="flex justify-between items-center py-2 md:py-3">
-          {/* Logo */}
+    <header className="w-full bg-white shadow-md sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+        <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
+          {/* Logo - Responsive với text ẩn trên mobile */}
           <NavLink
             to="/"
-            className="font-[900] flex items-center text-[#D32F2F] xl:text-[31px] lg:text-[27px] md:text-[22px] sm:text-[18px] text-[15px] min-w-[80px]"
+            className="font-bold flex items-center text-[#D32F2F] hover:text-[#B71C1C] transition-colors duration-200 flex-shrink-0"
           >
             <img
               src="/image.png"
               alt="DaiVietBlood"
-              className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 object-contain mr-1 sm:mr-2"
+              className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 object-contain"
             />
-            <span className="ml-1 xl:text-[31px] lg:text-[27px] md:text-[22px] sm:text-[18px] text-[15px]">
+            {/* Text logo ẩn trên mobile, hiện từ xs trở lên */}
+            <span className="logo-text ml-2 text-lg sm:text-xl md:text-2xl lg:text-3xl font-black truncate">
               DaiVietBlood
             </span>
           </NavLink>
 
           {/* ----- NAVBAR DESKTOP (căn giữa) ----- */}
           <nav className="hidden md:flex flex-1 justify-center">
-            <ul className="flex xl:gap-x-[24px] lg:gap-x-[15px] md:gap-x-[10px] sm:gap-x-[8px] gap-x-[6px] xl:text-[20px] lg:text-[19px] md:text-[15px] sm:text-[12px] text-[11px]">
+            <ul className="flex xl:gap-x-8 lg:gap-x-6 md:gap-x-4 items-center xl:text-base lg:text-sm md:text-xs">
               <li>
                 <NavLink to="/" end className={navItemClass}>
                   Trang chủ
@@ -82,12 +83,8 @@ export default function Header() {
               </li>
               <li>
                 <NavLink to="/blood-type-info" className={navItemClass}>
-                  Thông tin nhóm máu
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/faq" className={navItemClass}>
-                  FAQ
+                  <span className="nav-text-full">Thông tin nhóm máu</span>
+                  <span className="nav-text-short">Nhóm máu</span>
                 </NavLink>
               </li>
               <li>
@@ -104,7 +101,7 @@ export default function Header() {
           </nav>
 
           {/* ----- AVATAR / AUTH DESKTOP ----- */}
-          <div className="hidden md:flex items-center gap-1 xl:text-[20px] lg:text-[19px] md:text-[14px] sm:text-[12px] text-[11px]">
+          <div className="hidden md:flex items-center gap-2 text-sm lg:text-base">
             {isLoggedIn && role === "member" ? (
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -112,7 +109,7 @@ export default function Header() {
                   className="w-10 h-10 rounded-full bg-[#D32F2F] text-white flex items-center justify-center hover:bg-[#B71C1C] transition-colors duration-200"
                 >
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 md:w-6 md:h-6"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg"
@@ -126,12 +123,12 @@ export default function Header() {
                 </button>
 
                 {dropdown && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50">
-                    <ul className="py-2 text-[14px]">
+                  <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+                    <ul className="py-2 text-sm">
                       <li>
                         <NavLink
                           to="/profile"
-                          className="block px-4 py-2 hover:bg-gray-100"
+                          className="block px-4 py-2 hover:bg-gray-100 transition-colors"
                           onClick={() => setDropdown(false)}
                         >
                           Cập nhật trang cá nhân
@@ -140,7 +137,7 @@ export default function Header() {
                       <li>
                         <button
                           onClick={logout}
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F]"
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-[#D32F2F] transition-colors"
                         >
                           Đăng xuất
                         </button>
@@ -154,8 +151,10 @@ export default function Header() {
                 <NavLink to="/login" className={navItemClass}>
                   Đăng nhập
                 </NavLink>
-                <div className="ml-2 bg-[#D32F2F] text-white rounded-[3px] md:px-[12px] px-[8px] py-[1px]">
-                  <NavLink to="/register">Đăng kí</NavLink>
+                <div className="bg-[#D32F2F] text-white rounded-md px-3 py-2 hover:bg-[#B71C1C] transition-colors">
+                  <NavLink to="/register" className="text-white">
+                    Đăng ký
+                  </NavLink>
                 </div>
               </>
             )}
@@ -163,17 +162,19 @@ export default function Header() {
 
           {/* ----- BURGER ICON (MOBILE) ----- */}
           <button
-            className="md:hidden text-[#D32F2F] text-2xl p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F]"
+            className={`hamburger-btn md:hidden text-[#D32F2F] flex items-center justify-center rounded focus:outline-none focus:ring-2 focus:ring-[#D32F2F] ${
+              isOpen ? "active" : ""
+            }`}
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Mở menu"
           >
-            <span className="sr-only">Mở menu</span>☰
+            <span className="text-2xl">☰</span>
           </button>
         </div>
 
         {/* ----- MENU MOBILE ----- */}
         {isOpen && (
-          <nav className="md:hidden bg-white border-t animate-fade-in-down">
+          <nav className="mobile-menu md:hidden bg-white border-t">
             <ul className="flex flex-col px-4 py-3 gap-y-2 text-[15px]">
               {[
                 { to: "/", label: "Trang chủ", exact: true },
@@ -189,7 +190,7 @@ export default function Header() {
                     onClick={() => setIsOpen(false)}
                     className={({ isActive }) =>
                       [
-                        "block rounded-md px-3 py-2 font-medium transition-colors duration-150",
+                        "mobile-nav-item block rounded-md px-3 py-2 font-medium transition-colors duration-150",
                         isActive
                           ? "bg-[#D32F2F]/10 text-[#D32F2F] border-b-2 border-b-red-500"
                           : "hover:bg-gray-100/40",
