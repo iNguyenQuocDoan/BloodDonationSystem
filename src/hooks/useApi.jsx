@@ -72,6 +72,32 @@ const useApi = () => {
     [clearAuthData]
   );
 
+  const fetchEmailApi = useCallback(
+    async (endpoint, options = {}) => {
+      const url = `${endpoint}`; // Không có BASE_URL
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          },
+          ...options
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Gửi mail thất bại");
+        return data;
+      } catch (err) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
   // Auth APIs
   const login = useCallback(
     async (credentials) => {
@@ -375,10 +401,11 @@ const useApi = () => {
   }, [callApi]);
 
   const sendRecoveryReminderEmail = useCallback(async (donorEmail, donorName) => {
-    return callApi(`/sendRecoveryReminderEmail/${donorEmail}/${donorName}`, {
-      method: "POST"
-    });
-  }, [callApi]);
+    return fetchEmailApi(
+      `/email/sendRecoveryReminderEmail/${donorEmail}/${donorName}`,
+      { method: "POST" }
+    );
+  }, [fetchEmailApi]);
 
   const getAllBloodUnit = useCallback(async () => {
     return callApi("/getAllBloodUnit");
@@ -396,6 +423,26 @@ const useApi = () => {
     return callApi(`/updateBloodUnit/${BloodUnit_ID}`, {
       method: "PUT",
       body: JSON.stringify({ Status, Expiration_Date }),
+      headers: { "Content-Type": "application/json" }
+    });
+  }, [callApi]);
+
+  const addPotential = async (userId, note = "") => {
+    return callApi(`/potential/${userId}`, {
+      method: "POST",
+      body: JSON.stringify({ Note: note }),
+      headers: { "Content-Type": "application/json" }
+    });
+  };
+
+  const getApprovedPotentialList = useCallback(async () => {
+    return callApi("/potential");
+  }, [callApi]);
+
+  const updatePotentialStatus = useCallback(async (potentialId, Status) => {
+    return callApi(`/potential/${potentialId}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ Status }),
       headers: { "Content-Type": "application/json" }
     });
   }, [callApi]);
@@ -453,7 +500,10 @@ const useApi = () => {
     sendRecoveryReminderEmail,
     getAllBloodUnit,
     createBloodUnit,
-    updateBloodUnit
+    updateBloodUnit,
+    addPotential,
+    getApprovedPotentialList,
+    updatePotentialStatus
   };
 };
 

@@ -9,7 +9,7 @@ const EditBloodPage = () => {
     getSlotList,
     loading,
     addAppointmentVolume,
-    updateStatusAppointmentByStaff, sendRecoveryReminderEmail,
+    updateStatusAppointmentByStaff, sendRecoveryReminderEmail
   } = useApi();
   const [appointments, setAppointments] = useState([]);
   const [slotList, setSlotList] = useState([]);
@@ -150,11 +150,35 @@ const EditBloodPage = () => {
 
             // Gửi mail nhắc nhở phục hồi
             if (donorEmail && donorName) {
-                try {
-                    await sendRecoveryReminderEmail(donorEmail, donorName);
-                } catch (mailErr) {
-                    console.error("Gửi mail nhắc nhở phục hồi thất bại:", mailErr);
-                }
+              let swalLoading;
+              try {
+                swalLoading = Swal.fire({
+                  title: "Đang gửi email nhắc nhở...",
+                  text: "Vui lòng chờ trong giây lát.",
+                  allowOutsideClick: false,
+                  allowEscapeKey: false,
+                  didOpen: () => {
+                    Swal.showLoading();
+                  }
+                });
+                await sendRecoveryReminderEmail(donorEmail, donorName);
+                Swal.close();
+                await Swal.fire({
+                  icon: "success",
+                  title: "Đã gửi email nhắc nhở phục hồi!",
+                  showConfirmButton: false,
+                  timer: 1200
+                });
+              } catch (mailErr) {
+                Swal.close();
+                console.error("Gửi mail nhắc nhở phục hồi thất bại:", mailErr);
+                await Swal.fire({
+                  icon: "error",
+                  title: "Gửi email thất bại!",
+                  text: "Không thể gửi email nhắc nhở phục hồi. Vui lòng thử lại.",
+                  confirmButtonColor: "#dc2626"
+                });
+              }
             }
 
       // Cập nhật lại appointment trong state để hiển thị volume đã lưu

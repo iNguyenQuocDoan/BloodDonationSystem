@@ -10,7 +10,16 @@ const bloodTypeMapping = {
 const bloodTypes = Object.keys(bloodTypeMapping);
 
 const RoleManagement = () => {
-  const { getAllUsers, banUser, unbanUser, createStaffAccount } = useApi();
+  const {
+    getAllUsers,
+    banUser,
+    unbanUser,
+    createStaffAccount,
+    addPotential,
+    getApprovedPotentialList,
+    updatePotentialStatus,
+  } = useApi();
+
   const [staffs, setStaffs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -31,6 +40,22 @@ const RoleManagement = () => {
   const [creating, setCreating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Potential
+  const [potentialList, setPotentialList] = useState([]);
+  const [showPotentialPopup, setShowPotentialPopup] = useState(false);
+  const [potentialLoading, setPotentialLoading] = useState(false);
+
+  // Thêm state để lưu danh sách User_ID của người tiềm năng đã approved
+  const [potentialUserIds, setPotentialUserIds] = useState([]);
+  const [noteInput, setNoteInput] = useState(""); // Thêm state cho Note
+
+  // Thêm state cho popup nhập Note
+  const [showNotePopup, setShowNotePopup] = useState(false);
+  const [pendingPotentialUserId, setPendingPotentialUserId] = useState(null);
+
+  // State cho popup xem chi tiết user
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchStaffs = async () => {
     setLoading(true);
@@ -92,15 +117,15 @@ const RoleManagement = () => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     const age = today.getFullYear() - birthDate.getFullYear();
-const monthDiff = today.getMonth() - birthDate.getMonth();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
     const actualAge =
       monthDiff < 0 ||
       (monthDiff === 0 && today.getDate() < birthDate.getDate())
         ? age - 1
         : age;
     if (actualAge < 18 || actualAge > 60) {
-    return "Phải nhập trên 18 tuổi"; 
-  }
+      return "Phải nhập trên 18 tuổi";
+    }
     return "";
   };
 
@@ -167,16 +192,67 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
     }
   };
 
+  // --- Potential logic ---
+  const handleAddPotential = (userId) => {
+    setPendingPotentialUserId(userId);
+    setNoteInput("");
+    setShowNotePopup(true);
+  };
+
+  const handleConfirmAddPotential = async () => {
+    try {
+      await addPotential(pendingPotentialUserId, noteInput);
+      toast.success("Đã thêm vào danh sách người tiềm năng!");
+      setShowNotePopup(false);
+      setPendingPotentialUserId(null);
+      setNoteInput("");
+      handleShowPotentialList(); // Cập nhật lại danh sách tiềm năng nếu cần
+    } catch (err) {
+      toast.error(err.message || "Thêm thất bại!");
+    }
+  };
+
+  const handleShowPotentialList = async () => {
+    setPotentialLoading(true);
+    try {
+      const res = await getApprovedPotentialList();
+      setPotentialList(res.data || []);
+      // Lưu mảng User_ID của người tiềm năng đã approved
+      setPotentialUserIds((res.data || []).map(item => item.User_ID));
+      setShowPotentialPopup(true);
+    } catch (err) {
+      toast.error("Không lấy được danh sách người tiềm năng!");
+    }
+    setPotentialLoading(false);
+  };
+
+  const handleUpdatePotentialStatus = async (potentialId, status) => {
+    try {
+      await updatePotentialStatus(potentialId, status);
+      toast.success("Cập nhật trạng thái thành công!");
+      handleShowPotentialList();
+    } catch (err) {
+      toast.error("Cập nhật thất bại!");
+    }
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen p-6">
-      <h2 className="text-2xl font-extrabold text-[#D32F2F] mb-6 text-center">Quản lý tài khoản Staff</h2>
-      <button
-        className="mb-4 px-6 py-2.5 bg-[#D32F2F] text-white rounded-lg font-semibold shadow-md hover:bg-red-700 transition-all duration-200 flex items-center gap-2"
-        onClick={() => setShowCreateModal(true)}
-      >
-        <span className="text-lg">+</span> Tạo tài khoản staff
-      </button>
-
+      <h2 className="text-2xl font-extrabold text-[#D32F2F] mb-6 text-center">Quản lý tài khoản</h2>
+      <div className="flex justify-between items-center mb-4 max-w-6xl mx-auto">
+        <button
+          className="px-6 py-2.5 bg-[#D32F2F] text-white rounded-lg font-semibold shadow-md hover:bg-red-700 transition-all duration-200 flex items-center gap-2"
+          onClick={() => setShowCreateModal(true)}
+        >
+          <span className="text-lg">+</span> Tạo tài khoản staff
+        </button>
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-800 transition"
+          onClick={handleShowPotentialList}
+        >
+          Xem danh sách tiềm năng
+        </button>
+      </div>
       <div className="flex justify-center">
         <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl p-4 mt-6 overflow-x-auto">
           <table className="min-w-full border-separate border-spacing-y-1">
@@ -184,11 +260,7 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
               <tr className="bg-red-50">
                 <th className="py-3 px-4 text-left font-semibold text-[#D32F2F] rounded-tl-xl">Tên</th>
                 <th className="py-3 px-4 text-left font-semibold text-[#D32F2F]">Email</th>
-                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">SĐT</th>
-                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">Giới tính</th>
-                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">Năm sinh</th>
                 <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">Vai trò</th>
-                <th className="py-3 px-4 text-center font-semibold text-[#D32F2F]">Loại máu</th>
                 <th className="py-3 px-4 text-center font-semibold text-[#D32F2F] min-w-[120px]">Trạng thái</th>
                 <th className="py-3 px-4 text-center font-semibold text-[#D32F2F] rounded-tr-xl">Hành động</th>
               </tr>
@@ -196,7 +268,7 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-8 text-gray-500">
+                  <td colSpan={5} className="text-center py-8 text-gray-500">
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D32F2F]"></div>
                       <span className="ml-2">Đang tải...</span>
@@ -205,7 +277,7 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
                 </tr>
               ) : staffs.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-8 text-gray-500">Không có staff nào.</td>
+                  <td colSpan={5} className="text-center py-8 text-gray-500">Không có staff nào.</td>
                 </tr>
               ) : (
                 staffs.map((user, idx) => (
@@ -213,23 +285,26 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
                     key={user.User_ID}
                     className={`transition-all duration-200 ${idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-red-50`}
                   >
-                    <td className="py-3 px-4 font-medium">{user.User_Name}</td>
-                    <td className="py-3 px-4">{user.Email}</td>
-                    <td className="py-3 px-4 text-center">{user.Phone}</td>
-                    <td className="py-3 px-4 text-center">{user.Gender === "M" ? "Nam" : user.Gender === "F" ? "Nữ" : "—"}</td>
-                    <td className="py-3 px-4 text-center">
-                      {user.YOB
-                        ? (() => {
-                            const date = new Date(user.YOB);
-                            const day = String(date.getDate()).padStart(2, "0");
-                            const month = String(date.getMonth() + 1).padStart(2, "0");
-                            const year = date.getFullYear();
-                            return `${day}/${month}/${year}`;
-                          })()
-                        : "—"}
+                    <td className="py-3 px-4 font-medium">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-blue-700 hover:underline font-semibold cursor-pointer"
+                          onClick={() => setSelectedUser(user)}
+                        >
+                          {user.User_Name}
+                        </span>
+                        <button
+                          className="text-gray-500 hover:text-blue-600"
+                          title="Xem chi tiết"
+                          onClick={() => setSelectedUser(user)}
+                          tabIndex={-1}
+                        >
+                          <AiOutlineEye className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
+                    <td className="py-3 px-4">{user.Email}</td>
                     <td className="py-3 px-4 text-center">{user.User_Role === "staff" ? "Nhân viên" : "Thành viên"}</td>
-                    <td className="py-3 px-4 text-center">{user.BloodGroup || "—"}</td>
                     <td className="py-3 px-4 text-center align-middle">
                       {user.isDelete === "1" || user.isDelete === true ? (
                         <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 w-28">
@@ -242,21 +317,37 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
                       )}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      {user.isDelete === "1" || user.isDelete === true ? (
-                        <button
-                          onClick={() => handleBan(user.User_ID)}
-                          className="px-4 py-1.5 bg-red-500 text-white text-sm rounded-full font-medium hover:bg-red-600 transition-all duration-200 shadow-sm"
-                        >
-                          Khóa
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleUnban(user.User_ID)}
-                          className="px-4 py-1.5 bg-[#D32F2F] text-white text-sm rounded-full font-medium hover:bg-red-700 transition-all duration-200 shadow-sm"
-                        >
-                          Mở khóa
-                        </button>
-                      )}
+                      <div className="flex flex-row gap-2 justify-center items-center">
+                        {user.isDelete === "1" || user.isDelete === true ? (
+                          <button
+                            onClick={() => handleBan(user.User_ID)}
+                            className="px-4 py-1 bg-red-500 text-white text-xs rounded-full font-semibold hover:bg-red-600 transition-all duration-200 shadow-sm"
+                          >
+                            Khóa
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleUnban(user.User_ID)}
+                            className="px-4 py-1 bg-[#D32F2F] text-white text-xs rounded-full font-semibold hover:bg-red-700 transition-all duration-200 shadow-sm"
+                          >
+                            Mở khóa
+                          </button>
+                        )}
+                        {user.User_Role === "member" && (
+                          <button
+                            className={`px-4 py-1 text-xs rounded-full font-semibold transition-all duration-200
+                              ${potentialUserIds.includes(user.User_ID)
+                                ? "bg-gray-300 text-gray-400 cursor-not-allowed opacity-60"
+                                : "bg-blue-500 text-white hover:bg-blue-700"}
+                            `}
+                            onClick={() => handleAddPotential(user.User_ID)}
+                            disabled={potentialUserIds.includes(user.User_ID)}
+                            style={{ minWidth: 110 }}
+                          >
+                            + Tiềm năng
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -265,6 +356,44 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
           </table>
         </div>
       </div>
+
+      {/* Popup xem chi tiết user */}
+      {selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-[350px] max-w-full relative border-2 border-blue-300">
+            <h3 className="text-lg font-bold text-blue-700 mb-4">Thông tin người dùng</h3>
+            <div className="space-y-2 text-gray-700">
+              <div><b>Tên:</b> {selectedUser.User_Name}</div>
+              <div><b>Email:</b> {selectedUser.Email}</div>
+              <div><b>Số điện thoại:</b> {selectedUser.Phone || "—"}</div>
+              <div>
+                <b>Giới tính:</b> {selectedUser.Gender === "M" ? "Nam" : selectedUser.Gender === "F" ? "Nữ" : "—"}
+              </div>
+              <div>
+                <b>Năm sinh:</b> {selectedUser.YOB
+                  ? (() => {
+                      const date = new Date(selectedUser.YOB);
+                      const day = String(date.getDate()).padStart(2, "0");
+                      const month = String(date.getMonth() + 1).padStart(2, "0");
+                      const year = date.getFullYear();
+                      return `${day}/${month}/${year}`;
+                    })()
+                  : "—"}
+              </div>
+              <div><b>Vai trò:</b> {selectedUser.User_Role === "staff" ? "Nhân viên" : "Thành viên"}</div>
+              <div><b>Loại máu:</b> {selectedUser.BloodGroup || "—"}</div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <button
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold"
+                onClick={() => setSelectedUser(null)}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal tạo staff */}
       {showCreateModal && (
@@ -316,7 +445,7 @@ const monthDiff = today.getMonth() - birthDate.getMonth();
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirm_password"
-value={form.confirm_password}
+                    value={form.confirm_password}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded ${errors.confirm_password ? "border-red-500" : "border-gray-300"}`}
                     required
@@ -377,7 +506,7 @@ value={form.confirm_password}
                   required
                 />
                 <p className="text-gray-500 text-xs mt-1">Độ tuổi: từ 18 đến 60</p>
-{errors.date_of_birth && <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>}
+                {errors.date_of_birth && <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>}
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button
@@ -427,6 +556,102 @@ value={form.confirm_password}
                     ? "bg-red-500 hover:bg-red-600"
                     : "bg-[#D32F2F] hover:bg-red-700"
                 }`}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup danh sách người tiềm năng */}
+      {showPotentialPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[700px] max-w-3xl w-full relative border-2 border-blue-300">
+            <h2 className="text-xl font-bold text-blue-700 mb-4">Danh sách người tiềm năng</h2>
+            {potentialLoading ? (
+              <div className="text-center py-8 text-lg text-gray-500">Đang tải...</div>
+            ) : (
+              <table className="min-w-full text-base mb-4 rounded-xl overflow-hidden shadow">
+                <thead>
+                  <tr className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700">
+                    <th className="py-2 px-4 text-center">Tên</th>
+                    <th className="py-2 px-4 text-center">Email</th>
+                    <th className="py-2 px-4 text-center">Trạng thái</th>
+                    <th className="py-2 px-4 text-center">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {potentialList.map((item) => (
+                    <tr key={item.Potential_ID} className="hover:bg-blue-50 transition text-center">
+                      <td className="font-semibold text-gray-800 py-2 px-4">{item.User_Name}</td>
+                      <td className="py-2 px-4">{item.Email}</td>
+                      <td className="py-2 px-4">
+                        <span className={
+                          item.Status === "Approved" ? "text-green-600 font-semibold" :
+                          item.Status === "Rejected" ? "text-red-600 font-semibold" :
+                          "text-gray-600"
+                        }>
+                          {item.Status === "Approved" && "Đang hoạt động"}
+                          {item.Status === "Rejected" && "Đã bị vô hiệu hóa"}
+                        </span>
+                      </td>
+                      <td className="py-2 px-4">
+                        {item.Status === "Approved" ? (
+                          <button
+                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700"
+                            onClick={() => handleUpdatePotentialStatus(item.Potential_ID, "Rejected")}
+                          >
+                            Khóa
+                          </button>
+                        ) : (
+                          <button
+                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-800"
+                            onClick={() => handleUpdatePotentialStatus(item.Potential_ID, "Approved")}
+                          >
+                            Mở khóa
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <div className="flex justify-end mt-4">
+              <button
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold"
+                onClick={() => setShowPotentialPopup(false)}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup nhập Note khi thêm người tiềm năng */}
+      {showNotePopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-[350px] max-w-full relative border-2 border-blue-300">
+            <h3 className="text-lg font-bold text-blue-700 mb-4">Nhập ghi chú cho người tiềm năng</h3>
+            <textarea
+              className="w-full border rounded px-3 py-2 mb-4"
+              placeholder="Nhập ghi chú (Note)..."
+              value={noteInput}
+              onChange={e => setNoteInput(e.target.value)}
+              rows={4}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded font-semibold"
+                onClick={() => { setShowNotePopup(false); setPendingPotentialUserId(null); }}
+              >
+                Hủy
+              </button>
+              <button
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+                onClick={handleConfirmAddPotential}
               >
                 Xác nhận
               </button>
