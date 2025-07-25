@@ -344,7 +344,7 @@ const useApi = () => {
 
     return callApi(`/patientDetail/latest/${userId}`, {
     })
-  },[callApi]);
+  }, [callApi]);
 
   const getBloodBank = useCallback(async () => {
     return callApi(`/getBloodBank`);
@@ -371,6 +371,32 @@ const useApi = () => {
       method: "PUT",
       body: JSON.stringify(reportData),
       headers: { "Content-Type": "application/json" },
+    });
+  }, [callApi]);
+
+  const sendRecoveryReminderEmail = useCallback(async (donorEmail, donorName) => {
+    return callApi(`/sendRecoveryReminderEmail/${donorEmail}/${donorName}`, {
+      method: "POST"
+    });
+  }, [callApi]);
+
+  const getAllBloodUnit = useCallback(async () => {
+    return callApi("/getAllBloodUnit");
+  }, [callApi]);
+
+  const createBloodUnit = useCallback(async (BloodType_ID, Volume, Expiration_Date) => {
+    return callApi("/createBloodUnit", {
+      method: "POST",
+      body: JSON.stringify({ BloodType_ID, Volume, Expiration_Date }),
+      headers: { "Content-Type": "application/json" }
+    });
+  }, [callApi]);
+
+  const updateBloodUnit = useCallback(async (BloodUnit_ID, Status, Expiration_Date) => {
+    return callApi(`/updateBloodUnit/${BloodUnit_ID}`, {
+      method: "PUT",
+      body: JSON.stringify({ Status, Expiration_Date }),
+      headers: { "Content-Type": "application/json" }
     });
   }, [callApi]);
 
@@ -423,7 +449,11 @@ const useApi = () => {
     getAllPatientHistoryByMember,
     createReport,
     getLatestReport,
-    updateReport
+    updateReport,
+    sendRecoveryReminderEmail,
+    getAllBloodUnit,
+    createBloodUnit,
+    updateBloodUnit
   };
 };
 

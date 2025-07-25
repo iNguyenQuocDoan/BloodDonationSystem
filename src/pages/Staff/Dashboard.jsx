@@ -33,6 +33,12 @@ ChartJS.register(
   Legend
 );
 
+const bloodTypeMapping = {
+  "A+": "BT001", "A-": "BT002", "B+": "BT003", "B-": "BT004",
+  "AB+": "BT005", "AB-": "BT006", "O+": "BT007", "O-": "BT008"
+};
+const bloodTypeList = Object.keys(bloodTypeMapping);
+
 export default function DashboardPage() {
   const {
     loading,
@@ -43,6 +49,9 @@ export default function DashboardPage() {
     createReport,
     getLatestReport,
     updateReport,
+    getAllBloodUnit,
+    createBloodUnit,
+    updateBloodUnit,
   } = useApi();
 
   // State cho thống kê
@@ -51,7 +60,7 @@ export default function DashboardPage() {
   const [stock, setStock] = useState([]);
   const [bySite, setBySite] = useState([]);
 
-  // State cho popup modal
+  // State cho popup modal báo cáo
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // "create" | "edit"
   const [modalData, setModalData] = useState({
@@ -65,6 +74,13 @@ export default function DashboardPage() {
   });
   const [modalError, setModalError] = useState("");
   const [modalConfirm, setModalConfirm] = useState(false);
+
+  // State cho popup quản lý lô máu
+  const [showBloodUnitModal, setShowBloodUnitModal] = useState(false);
+  const [bloodUnits, setBloodUnits] = useState([]);
+  const [showCreateBloodUnit, setShowCreateBloodUnit] = useState(false);
+  const [newBloodUnit, setNewBloodUnit] = useState({ BloodType: "", Volume: "", Expiration_Date: "" });
+  const [editBloodUnit, setEditBloodUnit] = useState(null);
 
   // Fetch thống kê
   useEffect(() => {
@@ -195,6 +211,59 @@ export default function DashboardPage() {
     } catch (err) {
       toast.error(err.message || "Có lỗi xảy ra!");
       setModalConfirm(false);
+    }
+  };
+
+  // Quản lý lô máu
+  const fetchBloodUnits = async () => {
+    try {
+      const res = await getAllBloodUnit();
+      setBloodUnits(res.data || []);
+    } catch (err) {
+      toast.error(err?.message || "Không lấy được danh sách lô máu!");
+    }
+  };
+
+  const handleShowBloodUnits = async () => {
+    await fetchBloodUnits();
+    setShowBloodUnitModal(true);
+  };
+
+  const handleCreateBloodUnit = async () => {
+    const { BloodType, Volume, Expiration_Date } = newBloodUnit;
+    if (!BloodType || !Volume || !Expiration_Date) {
+      toast.error("Vui lòng nhập đủ thông tin!");
+      return;
+    }
+    const BloodType_ID = bloodTypeMapping[BloodType];
+    if (!BloodType_ID) {
+      toast.error("Nhóm máu không hợp lệ!");
+      return;
+    }
+    try {
+      await createBloodUnit(BloodType_ID, Number(Volume), Expiration_Date);
+      toast.success("Tạo lô máu thành công!");
+      setShowCreateBloodUnit(false);
+      setNewBloodUnit({ BloodType: "", Volume: "", Expiration_Date: "" });
+      await fetchBloodUnits();
+    } catch (err) {
+      toast.error(err?.message || "Tạo lô máu thất bại!");
+    }
+  };
+
+  const handleUpdateBloodUnit = async () => {
+    const { BloodUnit_ID, Status, Expiration_Date } = editBloodUnit;
+    if (!Status && !Expiration_Date) {
+      toast.error("Cần nhập Status hoặc Expiration_Date!");
+      return;
+    }
+    try {
+      await updateBloodUnit(BloodUnit_ID, Status, Expiration_Date);
+      toast.success("Cập nhật thành công!");
+      setEditBloodUnit(null);
+      await fetchBloodUnits();
+    } catch (err) {
+      toast.error(err?.message || "Cập nhật thất bại!");
     }
   };
 
@@ -405,9 +474,17 @@ export default function DashboardPage() {
 
         {/* Stock Distribution */}
         <div className="bg-white p-6 shadow rounded-lg">
-          <h2 className="text-lg font-semibold mb-4">
-            Phân bố nhóm máu trong kho
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">
+              Phân bố nhóm máu trong kho
+            </h2>
+            <button
+              className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+              onClick={handleShowBloodUnits}
+            >
+              Quản lý lô máu
+            </button>
+          </div>
           {stock.length ? (
             <Pie data={pieData} />
           ) : (
@@ -425,6 +502,153 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Popup quản lý lô máu */}
+      {showBloodUnitModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-[600px] max-w-full shadow-lg relative">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl"
+              onClick={() => setShowBloodUnitModal(false)}
+            >×</button>
+            <h2 className="text-xl font-bold mb-4 text-center">Quản lý lô máu</h2>
+            <button
+              className="mb-3 bg-green-600 text-white px-4 py-2 rounded"
+              onClick={() => setShowCreateBloodUnit(true)}
+            >
+              + Tạo lô máu mới
+            </button>
+            <table className="min-w-full text-sm mb-4 rounded-xl overflow-hidden shadow">
+              <thead>
+                <tr className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700">
+                  <th>ID</th>
+                  <th>Nhóm máu</th>
+                  <th>Lượng máu</th>
+                  <th>Ngày thu</th>
+                  <th>Hạn dùng</th>
+                  <th>Trạng thái</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {bloodUnits.map((item, idx) => (
+                  <tr key={item.BloodUnit_ID} className="hover:bg-pink-50 transition">
+                    <td>{item.BloodUnit_ID}</td>
+                    <td>{item.BloodGroup}</td>
+                    <td>{item.Volume}</td>
+                    <td>{item.Collected_Date?.slice(0,10)}</td>
+                    <td>{item.Expiration_Date?.slice(0,10)}</td>
+                    <td>{item.Status}</td>
+                    <td>
+                      <button
+                        className="text-blue-600 underline"
+                        onClick={() => setEditBloodUnit({
+                          BloodUnit_ID: item.BloodUnit_ID,
+                          Status: item.Status,
+                          Expiration_Date: item.Expiration_Date?.slice(0,10) || ""
+                        })}
+                      >
+                        Sửa
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Popup tạo lô máu */}
+            {showCreateBloodUnit && (
+              <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-60">
+                <div className="bg-white rounded-lg p-6 w-[340px] shadow-lg relative">
+                  <button
+                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl"
+                    onClick={() => setShowCreateBloodUnit(false)}
+                  >×</button>
+                  <h3 className="font-bold mb-3">Tạo lô máu mới</h3>
+                  <div className="flex flex-col gap-2">
+                    <label>
+                      Nhóm máu
+                      <select
+                        className="border rounded px-2 py-1 w-full"
+                        value={newBloodUnit.BloodType}
+                        onChange={e => setNewBloodUnit({ ...newBloodUnit, BloodType: e.target.value })}
+                      >
+                        <option value="">Chọn nhóm máu</option>
+                        {bloodTypeList.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Lượng máu (ml)
+                      <input
+                        className="border rounded px-2 py-1 w-full"
+                        type="number"
+                        value={newBloodUnit.Volume}
+                        onChange={e => setNewBloodUnit({ ...newBloodUnit, Volume: e.target.value })}
+                        placeholder="Nhập lượng máu"
+                      />
+                    </label>
+                    <label>
+                      Hạn dùng
+                      <input
+                        className="border rounded px-2 py-1 w-full"
+                        type="date"
+                        value={newBloodUnit.Expiration_Date}
+                        onChange={e => setNewBloodUnit({ ...newBloodUnit, Expiration_Date: e.target.value })}
+                      />
+                    </label>
+                    <button
+                      className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                      onClick={handleCreateBloodUnit}
+                    >
+                      Tạo
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* Popup sửa lô máu */}
+            {editBloodUnit && (
+              <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-60">
+                <div className="bg-white rounded-lg p-6 w-[340px] shadow-lg relative">
+                  <button
+                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl"
+                    onClick={() => setEditBloodUnit(null)}
+                  >×</button>
+                  <h3 className="font-bold mb-3">Cập nhật lô máu</h3>
+                  <div className="flex flex-col gap-2">
+                    <label>
+                      Trạng thái
+                      <input
+                        className="border rounded px-2 py-1 w-full"
+                        value={editBloodUnit.Status}
+                        onChange={e => setEditBloodUnit({ ...editBloodUnit, Status: e.target.value })}
+                        placeholder="Status"
+                      />
+                    </label>
+                    <label>
+                      Hạn dùng
+                      <input
+                        className="border rounded px-2 py-1 w-full"
+                        type="date"
+                        value={editBloodUnit.Expiration_Date}
+                        onChange={e => setEditBloodUnit({ ...editBloodUnit, Expiration_Date: e.target.value })}
+                      />
+                    </label>
+                    <button
+                      className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                      onClick={handleUpdateBloodUnit}
+                    >
+                      Lưu
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Toast container */}
       <ToastContainer position="top-right" autoClose={2500} />
     </div>

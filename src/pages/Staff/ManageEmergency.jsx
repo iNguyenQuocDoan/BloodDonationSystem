@@ -32,7 +32,8 @@ export default function ManageEmergencyPage() {
     sendEmergencyEmail,
     addDonorToEmergency,
     handleEmergencyRequest,
-    rejectEmergencyRequest, // <-- Thêm dòng này
+    rejectEmergencyRequest,
+    getBloodBank,
   } = useApi();
 
   const [filter, setFilter] = useState({
@@ -57,17 +58,22 @@ export default function ManageEmergencyPage() {
   // State cho popup từ chối
   const [showRejectPopup, setShowRejectPopup] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [rejectOtherMsg, setRejectOtherMsg] = useState(""); // Thêm state cho message "Khác"
+  const [rejectOtherMsg, setRejectOtherMsg] = useState("");
   const [rejectRow, setRejectRow] = useState(null);
 
   // Thêm state tạm cho từng dòng nếu chưa có:
-  const [editRows, setEditRows] = useState({}); // { [Potential_ID]: { ...fields } }
+  const [editRows, setEditRows] = useState({});
 
   // 1. Thêm state để lưu lý do cần máu của yêu cầu đang xem
   const [currentReason, setCurrentReason] = useState("");
 
   // Thêm state để phân biệt giữa profile người yêu cầu và profile người hiến
-  const [profileType, setProfileType] = useState("profile"); // "requester" hoặc "profile"
+  const [profileType, setProfileType] = useState("profile");
+
+  // State cho popup ngân hàng máu
+  const [showBloodBank, setShowBloodBank] = useState(false);
+  const [bloodBankList, setBloodBankList] = useState([]);
+  const [loadingBloodBank, setLoadingBloodBank] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -76,6 +82,7 @@ export default function ManageEmergencyPage() {
         setRequests(res.data || []);
       } catch (err) {
         console.error("Failed to fetch emergency requests", err);
+        toast.error(err?.message || err?.response?.data?.message || "Có lỗi xảy ra!");
       }
     })();
   }, [filter, refreshKey]);
@@ -87,8 +94,6 @@ export default function ManageEmergencyPage() {
       setShowRejectPopup(true);
       return;
     }
-    // Gọi API cập nhật trạng thái bình thường ở đây
-    // await updateStatus(id, nextStatus);
     setRefreshKey((k) => k + 1);
   };
 
@@ -101,10 +106,10 @@ export default function ManageEmergencyPage() {
     }
     try {
       console.log("Reject API:", {
-      emergencyId: rejectRow,
-      body: { reason_Reject: reason }
-    });
-      await rejectEmergencyRequest(rejectRow, reason); // <-- Sử dụng hàm từ useApi
+        emergencyId: rejectRow,
+        body: { reason_Reject: reason }
+      });
+      await rejectEmergencyRequest(rejectRow, reason);
       toast.success("Đã cập nhật trạng thái từ chối!");
       setShowRejectPopup(false);
       setRejectReason("");
@@ -112,7 +117,8 @@ export default function ManageEmergencyPage() {
       setRejectRow(null);
       setRefreshKey((k) => k + 1);
     } catch (err) {
-      toast.error("Cập nhật trạng thái từ chối thất bại!");
+      console.error("Lỗi khi từ chối yêu cầu:", err);
+      toast.error(err?.message || err?.response?.data?.message || "Cập nhật trạng thái từ chối thất bại!");
     }
   };
 
@@ -120,12 +126,14 @@ export default function ManageEmergencyPage() {
     try {
       const res = await getProfileER(req.Requester_ID);
       setSelectedProfile(res.data[0] || null);
-      setCurrentReason(req.reason_Need ?? ""); // Lưu lý do từ request
-      setProfileType("requester"); // Đặt loại profile là "requester"
+      setCurrentReason(req.reason_Need ?? "");
+      setProfileType("requester");
     } catch (err) {
+      console.error("Lỗi khi lấy thông tin người yêu cầu:", err);
       setSelectedProfile({ error: "Không lấy được thông tin người yêu cầu" });
       setCurrentReason("");
       setProfileType("requester");
+      toast.error(err?.message || err?.response?.data?.message || "Có lỗi xảy ra!");
     }
   };
 
@@ -133,26 +141,30 @@ export default function ManageEmergencyPage() {
     try {
       const res = await getProfileER(req.Donor_ID);
       setSelectedProfile(res.data[0] || null);
-      setCurrentReason(""); // Không hiển thị lý do khi xem donor
-      setProfileType("profile"); // Đặt loại profile là "profile"
-    } catch (err) {
-      setSelectedProfile({ error: "Không lấy được thông tin người yêu cầu" });
       setCurrentReason("");
       setProfileType("profile");
+    } catch (err) {
+      console.error("Lỗi khi lấy thông tin người hiến:", err);
+      setSelectedProfile({ error: "Không lấy được thông tin người hiến" });
+      setCurrentReason("");
+      setProfileType("profile");
+      toast.error(err?.message || err?.response?.data?.message || "Có lỗi xảy ra!");
     }
   };
 
   // Hàm lấy danh sách potential donor
   const handleShowPotentialList = async (emergencyId) => {
-    setCurrentEmergencyId(emergencyId); // Lưu lại emergencyId
+    setCurrentEmergencyId(emergencyId);
     try {
       const res = await getPotentialDonorPlus(emergencyId);
       setPotentialList(res.data || []);
       setShowPotentialPopup(true);
       setCheckedDonors([]);
     } catch (err) {
+      console.error("Lỗi khi lấy danh sách ưu tiên:", err);
       setPotentialList([]);
       setShowPotentialPopup(true);
+      toast.error(err?.message || err?.response?.data?.message || "Có lỗi xảy ra!");
     }
   };
 
@@ -173,10 +185,11 @@ export default function ManageEmergencyPage() {
         position: "top-center",
         autoClose: 2000,
       });
-      setShowPotentialPopup(false); // Đóng popup sau khi thêm thành công
-      setRefreshKey((k) => k + 1); // reload lại danh sách nếu cần
+      setShowPotentialPopup(false);
+      setRefreshKey((k) => k + 1);
     } catch (err) {
-      toast.error("Thêm vào yêu cầu thất bại!", {
+      console.error("Lỗi khi thêm vào yêu cầu:", err);
+      toast.error(err?.message || err?.response?.data?.message || "Thêm vào yêu cầu thất bại!", {
         position: "top-center",
         autoClose: 2000,
       });
@@ -185,7 +198,7 @@ export default function ManageEmergencyPage() {
 
   // Hàm gửi email (sau này call API)
   const handleSendEmail = async () => {
-    if (sendingEmail) return; // Đang gửi thì không cho gửi tiếp
+    if (sendingEmail) return;
     if (checkedDonors.length === 0) {
       toast.warn("Vui lòng chọn ít nhất một người để gửi email!", {
         position: "top-center",
@@ -202,10 +215,11 @@ export default function ManageEmergencyPage() {
           await sendEmergencyEmail(donor.email, donor.userName);
         } catch (err) {
           hasError = true;
-          toast.error(`Gửi email thất bại cho ${donor.userName}`, {
-            position: "top-center",
-            autoClose: 2000,
-          });
+          console.error("Lỗi khi gửi email:", err);
+          toast.error(
+            err?.message || err?.response?.data?.message || `Gửi email thất bại cho ${donor.userName}`,
+            { position: "top-center", autoClose: 2000 }
+          );
         }
       }
     }
@@ -231,6 +245,22 @@ export default function ManageEmergencyPage() {
         [field]: value
       }
     }));
+  };
+
+  // Hàm xử lý xem ngân hàng máu
+  const handleShowBloodBank = async () => {
+    setLoadingBloodBank(true);
+    setShowBloodBank(true);
+    try {
+      const res = await getBloodBank();
+      setBloodBankList(res.data || []);
+    } catch (err) {
+      setBloodBankList([]);
+      console.error("Lỗi khi lấy ngân hàng máu:", err);
+      toast.error(err?.message || err?.response?.data?.message || "Không lấy được dữ liệu ngân hàng máu!");
+    } finally {
+      setLoadingBloodBank(false);
+    }
   };
 
   return (
@@ -285,6 +315,7 @@ export default function ManageEmergencyPage() {
         </div>
         <button
           className="ml-auto bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm"
+          onClick={handleShowBloodBank}
         >
           Xem ngân hàng máu
         </button>
@@ -655,6 +686,46 @@ export default function ManageEmergencyPage() {
                 Xác nhận
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup ngân hàng máu */}
+      {showBloodBank && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-8 min-w-[340px] max-w-sm w-full relative border-2 border-red-300">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl transition"
+              onClick={() => setShowBloodBank(false)}
+              title="Đóng"
+            >
+              <i className="fa fa-times-circle" />
+            </button>
+            <h2 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
+              <i className="fa fa-tint text-red-500" /> Ngân hàng máu
+            </h2>
+            {loadingBloodBank ? (
+              <div className="text-center py-6">Đang tải dữ liệu...</div>
+            ) : bloodBankList.length === 0 ? (
+              <div className="text-center py-6 text-gray-500">Không có dữ liệu.</div>
+            ) : (
+              <table className="min-w-full text-sm mb-4 rounded-xl overflow-hidden shadow">
+                <thead>
+                  <tr className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700">
+                    <th>Nhóm máu</th>
+                    <th>Lượng máu (ml)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bloodBankList.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-pink-50 transition">
+                      <td className="font-semibold text-gray-800">{item.BloodGroup}</td>
+                      <td className="text-red-600 font-bold">{item.Volume}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}
