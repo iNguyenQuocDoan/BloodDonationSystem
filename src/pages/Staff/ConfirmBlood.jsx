@@ -207,6 +207,8 @@ if (!timeString) return "-";
       setAddPatientLoading(false);
     }
   };
+
+  
   const rejectReasons = [
     "Không đủ điều kiện sức khỏe",
     "Không đạt yêu cầu về tuổi/cân nặng",

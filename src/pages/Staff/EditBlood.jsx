@@ -3,7 +3,7 @@ import useApi from "../../hooks/useApi";
 import Swal from 'sweetalert2';
 
 const EditBloodPage = () => {
-    const { getAppointments, getSlotList, loading, addAppointmentVolume, updateStatusAppointmentByStaff } = useApi();
+    const { getAppointments, getSlotList, loading, addAppointmentVolume, updateStatusAppointmentByStaff, sendRecoveryReminderEmail } = useApi();
     const [appointments, setAppointments] = useState([]);
     const [slotList, setSlotList] = useState([]);
     const [nameSearch, setNameSearch] = useState("");
@@ -132,6 +132,20 @@ const EditBloodPage = () => {
         try {
             await addAppointmentVolume(id, String(volume)); // 1. Cập nhật volume trước
             await updateStatusAppointmentByStaff(id, "Completed"); // 2. Sau đó cập nhật status
+
+            // Lấy thông tin appointment để lấy email và tên
+            const appointment = appointments.find(item => item.Appointment_ID === id);
+            const donorEmail = appointment?.Email || "";
+            const donorName = appointment?.User_Name || appointment?.Name || "";
+
+            // Gửi mail nhắc nhở phục hồi
+            if (donorEmail && donorName) {
+                try {
+                    await sendRecoveryReminderEmail(donorEmail, donorName);
+                } catch (mailErr) {
+                    console.error("Gửi mail nhắc nhở phục hồi thất bại:", mailErr);
+                }
+            }
 
             // Cập nhật lại appointment trong state để hiển thị volume đã lưu
             setAppointments(prev => prev.map(item =>

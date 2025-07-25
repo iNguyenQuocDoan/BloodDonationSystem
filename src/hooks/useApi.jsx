@@ -374,6 +374,12 @@ const useApi = () => {
     });
   }, [callApi]);
 
+  const sendRecoveryReminderEmail = useCallback(async (donorEmail, donorName) => {
+  return callApi(`/sendRecoveryReminderEmail/${donorEmail}/${donorName}`, {
+    method: "POST"
+  });
+}, [callApi]);
+
   return {
     loading,
     error,
@@ -423,7 +429,8 @@ const useApi = () => {
     getAllPatientHistoryByMember,
     createReport,
     getLatestReport,
-    updateReport
+    updateReport,
+    sendRecoveryReminderEmail
   };
 };
 
