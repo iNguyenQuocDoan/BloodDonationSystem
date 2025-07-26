@@ -200,13 +200,6 @@ const BloodInventory = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-blue-600">Quản lý Kho Máu</h1>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold"
-          onClick={handleReload}
-          disabled={loading}
-        >
-          {loading ? "Đang tải..." : "Tải lại"}
-        </button>
       </div>
 
       {/* SUMMARY CARDS CHO LÔ MÁUU */}
