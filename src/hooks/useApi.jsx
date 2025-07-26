@@ -72,31 +72,7 @@ const useApi = () => {
     [clearAuthData]
   );
 
-  const fetchEmailApi = useCallback(
-    async (endpoint, options = {}) => {
-      const url = `${endpoint}`; // Không có BASE_URL
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(url, {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-          },
-          ...options
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Gửi mail thất bại");
-        return data;
-      } catch (err) {
-        setError(err.message);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+  
 
   // Auth APIs
   const login = useCallback(
@@ -389,7 +365,7 @@ const useApi = () => {
   }, [callApi]);
 
   const getLatestReport = useCallback(async () => {
-    return callApi("/getLatestReport", { method: "GET" });
+    return callApi("/getLatestReport");
   }, [callApi]);
 
   const updateReport = useCallback(async (summaryBlood_Id, Report_Detail_ID, reportData) => {
@@ -399,6 +375,32 @@ const useApi = () => {
       headers: { "Content-Type": "application/json" },
     });
   }, [callApi]);
+
+  const fetchEmailApi = useCallback(
+    async (endpoint, options = {}) => {
+      const url = `${endpoint}`; // Không có BASE_URL
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          },
+          ...options
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Gửi mail thất bại");
+        return data;
+      } catch (err) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const sendRecoveryReminderEmail = useCallback(async (donorEmail, donorName) => {
     return fetchEmailApi(
