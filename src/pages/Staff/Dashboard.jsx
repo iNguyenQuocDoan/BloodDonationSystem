@@ -394,51 +394,8 @@ export default function DashboardPage() {
       {
         label: "Tổng lượng máu (ml)",
         data: bloodUnitStats.map((stat) => stat.total),
-        backgroundColor: [
-          "#DC2626",
-          "#EF4444",
-          "#F87171",
-          "#FCA5A5",
-          "#FECACA",
-          "#FED7D7",
-          "#FEE2E2",
-          "#FEF2F2",
-        ],
-        borderColor: [
-          "#B91C1C",
-          "#DC2626",
-          "#EF4444",
-          "#F87171",
-          "#FCA5A5",
-          "#FECACA",
-          "#FED7D7",
-          "#FEE2E2",
-        ],
-        borderWidth: 1,
-      },
-      {
-        label: "Số lô máu",
-        data: bloodUnitStats.map((stat) => stat.count),
-        backgroundColor: [
-          "#059669",
-          "#10B981",
-          "#34D399",
-          "#6EE7B7",
-          "#A7F3D0",
-          "#C6F6D5",
-          "#D1FAE5",
-          "#ECFDF5",
-        ],
-        borderColor: [
-          "#047857",
-          "#059669",
-          "#10B981",
-          "#34D399",
-          "#6EE7B7",
-          "#A7F3D0",
-          "#C6F6D5",
-          "#D1FAE5",
-        ],
+        backgroundColor: "#DC2626",
+        borderColor: "#B91C1C",
         borderWidth: 1,
       },
     ],
@@ -449,7 +406,7 @@ export default function DashboardPage() {
     <div className="px-6 py-8 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-red-600 mb-8">Báo cáo thống kê</h1>
 
-      {/* Nút tạo/chỉnh sửa báo cáo */}
+      {/* Nút tạo/chỉnh sửa báo cáo và quản lý lô máu */}
       <div className="flex gap-4 mb-8">
         <button
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
@@ -462,6 +419,12 @@ export default function DashboardPage() {
           onClick={openEditModal}
         >
           Chỉnh sửa báo cáo
+        </button>
+        <button
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold"
+          onClick={handleShowBloodUnits}
+        >
+          Quản lý lô máu
         </button>
       </div>
 
@@ -678,7 +641,7 @@ export default function DashboardPage() {
                   },
                   title: {
                     display: true,
-                    text: "Thống kê lượng máu và số lô theo nhóm máu",
+                    text: "Thống kê lượng máu theo nhóm máu",
                   },
                 },
                 scales: {
@@ -686,7 +649,7 @@ export default function DashboardPage() {
                     beginAtZero: true,
                     title: {
                       display: true,
-                      text: "Số lượng",
+                      text: "Lượng máu (ml)",
                     },
                   },
                   x: {
@@ -703,17 +666,9 @@ export default function DashboardPage() {
 
         {/* Stock Distribution */}
         <div className="bg-white p-6 shadow rounded-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">
-              Phân bố nhóm máu trong kho
-            </h2>
-            <button
-              className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-              onClick={handleShowBloodUnits}
-            >
-              Quản lý lô máu
-            </button>
-          </div>
+          <h2 className="text-lg font-semibold mb-4">
+            Phân bố nhóm máu trong kho
+          </h2>
           {stock.length ? (
             <Pie data={pieData} />
           ) : (
