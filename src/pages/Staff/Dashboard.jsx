@@ -58,6 +58,7 @@ export default function DashboardPage() {
     getAllBloodUnit,
     createBloodUnit,
     updateBloodUnit,
+    getBloodBank,
   } = useApi();
 
   // State cho thống kê
@@ -94,6 +95,10 @@ export default function DashboardPage() {
 
   // State cho thống kê lô máu
   const [bloodUnitStats, setBloodUnitStats] = useState([]);
+
+  // State cho thống kê ngân hàng máu
+  const [bloodBankData, setBloodBankData] = useState([]);
+  const [bloodBankStats, setBloodBankStats] = useState([]);
 
   // Fetch thống kê
   useEffect(() => {
@@ -145,6 +150,40 @@ export default function DashboardPage() {
         setBloodUnitStats(statsArray);
       } catch (err) {
         console.error("Load blood units failed", err);
+      }
+    })();
+  }, []);
+
+  // Fetch dữ liệu ngân hàng máu và tính thống kê
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getBloodBank();
+        const bankData = res.data || [];
+        setBloodBankData(bankData);
+
+        // Tính tổng lượng máu theo nhóm máu từ Blood Bank
+        const groupStats = {};
+        bankData.forEach((item) => {
+          const group = item.BloodGroup || "Unknown";
+          const volume = parseInt(item.Volume) || 0;
+          if (groupStats[group]) {
+            groupStats[group] += volume;
+          } else {
+            groupStats[group] = volume;
+          }
+        });
+
+        // Chuyển đổi thành array để hiển thị
+        const statsArray = Object.entries(groupStats).map(([group, total]) => ({
+          group,
+          total,
+          count: bankData.filter((u) => u.BloodGroup === group).length,
+        }));
+
+        setBloodBankStats(statsArray);
+      } catch (err) {
+        console.error("Load blood bank failed", err);
       }
     })();
   }, []);
@@ -396,6 +435,20 @@ export default function DashboardPage() {
         data: bloodUnitStats.map((stat) => stat.total),
         backgroundColor: "#DC2626",
         borderColor: "#B91C1C",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Biểu đồ thống kê ngân hàng máu theo nhóm máu
+  const bloodBankChartData = {
+    labels: bloodBankStats.map((stat) => stat.group),
+    datasets: [
+      {
+        label: "Tổng lượng máu (ml)",
+        data: bloodBankStats.map((stat) => stat.total),
+        backgroundColor: "#059669",
+        borderColor: "#047857",
         borderWidth: 1,
       },
     ],
