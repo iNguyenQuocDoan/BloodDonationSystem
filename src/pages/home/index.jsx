@@ -283,13 +283,12 @@ const Homepage = () => {
               transition={{ delay: 1.2, duration: 0.6 }}
               whileHover={{ scale: 1.02 }}
             >
-              Chúng tôi đã ghi nhận:{" "}
               <motion.strong
                 initial={{ color: "#D32F2F" }}
                 animate={{ color: ["#D32F2F", "#B71C1C", "#D32F2F"] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                hàng nghìn ca hiến máu thành công
+                "Một giọt máu cho đi – Một cuộc đời ở lại."
               </motion.strong>
             </motion.p>
             <motion.div
@@ -347,35 +346,8 @@ const Homepage = () => {
               },
             }}
           >
-            {[...Array(2)].map((_, idx) => (
-              <motion.div
-                key={idx}
-                variants={cardVariants}
-                whileHover="hover"
-                className="mt-12 bg-[#f9f9f9] p-6 rounded-md border-l-4 border-[#D32F2F] shadow-md cursor-pointer"
-              >
-                <motion.h3
-                  className="text-[#D32F2F] text-xl font-semibold mb-4"
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  "
-                  {idx === 0
-                    ? "Nhờ DaiVietBlood, tôi đã nhận được máu loại O khi cần nhất."
-                    : "Tôi đã nhanh chóng tìm được người hiến máu phù hợp..."}
-                  "
-                </motion.h3>
-                <motion.p
-                  className="text-right font-medium"
-                  initial={{ x: 20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  – {idx === 0 ? "Nguyen Cong Minh" : "Chu Phuc Minh Vuong"}
-                </motion.p>
-              </motion.div>
-            ))}
+           
+          
           </motion.div>
 
           {/* About Us Section */}
@@ -447,7 +419,7 @@ const Homepage = () => {
                     {[
                       { icon: "❤️", label: "An toàn & Tin cậy" },
                       { icon: "⚡", label: "Nhanh chóng & Hiệu quả" },
-                      { icon: "🏥", label: "Kết nối Bệnh viện" },
+                      { icon: "🏥", label: "Hoạt động vì cộng đồng " },
                       { icon: "🌟", label: "Hỗ trợ 24/7" },
                     ].map((feature, index) => (
                       <motion.div
