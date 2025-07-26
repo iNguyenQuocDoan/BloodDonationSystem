@@ -378,7 +378,7 @@ export default function DashboardPage() {
       setEditBloodUnit(null);
       await fetchBloodUnits();
     } catch (err) {
-      toast.error(err?.message || "Cập nhật thất bại!");
+      toast.error(err?.message||"Có lỗi xảy ra!" );
     }
   };
 
