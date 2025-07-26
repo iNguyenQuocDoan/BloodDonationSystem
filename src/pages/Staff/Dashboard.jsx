@@ -34,8 +34,14 @@ ChartJS.register(
 );
 
 const bloodTypeMapping = {
-  "A+": "BT001", "A-": "BT002", "B+": "BT003", "B-": "BT004",
-  "AB+": "BT005", "AB-": "BT006", "O+": "BT007", "O-": "BT008"
+  "A+": "BT001",
+  "A-": "BT002",
+  "B+": "BT003",
+  "B-": "BT004",
+  "AB+": "BT005",
+  "AB-": "BT006",
+  "O+": "BT007",
+  "O-": "BT008",
 };
 const bloodTypeList = Object.keys(bloodTypeMapping);
 
@@ -79,8 +85,15 @@ export default function DashboardPage() {
   const [showBloodUnitModal, setShowBloodUnitModal] = useState(false);
   const [bloodUnits, setBloodUnits] = useState([]);
   const [showCreateBloodUnit, setShowCreateBloodUnit] = useState(false);
-  const [newBloodUnit, setNewBloodUnit] = useState({ BloodType: "", Volume: "", Expiration_Date: "" });
+  const [newBloodUnit, setNewBloodUnit] = useState({
+    BloodType: "",
+    Volume: "",
+    Expiration_Date: "",
+  });
   const [editBloodUnit, setEditBloodUnit] = useState(null);
+
+  // State cho thống kê lô máu
+  const [bloodUnitStats, setBloodUnitStats] = useState([]);
 
   // Fetch thống kê
   useEffect(() => {
@@ -98,6 +111,40 @@ export default function DashboardPage() {
         setBySite(site);
       } catch (err) {
         console.error("Load stats failed", err);
+      }
+    })();
+  }, []);
+
+  // Fetch dữ liệu lô máu và tính thống kê
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getAllBloodUnit();
+        const units = res.data || [];
+        setBloodUnits(units);
+
+        // Tính tổng lượng máu theo nhóm máu
+        const groupStats = {};
+        units.forEach((unit) => {
+          const group = unit.BloodGroup || "Unknown";
+          const volume = parseInt(unit.Volume) || 0;
+          if (groupStats[group]) {
+            groupStats[group] += volume;
+          } else {
+            groupStats[group] = volume;
+          }
+        });
+
+        // Chuyển đổi thành array để hiển thị
+        const statsArray = Object.entries(groupStats).map(([group, total]) => ({
+          group,
+          total,
+          count: units.filter((u) => u.BloodGroup === group).length,
+        }));
+
+        setBloodUnitStats(statsArray);
+      } catch (err) {
+        console.error("Load blood units failed", err);
       }
     })();
   }, []);
@@ -165,7 +212,15 @@ export default function DashboardPage() {
 
   // Xác nhận lưu/tạo báo cáo
   const handleModalConfirm = async () => {
-    const { title, description, volumeIn, volumeOut, note, summaryBloodId, reportDetailId } = modalData;
+    const {
+      title,
+      description,
+      volumeIn,
+      volumeOut,
+      note,
+      summaryBloodId,
+      reportDetailId,
+    } = modalData;
     const payload = {
       title,
       description,
@@ -185,11 +240,11 @@ export default function DashboardPage() {
       const detail = (data.Details && data.Details[0]) || {};
 
       const isSame =
-        (title === (data.Title || "")) &&
-        (description === (data.Description || "")) &&
-        (note === (detail.Note || "")) &&
-        (String(volumeIn) === String(detail.VolumeIn || "")) &&
-        (String(volumeOut) === String(detail.VolumeOut || ""));
+        title === (data.Title || "") &&
+        description === (data.Description || "") &&
+        note === (detail.Note || "") &&
+        String(volumeIn) === String(detail.VolumeIn || "") &&
+        String(volumeOut) === String(detail.VolumeOut || "");
 
       if (isSame) {
         setModalError("Bạn cần thay đổi ít nhất 1 trường!");
@@ -218,7 +273,28 @@ export default function DashboardPage() {
   const fetchBloodUnits = async () => {
     try {
       const res = await getAllBloodUnit();
-      setBloodUnits(res.data || []);
+      const units = res.data || [];
+      setBloodUnits(units);
+
+      // Cập nhật thống kê nhóm máu
+      const groupStats = {};
+      units.forEach((unit) => {
+        const group = unit.BloodGroup || "Unknown";
+        const volume = parseInt(unit.Volume) || 0;
+        if (groupStats[group]) {
+          groupStats[group] += volume;
+        } else {
+          groupStats[group] = volume;
+        }
+      });
+
+      const statsArray = Object.entries(groupStats).map(([group, total]) => ({
+        group,
+        total,
+        count: units.filter((u) => u.BloodGroup === group).length,
+      }));
+
+      setBloodUnitStats(statsArray);
     } catch (err) {
       toast.error(err?.message || "Không lấy được danh sách lô máu!");
     }
@@ -311,6 +387,63 @@ export default function DashboardPage() {
     ],
   };
 
+  // Biểu đồ thống kê lô máu theo nhóm máu
+  const bloodUnitChartData = {
+    labels: bloodUnitStats.map((stat) => stat.group),
+    datasets: [
+      {
+        label: "Tổng lượng máu (ml)",
+        data: bloodUnitStats.map((stat) => stat.total),
+        backgroundColor: [
+          "#DC2626",
+          "#EF4444",
+          "#F87171",
+          "#FCA5A5",
+          "#FECACA",
+          "#FED7D7",
+          "#FEE2E2",
+          "#FEF2F2",
+        ],
+        borderColor: [
+          "#B91C1C",
+          "#DC2626",
+          "#EF4444",
+          "#F87171",
+          "#FCA5A5",
+          "#FECACA",
+          "#FED7D7",
+          "#FEE2E2",
+        ],
+        borderWidth: 1,
+      },
+      {
+        label: "Số lô máu",
+        data: bloodUnitStats.map((stat) => stat.count),
+        backgroundColor: [
+          "#059669",
+          "#10B981",
+          "#34D399",
+          "#6EE7B7",
+          "#A7F3D0",
+          "#C6F6D5",
+          "#D1FAE5",
+          "#ECFDF5",
+        ],
+        borderColor: [
+          "#047857",
+          "#059669",
+          "#10B981",
+          "#34D399",
+          "#6EE7B7",
+          "#A7F3D0",
+          "#C6F6D5",
+          "#D1FAE5",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
   // UI
   return (
     <div className="px-6 py-8 max-w-7xl mx-auto">
@@ -346,7 +479,9 @@ export default function DashboardPage() {
                   className="border rounded px-3 py-2 mt-1 w-full"
                   placeholder="Tiêu đề báo cáo"
                   value={modalData.title}
-                  onChange={e => setModalData({ ...modalData, title: e.target.value })}
+                  onChange={(e) =>
+                    setModalData({ ...modalData, title: e.target.value })
+                  }
                 />
               </label>
               <label className="font-semibold text-gray-700">
@@ -355,7 +490,9 @@ export default function DashboardPage() {
                   className="border rounded px-3 py-2 mt-1 w-full"
                   placeholder="Mô tả"
                   value={modalData.description}
-                  onChange={e => setModalData({ ...modalData, description: e.target.value })}
+                  onChange={(e) =>
+                    setModalData({ ...modalData, description: e.target.value })
+                  }
                 />
               </label>
               <label className="font-semibold text-gray-700">
@@ -365,7 +502,9 @@ export default function DashboardPage() {
                   type="number"
                   placeholder="Lượng máu nhận (ml)"
                   value={modalData.volumeIn}
-                  onChange={e => setModalData({ ...modalData, volumeIn: e.target.value })}
+                  onChange={(e) =>
+                    setModalData({ ...modalData, volumeIn: e.target.value })
+                  }
                 />
               </label>
               <label className="font-semibold text-gray-700">
@@ -375,7 +514,9 @@ export default function DashboardPage() {
                   type="number"
                   placeholder="Lượng máu sử dụng (ml)"
                   value={modalData.volumeOut}
-                  onChange={e => setModalData({ ...modalData, volumeOut: e.target.value })}
+                  onChange={(e) =>
+                    setModalData({ ...modalData, volumeOut: e.target.value })
+                  }
                 />
               </label>
               <label className="font-semibold text-gray-700">
@@ -384,10 +525,14 @@ export default function DashboardPage() {
                   className="border rounded px-3 py-2 mt-1 w-full"
                   placeholder="Ghi chú"
                   value={modalData.note}
-                  onChange={e => setModalData({ ...modalData, note: e.target.value })}
+                  onChange={(e) =>
+                    setModalData({ ...modalData, note: e.target.value })
+                  }
                 />
               </label>
-              {modalError && <div className="text-red-600 text-sm">{modalError}</div>}
+              {modalError && (
+                <div className="text-red-600 text-sm">{modalError}</div>
+              )}
             </form>
             <div className="flex gap-3 mt-6 justify-center">
               <button
@@ -458,10 +603,103 @@ export default function DashboardPage() {
         <p className="text-gray-500 mb-10">Đang tải thống kê...</p>
       )}
 
+      {/* BLOOD UNIT SUMMARY CARDS */}
+      {bloodUnitStats.length > 0 && (
+        <div className="mb-10">
+          <h2 className="text-xl font-bold text-red-600 mb-4">
+            Thống kê lô máu theo nhóm máu
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
+            {bloodUnitStats.map((stat, idx) => (
+              <motion.div
+                key={stat.group}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                className="bg-gradient-to-br from-red-50 to-pink-50 border border-red-200 rounded-lg p-4 flex flex-col items-center hover:shadow-md transition-shadow"
+              >
+                <div className="text-2xl font-bold text-red-600 mb-1">
+                  {stat.group}
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  {stat.count} lô
+                </div>
+                <div className="text-lg font-semibold text-gray-800">
+                  {stat.total.toLocaleString()} ml
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Tổng kết */}
+          <div className="bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl p-6 shadow-lg">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold">
+                  {bloodUnitStats.reduce((sum, stat) => sum + stat.count, 0)}
+                </div>
+                <div className="text-red-100">Tổng số lô máu</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">
+                  {bloodUnitStats
+                    .reduce((sum, stat) => sum + stat.total, 0)
+                    .toLocaleString()}{" "}
+                  ml
+                </div>
+                <div className="text-red-100">Tổng lượng máu</div>
+              </div>
+              <div className="md:col-span-1 col-span-2">
+                <div className="text-2xl font-bold">
+                  {bloodUnitStats.length}
+                </div>
+                <div className="text-red-100">Nhóm máu khác nhau</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* CHARTS GRID */}
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Donation Trend */}
-      
+        {/* Blood Unit Statistics Chart */}
+        {bloodUnitStats.length > 0 && (
+          <div className="bg-white p-6 shadow rounded-lg lg:col-span-2">
+            <h2 className="text-lg font-semibold mb-4">
+              Biểu đồ thống kê lô máu theo nhóm máu
+            </h2>
+            <Bar
+              data={bloodUnitChartData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: "top",
+                  },
+                  title: {
+                    display: true,
+                    text: "Thống kê lượng máu và số lô theo nhóm máu",
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: "Số lượng",
+                    },
+                  },
+                  x: {
+                    title: {
+                      display: true,
+                      text: "Nhóm máu",
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
+        )}
 
         {/* Stock Distribution */}
         <div className="bg-white p-6 shadow rounded-lg">
@@ -484,7 +722,6 @@ export default function DashboardPage() {
         </div>
 
         {/* By Location */}
-
       </div>
 
       {/* Popup quản lý lô máu */}
@@ -493,7 +730,9 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-[800px] max-w-full relative border-2 border-red-200">
             <div className="flex items-center mb-6 gap-3">
               <i className="fa fa-tint text-red-500 text-2xl" />
-              <h2 className="text-2xl font-bold text-red-600 flex-1">Quản lý lô máu</h2>
+              <h2 className="text-2xl font-bold text-red-600 flex-1">
+                Quản lý lô máu
+              </h2>
               <button
                 className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold shadow"
                 onClick={() => setShowCreateBloodUnit(true)}
@@ -515,17 +754,28 @@ export default function DashboardPage() {
                 </thead>
                 <tbody>
                   {bloodUnits.map((item) => (
-                    <tr key={item.BloodUnit_ID} className="hover:bg-pink-50 transition">
+                    <tr
+                      key={item.BloodUnit_ID}
+                      className="hover:bg-pink-50 transition"
+                    >
                       <td className="py-2 px-3">{item.BloodGroup}</td>
                       <td className="py-2 px-3">{item.Volume}</td>
-                      <td className="py-2 px-3">{item.Collected_Date?.slice(0,10)}</td>
-                      <td className="py-2 px-3">{item.Expiration_Date?.slice(0,10)}</td>
                       <td className="py-2 px-3">
-                        <span className={
-                          item.Status === "Available" ? "text-green-600 font-semibold" :
-                          item.Status === "Expired" ? "text-gray-500 font-semibold" :
-                          "text-orange-600 font-semibold"
-                        }>
+                        {item.Collected_Date?.slice(0, 10)}
+                      </td>
+                      <td className="py-2 px-3">
+                        {item.Expiration_Date?.slice(0, 10)}
+                      </td>
+                      <td className="py-2 px-3">
+                        <span
+                          className={
+                            item.Status === "Available"
+                              ? "text-green-600 font-semibold"
+                              : item.Status === "Expired"
+                              ? "text-gray-500 font-semibold"
+                              : "text-orange-600 font-semibold"
+                          }
+                        >
                           {item.Status === "Available" && "Còn sử dụng"}
                           {item.Status === "Expired" && "Hết hạn"}
                           {item.Status === "Used" && "Hết máu"}
@@ -534,11 +784,14 @@ export default function DashboardPage() {
                       <td className="py-2 px-3">
                         <button
                           className="text-blue-600 underline font-semibold"
-                          onClick={() => setEditBloodUnit({
-                            BloodUnit_ID: item.BloodUnit_ID,
-                            Status: item.Status,
-                            Expiration_Date: item.Expiration_Date?.slice(0,10) || ""
-                          })}
+                          onClick={() =>
+                            setEditBloodUnit({
+                              BloodUnit_ID: item.BloodUnit_ID,
+                              Status: item.Status,
+                              Expiration_Date:
+                                item.Expiration_Date?.slice(0, 10) || "",
+                            })
+                          }
                         >
                           Sửa
                         </button>
@@ -561,18 +814,27 @@ export default function DashboardPage() {
             {showCreateBloodUnit && (
               <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60">
                 <div className="bg-white rounded-xl p-8 w-[350px] shadow-xl relative border-2 border-green-200">
-                  <h3 className="font-bold mb-4 text-lg text-green-700">Tạo lô máu mới</h3>
+                  <h3 className="font-bold mb-4 text-lg text-green-700">
+                    Tạo lô máu mới
+                  </h3>
                   <div className="flex flex-col gap-3">
                     <label>
                       Nhóm máu
                       <select
                         className="border rounded px-2 py-1 w-full mt-1"
                         value={newBloodUnit.BloodType}
-                        onChange={e => setNewBloodUnit({ ...newBloodUnit, BloodType: e.target.value })}
+                        onChange={(e) =>
+                          setNewBloodUnit({
+                            ...newBloodUnit,
+                            BloodType: e.target.value,
+                          })
+                        }
                       >
                         <option value="">Chọn nhóm máu</option>
-                        {bloodTypeList.map(type => (
-                          <option key={type} value={type}>{type}</option>
+                        {bloodTypeList.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
                         ))}
                       </select>
                     </label>
@@ -582,7 +844,12 @@ export default function DashboardPage() {
                         className="border rounded px-2 py-1 w-full mt-1"
                         type="number"
                         value={newBloodUnit.Volume}
-                        onChange={e => setNewBloodUnit({ ...newBloodUnit, Volume: e.target.value })}
+                        onChange={(e) =>
+                          setNewBloodUnit({
+                            ...newBloodUnit,
+                            Volume: e.target.value,
+                          })
+                        }
                         placeholder="Nhập lượng máu"
                       />
                     </label>
@@ -592,7 +859,12 @@ export default function DashboardPage() {
                         className="border rounded px-2 py-1 w-full mt-1"
                         type="date"
                         value={newBloodUnit.Expiration_Date}
-                        onChange={e => setNewBloodUnit({ ...newBloodUnit, Expiration_Date: e.target.value })}
+                        onChange={(e) =>
+                          setNewBloodUnit({
+                            ...newBloodUnit,
+                            Expiration_Date: e.target.value,
+                          })
+                        }
                       />
                     </label>
                     <button
@@ -616,14 +888,21 @@ export default function DashboardPage() {
             {editBloodUnit && (
               <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60">
                 <div className="bg-white rounded-xl p-8 w-[350px] shadow-xl relative border-2 border-blue-200">
-                  <h3 className="font-bold mb-4 text-lg text-blue-700">Cập nhật lô máu</h3>
+                  <h3 className="font-bold mb-4 text-lg text-blue-700">
+                    Cập nhật lô máu
+                  </h3>
                   <div className="flex flex-col gap-3">
                     <label>
                       Trạng thái
                       <select
                         className="border rounded px-2 py-1 w-full mt-1"
                         value={editBloodUnit.Status}
-                        onChange={e => setEditBloodUnit({ ...editBloodUnit, Status: e.target.value })}
+                        onChange={(e) =>
+                          setEditBloodUnit({
+                            ...editBloodUnit,
+                            Status: e.target.value,
+                          })
+                        }
                       >
                         <option value="Available">Còn sử dụng được</option>
                         <option value="Expired">Hết hạn sử dụng</option>
@@ -636,7 +915,12 @@ export default function DashboardPage() {
                         className="border rounded px-2 py-1 w-full mt-1"
                         type="date"
                         value={editBloodUnit.Expiration_Date}
-                        onChange={e => setEditBloodUnit({ ...editBloodUnit, Expiration_Date: e.target.value })}
+                        onChange={(e) =>
+                          setEditBloodUnit({
+                            ...editBloodUnit,
+                            Expiration_Date: e.target.value,
+                          })
+                        }
                       />
                     </label>
                     <button
