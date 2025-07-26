@@ -461,16 +461,7 @@ export default function DashboardPage() {
       {/* CHARTS GRID */}
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Donation Trend */}
-        <div className="bg-white p-6 shadow rounded-lg">
-          <h2 className="text-lg font-semibold mb-4">
-            Xu hướng hiến máu (30 ngày)
-          </h2>
-          {daily.length ? (
-            <Line data={lineData} />
-          ) : (
-            <p className="text-gray-500">Không có dữ liệu</p>
-          )}
-        </div>
+      
 
         {/* Stock Distribution */}
         <div className="bg-white p-6 shadow rounded-lg">
@@ -493,14 +484,7 @@ export default function DashboardPage() {
         </div>
 
         {/* By Location */}
-        <div className="bg-white p-6 shadow rounded-lg lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">Ca hiến theo địa điểm</h2>
-          {bySite.length ? (
-            <Bar data={barData} options={{ indexAxis: "y" }} />
-          ) : (
-            <p className="text-gray-500">Không có dữ liệu</p>
-          )}
-        </div>
+
       </div>
 
       {/* Popup quản lý lô máu */}
