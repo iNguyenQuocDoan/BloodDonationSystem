@@ -66,6 +66,8 @@ const BloodInventory = () => {
     };
 
     fetchBloodUnits();
+    // Scroll to top khi component mount
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [getAllBloodUnit]);
 
   // Fetch dữ liệu ngân hàng máu và tính thống kê
@@ -107,6 +109,9 @@ const BloodInventory = () => {
   // Reload data function
   const handleReload = async () => {
     try {
+      // Scroll to top khi reload
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       const [bloodUnitRes, bloodBankRes] = await Promise.all([
         getAllBloodUnit(),
         getBloodBank(),
