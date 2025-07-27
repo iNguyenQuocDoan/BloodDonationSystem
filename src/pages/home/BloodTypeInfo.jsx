@@ -34,7 +34,7 @@ const BloodTypeInfo = () => {
 
   useEffect(() => {
     // Scroll to top when component first mounts
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []); // Empty dependency array - only runs once on mount
 
   useEffect(() => {

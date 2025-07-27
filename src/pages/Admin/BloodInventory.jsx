@@ -67,7 +67,7 @@ const BloodInventory = () => {
 
     fetchBloodUnits();
     // Scroll to top khi component mount
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [getAllBloodUnit]);
 
   // Fetch dữ liệu ngân hàng máu và tính thống kê
@@ -110,8 +110,8 @@ const BloodInventory = () => {
   const handleReload = async () => {
     try {
       // Scroll to top khi reload
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
       const [bloodUnitRes, bloodBankRes] = await Promise.all([
         getAllBloodUnit(),
         getBloodBank(),
@@ -202,16 +202,9 @@ const BloodInventory = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen max-w-screen-xl mx-auto w-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-blue-600">Quản lý Kho Máu</h1>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold"
-          onClick={handleReload}
-          disabled={loading}
-        >
-          {loading ? "Đang tải..." : "Tải lại"}
-        </button>
       </div>
 
       {/* SUMMARY CARDS CHO LÔ MÁUU */}

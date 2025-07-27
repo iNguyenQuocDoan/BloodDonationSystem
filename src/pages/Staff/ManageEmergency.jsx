@@ -11,16 +11,16 @@ const REJECT_REASONS = [
   "Lý do cần máu của bạn không phù hợp",
   "Không tìm được người hiến tiềm năng phù hợp",
   "Thông tin không rõ ràng hoặc sai lệch",
-  "Khác"
+  "Khác",
 ];
 const PRIORITY_OPTIONS = [
   { value: "High", label: "Cao" },
   { value: "Medium", label: "Trung bình" },
-  { value: "Low", label: "Thấp" }
+  { value: "Low", label: "Thấp" },
 ];
 const SOURCE_OPTIONS = [
   { value: "donor", label: "Người hiến" },
-  { value: "bank", label: "Ngân hàng máu" }
+  { value: "bank", label: "Ngân hàng máu" },
 ];
 
 export default function ManageEmergencyPage() {
@@ -82,7 +82,9 @@ export default function ManageEmergencyPage() {
         setRequests(res.data || []);
       } catch (err) {
         console.error("Failed to fetch emergency requests", err);
-        toast.error(err?.message || err?.response?.data?.message || "Có lỗi xảy ra!");
+        toast.error(
+          err?.message || err?.response?.data?.message || "Có lỗi xảy ra!"
+        );
       }
     })();
   }, [filter, refreshKey]);
@@ -107,7 +109,7 @@ export default function ManageEmergencyPage() {
     try {
       console.log("Reject API:", {
         emergencyId: rejectRow,
-        body: { reason_Reject: reason }
+        body: { reason_Reject: reason },
       });
       await rejectEmergencyRequest(rejectRow, reason);
       toast.success("Đã cập nhật trạng thái từ chối!");
@@ -118,7 +120,11 @@ export default function ManageEmergencyPage() {
       setRefreshKey((k) => k + 1);
     } catch (err) {
       console.error("Lỗi khi từ chối yêu cầu:", err);
-      toast.error(err?.message || err?.response?.data?.message || "Cập nhật trạng thái từ chối thất bại!");
+      toast.error(
+        err?.message ||
+          err?.response?.data?.message ||
+          "Cập nhật trạng thái từ chối thất bại!"
+      );
     }
   };
 
@@ -133,7 +139,9 @@ export default function ManageEmergencyPage() {
       setSelectedProfile({ error: "Không lấy được thông tin người yêu cầu" });
       setCurrentReason("");
       setProfileType("requester");
-      toast.error(err?.message || err?.response?.data?.message || "Có lỗi xảy ra!");
+      toast.error(
+        err?.message || err?.response?.data?.message || "Có lỗi xảy ra!"
+      );
     }
   };
 
@@ -148,7 +156,9 @@ export default function ManageEmergencyPage() {
       setSelectedProfile({ error: "Không lấy được thông tin người hiến" });
       setCurrentReason("");
       setProfileType("profile");
-      toast.error(err?.message || err?.response?.data?.message || "Có lỗi xảy ra!");
+      toast.error(
+        err?.message || err?.response?.data?.message || "Có lỗi xảy ra!"
+      );
     }
   };
 
@@ -164,7 +174,9 @@ export default function ManageEmergencyPage() {
       console.error("Lỗi khi lấy danh sách ưu tiên:", err);
       setPotentialList([]);
       setShowPotentialPopup(true);
-      toast.error(err?.message || err?.response?.data?.message || "Có lỗi xảy ra!");
+      toast.error(
+        err?.message || err?.response?.data?.message || "Có lỗi xảy ra!"
+      );
     }
   };
 
@@ -189,10 +201,15 @@ export default function ManageEmergencyPage() {
       setRefreshKey((k) => k + 1);
     } catch (err) {
       console.error("Lỗi khi thêm vào yêu cầu:", err);
-      toast.error(err?.message || err?.response?.data?.message || "Thêm vào yêu cầu thất bại!", {
-        position: "top-center",
-        autoClose: 2000,
-      });
+      toast.error(
+        err?.message ||
+          err?.response?.data?.message ||
+          "Thêm vào yêu cầu thất bại!",
+        {
+          position: "top-center",
+          autoClose: 2000,
+        }
+      );
     }
   };
 
@@ -209,7 +226,7 @@ export default function ManageEmergencyPage() {
     setSendingEmail(true);
     let hasError = false;
     for (const donorId of checkedDonors) {
-      const donor = potentialList.find(d => d.userId === donorId);
+      const donor = potentialList.find((d) => d.userId === donorId);
       if (donor) {
         try {
           await sendEmergencyEmail(donor.email, donor.userName);
@@ -217,7 +234,9 @@ export default function ManageEmergencyPage() {
           hasError = true;
           console.error("Lỗi khi gửi email:", err);
           toast.error(
-            err?.message || err?.response?.data?.message || `Gửi email thất bại cho ${donor.userName}`,
+            err?.message ||
+              err?.response?.data?.message ||
+              `Gửi email thất bại cho ${donor.userName}`,
             { position: "top-center", autoClose: 2000 }
           );
         }
@@ -238,12 +257,12 @@ export default function ManageEmergencyPage() {
 
   // Sửa lại hàm thay đổi editRows
   const handleEditRowChange = (rowKey, field, value) => {
-    setEditRows(prev => ({
+    setEditRows((prev) => ({
       ...prev,
       [rowKey]: {
         ...(prev[rowKey] || {}),
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -257,7 +276,11 @@ export default function ManageEmergencyPage() {
     } catch (err) {
       setBloodBankList([]);
       console.error("Lỗi khi lấy ngân hàng máu:", err);
-      toast.error(err?.message || err?.response?.data?.message || "Không lấy được dữ liệu ngân hàng máu!");
+      toast.error(
+        err?.message ||
+          err?.response?.data?.message ||
+          "Không lấy được dữ liệu ngân hàng máu!"
+      );
     } finally {
       setLoadingBloodBank(false);
     }
@@ -350,160 +373,189 @@ export default function ManageEmergencyPage() {
               </tr>
             )}
             {requests
-              .filter(req => req.Status !== "Rejected")
+              .filter((req) => req.Status !== "Rejected")
               .map((req, idx) => {
-              const rowKey = getRowKey(req);
-              const edit = editRows[rowKey] || {};
-              const tempPriority = edit.Priority ?? req.Priority ?? "";
-              const tempSource = edit.sourceType ?? req.sourceType ?? "";
-              const tempPlace = edit.Place ?? req.Place ?? "";
-              const tempStatus = edit.Status ?? req.Status ?? "";
+                const rowKey = getRowKey(req);
+                const edit = editRows[rowKey] || {};
+                const tempPriority = edit.Priority ?? req.Priority ?? "";
+                const tempSource = edit.sourceType ?? req.sourceType ?? "";
+                const tempPlace = edit.Place ?? req.Place ?? "";
+                const tempStatus = edit.Status ?? req.Status ?? "";
 
-              return (
-                <motion.tr
-                  key={rowKey}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.03 }}
-                  className="border-b last:border-0"
-                >
-                  <td className="px-4 py-3 flex items-center justify-between gap-2">
-                    {req.User_Name}
-                    <button
-                      className="ml-auto text-blue-600 hover:text-blue-800"
-                      title="Xem thông tin người yêu cầu"
-                      onClick={() => handleViewRequester(req)}
-                    >
-                      <i className="fa fa-eye" />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">{req.BloodType}</td>
-                  <td className="px-4 py-3">{req.Volume}</td>
-                  <td className="px-4 py-3">
-                    {req.Needed_Before
-                      ? new Date(req.Needed_Before).toLocaleDateString("vi-VN")
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={tempPriority}
-                      onChange={e => handleEditRowChange(rowKey, "Priority", e.target.value)}
-                      className="border border-gray-300 rounded px-2 py-1 text-xs"
-                      disabled={req.Status === "Completed"}
-                    >
-                      <option value="">Chọn độ ưu tiên</option>
-                      {PRIORITY_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={tempSource}
-                      onChange={e => handleEditRowChange(rowKey, "sourceType", e.target.value)}
-                      className="border border-gray-300 rounded px-2 py-1 text-xs"
-                      disabled={req.Status === "Completed"}
-                    >
-                      <option value="">Chọn nguồn</option>
-                      {SOURCE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    {req.Donor_ID ? (
+                return (
+                  <motion.tr
+                    key={rowKey}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="border-b last:border-0"
+                  >
+                    <td className="px-4 py-3 flex items-center justify-between gap-2">
+                      {req.User_Name}
                       <button
-                        className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
-                        onClick={() => handleViewDonor(req)}
+                        className="ml-auto text-blue-600 hover:text-blue-800"
+                        title="Xem thông tin người yêu cầu"
+                        onClick={() => handleViewRequester(req)}
                       >
-                        Xem hồ sơ
+                        <i className="fa fa-eye" />
                       </button>
-                    ) : (
-                      tempSource !== "bank" && (
-                        <button
-                          className="px-3 py-1 rounded bg-purple-500 hover:bg-purple-600 text-white text-xs"
-                          onClick={() => handleShowPotentialList(req.Emergency_ID)}
-                        >
-                          Danh sách ưu tiên
-                        </button>
-                      )
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={tempPlace}
-                      onChange={e => handleEditRowChange(rowKey, "Place", e.target.value)}
-                      className="border border-gray-300 rounded px-2 py-1 text-xs"
-                      disabled={req.Status === "Completed"}
-                    >
-                      <option value="">Chọn địa điểm</option>
-                      <option value="recive house">Nhà nhận máu</option>
-                      <option value="donor house">Nhà hiến máu</option>
-                      <option value="center">Trung tâm</option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={tempStatus}
-                      onChange={e => {
-                        handleEditRowChange(rowKey, "Status", e.target.value);
-                        if (e.target.value === "Rejected") {
-                          handleStatusChange(req.Emergency_ID, "Rejected");
+                    </td>
+                    <td className="px-4 py-3">{req.BloodType}</td>
+                    <td className="px-4 py-3">{req.Volume}</td>
+                    <td className="px-4 py-3">
+                      {req.Needed_Before
+                        ? new Date(req.Needed_Before).toLocaleDateString(
+                            "vi-VN"
+                          )
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={tempPriority}
+                        onChange={(e) =>
+                          handleEditRowChange(
+                            rowKey,
+                            "Priority",
+                            e.target.value
+                          )
                         }
-                      }}
-                      className="border border-gray-300 rounded px-2 py-1 text-xs"
-                      disabled={req.Status === "Completed"}
-                    >
-                      <option value="Pending">Chờ xử lý</option>
-                      <option value="Processing">Đang xử lý</option>
-                      <option value="Completed">Đã giải quyết</option>
-                      <option value="Rejected">Từ chối</option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-                    {req.Status !== "Completed" && (
-                      <button
-                        onClick={async () => {
-                          const edit = editRows[rowKey] || {};
-                          const tempSource = edit.sourceType ?? req.sourceType ?? "";
-                          if (tempSource === "donor" && !req.Donor_ID) {
-                            toast.warn("Vui lòng chọn Người hiến trước khi cập nhật!", {
-                              position: "top-center",
-                              autoClose: 2000,
-                            });
-                            return;
-                          }
-                          const payload = {
-                            Priority: edit.Priority ?? req.Priority,
-                            sourceType: tempSource,
-                            Place: edit.Place ?? req.Place,
-                            Status: edit.Status ?? req.Status,
-                          };
-                          if (tempSource === "bank") {
-                            payload.Place = null;
-                          }
-                          try {
-                            await handleEmergencyRequest(req.Emergency_ID, payload);
-                            toast.success("Cập nhật thành công!");
-                            setRefreshKey(k => k + 1);
-                            setEditRows(prev => {
-                              const copy = { ...prev };
-                              delete copy[rowKey];
-                              return copy;
-                            });
-                          } catch (err) {
-                            toast.error("Cập nhật thất bại!");
+                        className="border border-gray-300 rounded px-2 py-1 text-xs"
+                        disabled={req.Status === "Completed"}
+                      >
+                        <option value="">Chọn độ ưu tiên</option>
+                        {PRIORITY_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={tempSource}
+                        onChange={(e) =>
+                          handleEditRowChange(
+                            rowKey,
+                            "sourceType",
+                            e.target.value
+                          )
+                        }
+                        className="border border-gray-300 rounded px-2 py-1 text-xs"
+                        disabled={req.Status === "Completed"}
+                      >
+                        <option value="">Chọn nguồn</option>
+                        {SOURCE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      {req.Donor_ID ? (
+                        <button
+                          className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs"
+                          onClick={() => handleViewDonor(req)}
+                        >
+                          Xem hồ sơ
+                        </button>
+                      ) : (
+                        tempSource !== "bank" && (
+                          <button
+                            className="px-3 py-1 rounded bg-purple-500 hover:bg-purple-600 text-white text-xs"
+                            onClick={() =>
+                              handleShowPotentialList(req.Emergency_ID)
+                            }
+                          >
+                            Danh sách ưu tiên
+                          </button>
+                        )
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={tempPlace}
+                        onChange={(e) =>
+                          handleEditRowChange(rowKey, "Place", e.target.value)
+                        }
+                        className="border border-gray-300 rounded px-2 py-1 text-xs"
+                        disabled={req.Status === "Completed"}
+                      >
+                        <option value="">Chọn địa điểm</option>
+                        <option value="recive house">Nhà nhận máu</option>
+                        <option value="donor house">Nhà hiến máu</option>
+                        <option value="center">Trung tâm</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={tempStatus}
+                        onChange={(e) => {
+                          handleEditRowChange(rowKey, "Status", e.target.value);
+                          if (e.target.value === "Rejected") {
+                            handleStatusChange(req.Emergency_ID, "Rejected");
                           }
                         }}
-                        className="px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white text-xs"
+                        className="border border-gray-300 rounded px-2 py-1 text-xs"
+                        disabled={req.Status === "Completed"}
                       >
-                        Cập nhật
-                      </button>
-                    )}
-                  </td>
-                </motion.tr>
-              );
-            })}
+                        <option value="Pending">Chờ xử lý</option>
+                        <option value="Processing">Đang xử lý</option>
+                        <option value="Completed">Đã giải quyết</option>
+                        <option value="Rejected">Từ chối</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                      {req.Status !== "Completed" && (
+                        <button
+                          onClick={async () => {
+                            const edit = editRows[rowKey] || {};
+                            const tempSource =
+                              edit.sourceType ?? req.sourceType ?? "";
+                            if (tempSource === "donor" && !req.Donor_ID) {
+                              toast.warn(
+                                "Vui lòng chọn Người hiến trước khi cập nhật!",
+                                {
+                                  position: "top-center",
+                                  autoClose: 2000,
+                                }
+                              );
+                              return;
+                            }
+                            const payload = {
+                              Priority: edit.Priority ?? req.Priority,
+                              sourceType: tempSource,
+                              Place: edit.Place ?? req.Place,
+                              Status: edit.Status ?? req.Status,
+                            };
+                            if (tempSource === "bank") {
+                              payload.Place = null;
+                            }
+                            try {
+                              await handleEmergencyRequest(
+                                req.Emergency_ID,
+                                payload
+                              );
+                              toast.success("Cập nhật thành công!");
+                              setRefreshKey((k) => k + 1);
+                              setEditRows((prev) => {
+                                const copy = { ...prev };
+                                delete copy[rowKey];
+                                return copy;
+                              });
+                            } catch (err) {
+                              toast.error("Cập nhật thất bại!");
+                            }
+                          }}
+                          className="px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white text-xs"
+                        >
+                          Cập nhật
+                        </button>
+                      )}
+                    </td>
+                  </motion.tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
@@ -524,36 +576,60 @@ export default function ManageEmergencyPage() {
                 <i className="fa fa-user text-white text-3xl" />
               </div>
               <h2 className="text-xl font-bold text-red-600 drop-shadow mb-1">
-                {profileType === "requester" ? "Thông tin người gửi yêu cầu" : "Thông tin hồ sơ"}
+                {profileType === "requester"
+                  ? "Thông tin người gửi yêu cầu"
+                  : "Thông tin hồ sơ"}
               </h2>
             </div>
             {selectedProfile.error ? (
-              <div className="text-red-500 text-center">{selectedProfile.error}</div>
+              <div className="text-red-500 text-center">
+                {selectedProfile.error}
+              </div>
             ) : (
               <div className="space-y-3 text-gray-700">
-                <div><b className="text-red-500">Tên:</b> {selectedProfile.User_Name}</div>
-                <div><b className="text-pink-500">Địa chỉ:</b> {selectedProfile.Full_Address ?? "—"}</div>
-                <div><b className="text-rose-600">Số điện thoại:</b> {selectedProfile.Phone ?? "—"}</div>
+                <div>
+                  <b className="text-red-500">Tên:</b>{" "}
+                  {selectedProfile.User_Name}
+                </div>
+                <div>
+                  <b className="text-pink-500">Địa chỉ:</b>{" "}
+                  {selectedProfile.Full_Address ?? "—"}
+                </div>
+                <div>
+                  <b className="text-rose-600">Số điện thoại:</b>{" "}
+                  {selectedProfile.Phone ?? "—"}
+                </div>
                 <div>
                   <b className="text-pink-500">Nhóm máu:</b>
-                  <span className="ml-2 px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">{selectedProfile.BloodGroup ?? "—"}</span>
+                  <span className="ml-2 px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">
+                    {selectedProfile.BloodGroup ?? "—"}
+                  </span>
                 </div>
-                <div><b className="text-rose-500">Email:</b> {selectedProfile.Email ?? "—"}</div>
+                <div>
+                  <b className="text-rose-500">Email:</b>{" "}
+                  {selectedProfile.Email ?? "—"}
+                </div>
                 <div>
                   <b className="text-yellow-600">Giới tính:</b>
                   <span className="ml-2 font-semibold">
-                    {selectedProfile.Gender === "M"
-                      ? <span className="text-blue-600">Nam ♂️</span>
-                      : selectedProfile.Gender === "F"
-                        ? <span className="text-pink-600">Nữ ♀️</span>
-                        : "—"}
+                    {selectedProfile.Gender === "M" ? (
+                      <span className="text-blue-600">Nam ♂️</span>
+                    ) : selectedProfile.Gender === "F" ? (
+                      <span className="text-pink-600">Nữ ♀️</span>
+                    ) : (
+                      "—"
+                    )}
                   </span>
                 </div>
-                <div><b className="text-gray-600">Năm sinh:</b> {selectedProfile.Date_Of_Birth ?? "—"}</div>
+                <div>
+                  <b className="text-gray-600">Năm sinh:</b>{" "}
+                  {selectedProfile.Date_Of_Birth ?? "—"}
+                </div>
                 {/* Chỉ hiện lý do nếu có currentReason */}
                 {currentReason && (
                   <div>
-                    <b className="text-amber-700">Lý do cần máu:</b> {currentReason}
+                    <b className="text-amber-700">Lý do cần máu:</b>{" "}
+                    {currentReason}
                   </div>
                 )}
               </div>
@@ -575,8 +651,12 @@ export default function ManageEmergencyPage() {
             </button>
             <div className="flex items-center gap-2 mb-4">
               <i className="fa fa-users text-red-500 text-2xl" />
-              <h2 className="text-lg font-bold text-red-700 drop-shadow">Danh sách người ưu tiên</h2>
-              <span className="ml-2 bg-pink-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-semibold shadow">{potentialList.length} người</span>
+              <h2 className="text-lg font-bold text-red-700 drop-shadow">
+                Danh sách người ưu tiên
+              </h2>
+              <span className="ml-2 bg-pink-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-semibold shadow">
+                {potentialList.length} người
+              </span>
             </div>
             <table className="min-w-full text-sm mb-4 rounded-xl overflow-hidden shadow">
               <thead>
@@ -591,7 +671,10 @@ export default function ManageEmergencyPage() {
               </thead>
               <tbody>
                 {potentialList.map((donor) => (
-                  <tr key={donor.User_ID} className="hover:bg-pink-50 transition">
+                  <tr
+                    key={donor.User_ID}
+                    className="hover:bg-pink-50 transition"
+                  >
                     <td>
                       <input
                         type="checkbox"
@@ -600,16 +683,22 @@ export default function ManageEmergencyPage() {
                         className="accent-red-500 w-4 h-4"
                       />
                     </td>
-                    <td className="font-semibold text-gray-800">{donor.userName}</td>
+                    <td className="font-semibold text-gray-800">
+                      {donor.userName}
+                    </td>
                     <td>
-                      <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">{donor.bloodType}</span>
+                      <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold shadow">
+                        {donor.bloodType}
+                      </span>
                     </td>
                     <td className="text-gray-600">{donor.address}</td>
                     <td className="text-rose-600">{donor.email}</td>
                     <td>
                       <button
                         className="px-3 py-1 bg-gradient-to-r from-pink-400 to-red-500 text-white rounded shadow hover:scale-105 hover:from-red-500 hover:to-pink-600 transition font-semibold"
-                        onClick={() => handleAddDonor(currentEmergencyId, donor.potentialId)}
+                        onClick={() =>
+                          handleAddDonor(currentEmergencyId, donor.potentialId)
+                        }
                       >
                         <i className="fa fa-plus-circle mr-1" /> Add
                       </button>
@@ -649,14 +738,16 @@ export default function ManageEmergencyPage() {
             <select
               className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
               value={rejectReason}
-              onChange={e => {
+              onChange={(e) => {
                 setRejectReason(e.target.value);
                 if (e.target.value !== "Khác") setRejectOtherMsg("");
               }}
             >
               <option value="">-- Chọn lý do --</option>
-              {REJECT_REASONS.map(r => (
-                <option key={r} value={r}>{r}</option>
+              {REJECT_REASONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
               ))}
             </select>
             {rejectReason === "Khác" && (
@@ -664,7 +755,7 @@ export default function ManageEmergencyPage() {
                 className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
                 placeholder="Nhập lý do từ chối..."
                 value={rejectOtherMsg}
-                onChange={e => setRejectOtherMsg(e.target.value)}
+                onChange={(e) => setRejectOtherMsg(e.target.value)}
               />
             )}
             <div className="flex justify-end gap-2">
@@ -696,12 +787,18 @@ export default function ManageEmergencyPage() {
           <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[500px] max-w-lg w-full relative border-2 border-red-300">
             <div className="flex items-center gap-3 mb-4">
               <i className="fa fa-tint text-red-500 text-2xl" />
-              <h2 className="text-xl font-bold text-red-600 flex-1">Ngân hàng máu</h2>
+              <h2 className="text-xl font-bold text-red-600 flex-1">
+                Ngân hàng máu
+              </h2>
             </div>
             {loadingBloodBank ? (
-              <div className="text-center py-8 text-lg text-gray-500">Đang tải dữ liệu...</div>
+              <div className="text-center py-8 text-lg text-gray-500">
+                Đang tải dữ liệu...
+              </div>
             ) : bloodBankList.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">Không có dữ liệu.</div>
+              <div className="text-center py-8 text-gray-500">
+                Không có dữ liệu.
+              </div>
             ) : (
               <table className="min-w-full text-base mb-4 rounded-xl overflow-hidden shadow">
                 <thead>
@@ -712,9 +809,16 @@ export default function ManageEmergencyPage() {
                 </thead>
                 <tbody>
                   {bloodBankList.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-pink-50 transition text-center">
-                      <td className="font-semibold text-gray-800 py-2 px-4">{item.BloodGroup}</td>
-                      <td className="text-red-600 font-bold py-2 px-4">{item.Volume}</td>
+                    <tr
+                      key={idx}
+                      className="hover:bg-pink-50 transition text-center"
+                    >
+                      <td className="font-semibold text-gray-800 py-2 px-4">
+                        {item.BloodGroup}
+                      </td>
+                      <td className="text-red-600 font-bold py-2 px-4">
+                        {item.Volume}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
