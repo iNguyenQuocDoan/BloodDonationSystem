@@ -30,16 +30,22 @@ const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const COLORS = ["#F72585", "#FF8A00", "#FF6B6B", "#FFC300", "#3B82F6", "#34D399", "#6366F1", "#F59E42"];
 
 const AdminDashboard = () => {
-  const { getBloodBank } = useApi();
+  const { getBloodBank, getAppointments, getAllBloodUnit, getEmergencyRequestList } = useApi();
   const [pieData, setPieData] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [donationsToday, setDonationsToday] = useState(0);
+  const [donorsByMonth, setDonorsByMonth] = useState([]);
+  const [bloodByMonth, setBloodByMonth] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bloodToday, setBloodToday] = useState(0);
+  const [newDonorsThisWeek, setNewDonorsThisWeek] = useState(0);
+  const [emergencyCount, setEmergencyCount] = useState(0);
 
   useEffect(() => {
     const fetchBloodBank = async () => {
       setLoading(true);
       try {
         const res = await getBloodBank();
-        // Chuẩn hóa đủ 8 nhóm máu
         const data = res.data || [];
         const groupMap = {};
         data.forEach(item => {
@@ -56,18 +62,117 @@ const AdminDashboard = () => {
         setLoading(false);
       }
     };
+
+    const fetchAppointments = async () => {
+      const res = await getAppointments();
+      const data = res.data || [];
+      setAppointments(data);
+
+      // Loại bỏ các appointment có Status là "Canceled"
+      const validAppointments = data.filter(a => a.Status !== "Canceled");
+
+      // Tổng ca hiến trong ngày
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayCount = validAppointments.filter(a => a.DATE?.slice(0, 10) === todayStr).length;
+      setDonationsToday(todayCount);
+
+      // Tổng số người hiến theo tháng
+      const monthMap = {};
+      validAppointments.forEach(a => {
+        if (a.DATE) {
+          const d = new Date(a.DATE);
+          const key = `Th${d.getMonth() + 1}`;
+          monthMap[key] = (monthMap[key] || 0) + 1;
+        }
+      });
+      const months = Object.keys(monthMap).sort((a, b) => parseInt(a.replace("Th", "")) - parseInt(b.replace("Th", "")));
+      setDonorsByMonth(months.map(m => ({
+        month: m,
+        donors: monthMap[m]
+      })));
+
+      // Người hiến mới / tuần (tính từ Thứ Hai)
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(diff);
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const userIdsBeforeWeek = new Set(
+        validAppointments.filter(a => new Date(a.DATE) < startOfWeek).map(a => a.User_ID)
+      );
+      const userIdsThisWeek = new Set(
+        validAppointments.filter(a => {
+          const d = new Date(a.DATE);
+          return d >= startOfWeek && d <= now;
+        }).map(a => a.User_ID)
+      );
+      let newCount = 0;
+      userIdsThisWeek.forEach(uid => {
+        if (!userIdsBeforeWeek.has(uid)) newCount++;
+      });
+      setNewDonorsThisWeek(newCount);
+    };
+
+    const fetchBloodUnit = async () => {
+      try {
+        const res = await getAllBloodUnit();
+        const data = res.data || [];
+        const bloodMonthMap = {};
+        let todayTotal = 0;
+        const todayStr = new Date().toISOString().slice(0, 10);
+        data.forEach(unit => {
+          if (unit.Collected_Date && unit.Volume) {
+            const d = new Date(unit.Collected_Date);
+            if (d.getFullYear() === 2025) {
+              const key = `Th${d.getMonth() + 1}`;
+              bloodMonthMap[key] = (bloodMonthMap[key] || 0) + Number(unit.Volume);
+            }
+            // Tổng lượng máu thu hôm nay
+            if (unit.Collected_Date.slice(0, 10) === todayStr) {
+              todayTotal += Number(unit.Volume);
+            }
+          }
+        });
+        const months = Object.keys(bloodMonthMap).sort((a, b) => parseInt(a.replace("Th", "")) - parseInt(b.replace("Th", "")));
+        setBloodByMonth(months.map(m => ({
+          month: m,
+          units: bloodMonthMap[m]
+        })));
+        setBloodToday(todayTotal);
+      } catch {
+        setBloodByMonth([]);
+        setBloodToday(0);
+      }
+    };
+
+    // Đếm số yêu cầu khẩn cấp từ API
+    const fetchEmergencyCount = async () => {
+      try {
+        const res = await getEmergencyRequestList();
+        const data = res.data || [];
+        setEmergencyCount(data.length);
+      } catch {
+        setEmergencyCount(0);
+      }
+    };
+
     fetchBloodBank();
-  }, [getBloodBank]);
+    fetchAppointments();
+    fetchBloodUnit();
+    fetchEmergencyCount();
+  }, [getBloodBank, getAppointments, getAllBloodUnit, getEmergencyRequestList]);
 
   // Tính tổng kho máu thực tế từ pieData
   const totalVolume = pieData.reduce((sum, p) => sum + p.value, 0);
 
   // Thống kê nhanh (chỉ Tổng kho máu lấy từ dữ liệu thật, các số khác demo)
   const stats = [
-    { label: "Đơn vị thu hôm nay", value: 42 },
-    { label: "Tổng ca hiến trong ngày", value: 5 },
-    { label: "Người hiến mới / tuần", value: 23 },
-    { label: "Yêu cầu khẩn cấp", value: 3 },
+    { label: "Đơn vị thu hôm nay (ml)", value: bloodToday },
+    { label: "Tổng ca hiến trong ngày", value: donationsToday },
+    { label: "Người hiến mới / tuần", value: newDonorsThisWeek },
+    { label: "Yêu cầu khẩn cấp", value: emergencyCount },
     { label: "Tổng kho máu (đv)", value: totalVolume },
   ];
 
@@ -82,23 +187,13 @@ const AdminDashboard = () => {
     { month: "Th7", units: 480 },
   ];
 
-  const demoHist = [
-    { month: "Th1", donors: 35 },
-    { month: "Th2", donors: 41 },
-    { month: "Th3", donors: 28 },
-    { month: "Th4", donors: 47 },
-    { month: "Th5", donors: 54 },
-    { month: "Th6", donors: 46 },
-    { month: "Th7", donors: 60 },
-  ];
-
   /* ---------- Line chart ---------- */
   const lineChartData = {
-    labels: demoLine.map((d) => d.month),
+    labels: bloodByMonth.map((d) => d.month),
     datasets: [
       {
         label: "Đơn vị máu",
-        data: demoLine.map((d) => d.units),
+        data: bloodByMonth.map((d) => d.units),
         borderWidth: 3,
         tension: 0.3,
         pointRadius: 4,
@@ -129,11 +224,11 @@ const AdminDashboard = () => {
 
   /* ---------- Histogram (Bar) ---------- */
   const barChartData = {
-    labels: demoHist.map((h) => h.month),
+    labels: donorsByMonth.map((h) => h.month),
     datasets: [
       {
         label: "Người hiến",
-        data: demoHist.map((h) => h.donors),
+        data: donorsByMonth.map((h) => h.donors),
         backgroundColor: "#3B82F6", // tailwind blue-500
       },
     ],
