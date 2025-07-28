@@ -382,6 +382,7 @@ const RoleManagement = () => {
               </div>
               <div><b>Vai trò:</b> {selectedUser.User_Role === "staff" ? "Nhân viên" : "Thành viên"}</div>
               <div><b>Loại máu:</b> {selectedUser.BloodGroup || "—"}</div>
+               <div><b>Số lần hiến máu:</b> {selectedUser.Donation_Count ?? "—"}</div>
             </div>
             <div className="flex justify-end mt-6">
               <button
