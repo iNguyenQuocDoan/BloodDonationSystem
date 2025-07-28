@@ -59,7 +59,7 @@ const Footer = () => {
           <div className="bg-[#23272f] rounded-lg p-6 flex flex-col items-center justify-center text-white min-h-[180px] h-full text-center">
             <h3 className="font-semibold text-xl mb-2">
               Địa chỉ của chúng tôi
-            </h3>123
+            </h3>
             <p className="text-base">Địa chỉ: Lô E2a-8, Đường D1, Khu Công nghệ cao, Phường Tăng Nhơn Phú,
                 TPHCM</p>
             <p className="text-base">Hotline: 0123 456 789</p>

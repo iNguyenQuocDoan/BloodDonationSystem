@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import useApi from "../../hooks/useApi";
+import { PasswordEye } from "./Register"; // Thêm dòng này
 
 export const LoginPage = () => {
   const [form, setForm] = useState({
@@ -134,18 +134,7 @@ export const LoginPage = () => {
                 className="w-full px-4 py-3 border border-gray-200/60 rounded-xl focus:ring-2 focus:ring-[#D32F2F] focus:border-transparent transition-all duration-200 bg-white/90 backdrop-blur-md focus:bg-white shadow-md"
                 required
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 hover:bg-gray-100 rounded-r-xl transition-colors duration-200"
-                tabIndex={-1}
-              >
-                {showPassword ? (
-                  <AiOutlineEyeInvisible className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                ) : (
-                  <AiOutlineEye className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                )}
-              </button>
+              <PasswordEye show={showPassword} setShow={setShowPassword} />
             </div>
           </div>
           <button

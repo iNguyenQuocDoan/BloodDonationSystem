@@ -225,7 +225,7 @@ export default function DashboardPage() {
       setModalConfirm(false);
       setShowModal(true);
     } catch (err) {
-      toast.error("Không thể lấy báo cáo: " + (err.message || ""));
+      toast.error(err.message || "");
     }
   };
 
@@ -629,36 +629,11 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* SUMMARY CARDS */}
-      {summary ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          {[
-            { label: "Đơn vị thu hôm nay", value: summary.todayCollected },
-            { label: "Tổng ca hiến trong ngày", value: summary.todayDonations },
-            { label: "Tổng kho máu", value: summary.totalStock },
-            { label: "Yêu cầu khẩn cấp", value: summary.urgentRequests },
-          ].map((c, idx) => (
-            <motion.div
-              key={c.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className="bg-white shadow rounded-lg p-4 flex flex-col"
-            >
-              <span className="text-sm text-gray-500 mb-1">{c.label}</span>
-              <span className="text-xl font-bold text-gray-800">{c.value}</span>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-500 mb-10">Đang tải thống kê...</p>
-      )}
-
       {/* BLOOD UNIT SUMMARY CARDS */}
       {availableStatsArray.length > 0 && (
         <div className="mb-10">
           <h2 className="text-xl font-bold text-red-600 mb-4">
-            Thống kê lô máu theo nhóm máu (chỉ còn sử dụng)
+            Thống kê lô máu theo nhóm máu còn dùng
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
             {availableStatsArray.map((stat, idx) => (
@@ -752,20 +727,6 @@ export default function DashboardPage() {
             />
           </div>
         )}
-
-        {/* Stock Distribution */}
-        <div className="bg-white p-6 shadow rounded-lg">
-          <h2 className="text-lg font-semibold mb-4">
-            Phân bố nhóm máu trong kho
-          </h2>
-          {stock.length ? (
-            <Pie data={pieData} />
-          ) : (
-            <p className="text-gray-500">Không có dữ liệu</p>
-          )}
-        </div>
-
-        {/* By Location */}
       </div>
 
       {/* Popup quản lý lô máu */}

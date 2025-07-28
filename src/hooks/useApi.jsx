@@ -449,6 +449,22 @@ const useApi = () => {
     });
   }, [callApi]);
 
+  //Hàm quên mật khẩu
+  const forgotPassword = useCallback(async (email) => {
+  return callApi("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+    headers: { "Content-Type": "application/json" }
+  });
+}, [callApi]);
+const resetPassword = useCallback(async ({ otp, newPassword, confirmPassword }) => {
+  return callApi("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ otp, newPassword, confirmPassword }),
+    headers: { "Content-Type": "application/json" }
+  });
+}, [callApi]);
+
   return {
     loading,
     error,
@@ -505,7 +521,9 @@ const useApi = () => {
     updateBloodUnit,
     addPotential,
     getApprovedPotentialList,
-    updatePotentialStatus
+    updatePotentialStatus,
+    forgotPassword,
+    resetPassword
   };
 };
 

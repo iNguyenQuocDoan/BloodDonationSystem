@@ -4,6 +4,31 @@ import { toast } from "react-toastify";
 import useApi from "../../hooks/useApi";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
+export const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+export const validatePasswords = (password, confirmPassword) => {
+  if (!password) return "Mật khẩu mới là bắt buộc";
+  if (!passwordRegex.test(password))
+    return "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt";
+  if (password !== confirmPassword) return "Mật khẩu xác nhận không khớp";
+  return "";
+};
+
+export const PasswordEye = ({ show, setShow }) => (
+  <button
+    type="button"
+    onClick={() => setShow((v) => !v)}
+    className="absolute inset-y-0 right-0 flex items-center pr-3"
+    tabIndex={-1}
+  >
+    {show ? (
+      <AiOutlineEyeInvisible className="text-gray-500 hover:text-gray-700 w-5 h-5" />
+    ) : (
+      <AiOutlineEye className="text-gray-500 hover:text-gray-700 w-5 h-5" />
+    )}
+  </button>
+);
+
 export const RegisterPage = () => {
   const [form, setForm] = useState({
     name: "",
@@ -63,20 +88,18 @@ export const RegisterPage = () => {
     }
   };
 
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Họ và tên là bắt buộc";
     if (!form.email.trim()) newErrors.email = "Email là bắt buộc";
     if (!form.password.trim()) newErrors.password = "Mật khẩu là bắt buộc";
-    else if (!passwordRegex.test(form.password))
-      newErrors.password =
-        "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt";
     if (!form.date_of_birth) newErrors.date_of_birth = "Ngày sinh là bắt buộc";
-    if (form.password !== form.confirm_password)
-      newErrors.confirm_password = "Mật khẩu xác nhận không khớp";
+    const passwordError = validatePasswords(
+      form.password,
+      form.confirm_password
+    );
+    if (passwordError) newErrors.confirm_password = passwordError;
     const ageError = validateAge(form.date_of_birth);
     if (ageError) newErrors.date_of_birth = ageError;
     if (Object.keys(newErrors).length > 0) {
@@ -251,18 +274,10 @@ export const RegisterPage = () => {
                   }`}
                   required
                 />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                tabIndex={-1}
-              >
-                {showPassword ? (
-                  <AiOutlineEyeInvisible className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                ) : (
-                  <AiOutlineEye className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                )}
-              </button>
+                <PasswordEye
+                  show={showPassword}
+                  setShow={setShowPassword}
+                />
               </div>
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1 flex items-center">
@@ -300,19 +315,10 @@ export const RegisterPage = () => {
                   }`}
                   required
                 />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? (
-                  <AiOutlineEyeInvisible className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                ) : (
-                  <AiOutlineEye className="text-gray-500 hover:text-gray-700 w-5 h-5" />
-                )}
-              </button>
-                
+                <PasswordEye
+                  show={showConfirmPassword}
+                  setShow={setShowConfirmPassword}
+                />
               </div>
               {errors.confirm_password && (
                 <p className="text-red-500 text-sm mt-1 flex items-center">

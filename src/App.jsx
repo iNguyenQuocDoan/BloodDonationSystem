@@ -45,6 +45,7 @@ import AdminLayout from "./Layouts/LayoutAdmin";
 import { RegisterPage } from "./pages/auth/Register";
 import ProfilePage from "./pages/auth/Profile";
 import BlogAdmin from "./pages/Admin/BlogAdmin";
+import ResetPasswordPage from "./pages/auth/ResetPassword";
 
 function App() {
   return (
@@ -73,6 +74,7 @@ function App() {
             <Route element={<LayoutDeFault />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/register" element={<RegisterPage />} />
             </Route>
           </Route>
