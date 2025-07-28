@@ -128,9 +128,14 @@ export default function DashboardPage() {
         const units = res.data || [];
         setBloodUnits(units);
 
-        // Tính tổng lượng máu theo nhóm máu
+        // Lọc chỉ lấy các lô máu còn sử dụng (Available)
+        const availableUnits = units.filter(
+          (unit) => unit.Status === "Available"
+        );
+
+        // Tính tổng lượng máu theo nhóm máu chỉ cho Available
         const groupStats = {};
-        units.forEach((unit) => {
+        availableUnits.forEach((unit) => {
           const group = unit.BloodGroup || "Unknown";
           const volume = parseInt(unit.Volume) || 0;
           if (groupStats[group]) {
@@ -144,7 +149,7 @@ export default function DashboardPage() {
         const statsArray = Object.entries(groupStats).map(([group, total]) => ({
           group,
           total,
-          count: units.filter((u) => u.BloodGroup === group).length,
+          count: availableUnits.filter((u) => u.BloodGroup === group).length,
         }));
 
         setBloodUnitStats(statsArray);
@@ -170,7 +175,7 @@ export default function DashboardPage() {
           if (groupStats[group]) {
             groupStats[group] += volume;
           } else {
-            groupStats[group] = volume;
+            groupStats[group] -= volume;
           }
         });
 
@@ -378,7 +383,7 @@ export default function DashboardPage() {
       setEditBloodUnit(null);
       await fetchBloodUnits();
     } catch (err) {
-      toast.error(err?.message||"Có lỗi xảy ra!" );
+      toast.error(err?.message || "Có lỗi xảy ra!");
     }
   };
 
@@ -761,51 +766,43 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bloodUnits.map((item) => (
-                    <tr
-                      key={item.BloodUnit_ID}
-                      className="hover:bg-pink-50 transition"
-                    >
-                      <td className="py-2 px-3">{item.BloodGroup}</td>
-                      <td className="py-2 px-3">{item.Volume}</td>
-                      <td className="py-2 px-3">
-                        {item.Collected_Date?.slice(0, 10)}
-                      </td>
-                      <td className="py-2 px-3">
-                        {item.Expiration_Date?.slice(0, 10)}
-                      </td>
-                      <td className="py-2 px-3">
-                        <span
-                          className={
-                            item.Status === "Available"
-                              ? "text-green-600 font-semibold"
-                              : item.Status === "Expired"
-                              ? "text-gray-500 font-semibold"
-                              : "text-orange-600 font-semibold"
-                          }
-                        >
-                          {item.Status === "Available" && "Còn sử dụng"}
-                          {item.Status === "Expired" && "Hết hạn"}
-                          {item.Status === "Used" && "Hết máu"}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <button
-                          className="text-blue-600 underline font-semibold"
-                          onClick={() =>
-                            setEditBloodUnit({
-                              BloodUnit_ID: item.BloodUnit_ID,
-                              Status: item.Status,
-                              Expiration_Date:
-                                item.Expiration_Date?.slice(0, 10) || "",
-                            })
-                          }
-                        >
-                          Sửa
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {bloodUnits
+                    .filter((item) => item.Status === "Available")
+                    .map((item) => (
+                      <tr
+                        key={item.BloodUnit_ID}
+                        className="hover:bg-pink-50 transition"
+                      >
+                        <td className="py-2 px-3">{item.BloodGroup}</td>
+                        <td className="py-2 px-3">{item.Volume}</td>
+                        <td className="py-2 px-3">
+                          {item.Collected_Date?.slice(0, 10)}
+                        </td>
+                        <td className="py-2 px-3">
+                          {item.Expiration_Date?.slice(0, 10)}
+                        </td>
+                        <td className="py-2 px-3">
+                          <span className="text-green-600 font-semibold">
+                            Còn sử dụng
+                          </span>
+                        </td>
+                        <td className="py-2 px-3">
+                          <button
+                            className="text-blue-600 underline font-semibold"
+                            onClick={() =>
+                              setEditBloodUnit({
+                                BloodUnit_ID: item.BloodUnit_ID,
+                                Status: item.Status,
+                                Expiration_Date:
+                                  item.Expiration_Date?.slice(0, 10) || "",
+                              })
+                            }
+                          >
+                            Sửa
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
