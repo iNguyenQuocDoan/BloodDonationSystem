@@ -33,6 +33,11 @@ const BloodTypeInfo = () => {
   };
 
   useEffect(() => {
+    // Scroll to top when component first mounts
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []); // Empty dependency array - only runs once on mount
+
+  useEffect(() => {
     // Apply tilt
     const tiltCards = document.querySelectorAll(".tilt-card");
     VanillaTilt.init(tiltCards, {
