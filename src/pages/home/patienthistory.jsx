@@ -54,9 +54,15 @@ export default function PatientHistory() {
             <tbody>
               {histories.map((item, idx) => (
                 <tr key={idx} className="border-b hover:bg-gray-50 text-center transition">
-                  <td className="px-4 py-3 whitespace-nowrap">{item.MedicalHistory ? new Date(item.MedicalHistory).toLocaleDateString("vi-VN") : '-'}</td>
-                  <td className="px-4 py-3 break-words max-w-md whitespace-pre-line text-left">{item.Description || '-'}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
+                    {item.MedicalHistory ? new Date(item.MedicalHistory).toLocaleDateString("vi-VN") : '-'}
+                  </td>
+                  <td className="px-4 py-3 break-words max-w-md whitespace-pre-line text-center align-middle">
+                    <span className="inline-block w-full text-center font-bold text-[#D32F2F] bg-red-50 px-4 py-2 rounded-lg shadow">
+                      {item.Description || '-'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-center align-middle">
                     <span className={`px-3 py-1 rounded-full font-semibold ${statusColor[item.Status] || "bg-gray-100 text-gray-700"}`}>
                       {statusLabel[item.Status] || item.Status || '-'}
                     </span>

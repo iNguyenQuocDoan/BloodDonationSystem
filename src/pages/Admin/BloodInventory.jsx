@@ -201,6 +201,28 @@ const BloodInventory = () => {
     ],
   };
 
+  const bloodTypeList = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+  const statusList = [
+    { key: "Available", label: "Còn sử dụng", color: "text-green-600" },
+    { key: "Expired", label: "Hết hạn", color: "text-gray-500" },
+    { key: "Used", label: "Hết máu", color: "text-orange-600" },
+  ];
+
+  // Tính thống kê lô máu theo nhóm máu và trạng thái
+  const bloodUnitStatusStats = bloodTypeList.map((group) => {
+    const byStatus = {};
+    statusList.forEach((status) => {
+      const filtered = bloodUnits.filter(
+        (unit) => unit.BloodGroup === group && unit.Status === status.key
+      );
+      byStatus[status.key] = {
+        count: filtered.length,
+        total: filtered.reduce((sum, unit) => sum + Number(unit.Volume || 0), 0),
+      };
+    });
+    return { group, byStatus };
+  });
+
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen max-w-screen-xl mx-auto w-full">
       <div className="flex justify-between items-center mb-6">
@@ -402,74 +424,52 @@ const BloodInventory = () => {
         )}
       </div>
 
-      {/* So sánh trực quan */}
-      {bloodUnitStats.length > 0 && bloodBankStats.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
-            📋 Bảng So Sánh Chi Tiết
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-gray-100 text-gray-600">
-                <tr>
-                  <th className="px-6 py-3">Nhóm Máu</th>
-                  <th className="px-6 py-3 text-red-600">Lô Máu (ml)</th>
-                  <th className="px-6 py-3 text-green-600">Ngân Hàng (ml)</th>
-                  <th className="px-6 py-3 text-blue-600">Tổng Cộng (ml)</th>
-                  <th className="px-6 py-3">Trạng Thái</th>
+      {/* Bảng thống kê nhóm máu theo trạng thái */}
+      <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
+          <span role="img" aria-label="chart" className="text-3xl">📊</span>
+          Thống kê Lô Máu Theo Trạng Thái
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-[700px] w-full text-base border-separate border-spacing-0">
+            <thead>
+              <tr className="bg-gray-100 text-gray-800 rounded-lg shadow">
+                <th className="py-3 px-4 font-semibold text-center rounded-tl-xl">Nhóm máu</th>
+                {statusList.map((status, idx) => (
+                  <th
+                    key={status.key}
+                    className={`py-3 px-4 font-semibold text-center ${idx === statusList.length - 1 ? "rounded-tr-xl" : ""}`}
+                  >
+                    {status.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {bloodUnitStatusStats.map((row, idx) => (
+                <tr key={row.group} className="border-b last:border-b-0 hover:bg-gray-50 transition">
+                  <td className="py-3 px-4 font-bold text-center">{row.group}</td>
+                  {statusList.map((status) => (
+                    <td key={status.key} className={`py-3 px-4 text-center`}>
+                      <span
+                        className={`font-semibold ${
+                          status.key === "Available"
+                            ? "text-green-600 bg-green-50 px-2 py-1 rounded-lg"
+                            : status.key === "Expired"
+                            ? "text-gray-600 bg-gray-50 px-2 py-1 rounded-lg"
+                            : "text-orange-600 bg-orange-50 px-2 py-1 rounded-lg"
+                        }`}
+                      >
+                        {row.byStatus[status.key].count} lô, {row.byStatus[status.key].total.toLocaleString()} ml
+                      </span>
+                    </td>
+                  ))}
                 </tr>
-              </thead>
-              <tbody>
-                {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
-                  (group) => {
-                    const unitStat = bloodUnitStats.find(
-                      (s) => s.group === group
-                    );
-                    const bankStat = bloodBankStats.find(
-                      (s) => s.group === group
-                    );
-                    const unitTotal = unitStat?.total || 0;
-                    const bankTotal = bankStat?.total || 0;
-                    const total = unitTotal + bankTotal;
-                    const status =
-                      total > 1000
-                        ? "Đủ"
-                        : total > 500
-                        ? "Trung bình"
-                        : "Thiếu";
-                    const statusColor =
-                      total > 1000
-                        ? "text-green-600"
-                        : total > 500
-                        ? "text-yellow-600"
-                        : "text-red-600";
-
-                    return (
-                      <tr key={group} className="border-b hover:bg-gray-50">
-                        <td className="px-6 py-4 font-semibold">{group}</td>
-                        <td className="px-6 py-4 text-red-600">
-                          {unitTotal.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-green-600">
-                          {bankTotal.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-blue-600 font-bold">
-                          {total.toLocaleString()}
-                        </td>
-                        <td
-                          className={`px-6 py-4 font-semibold ${statusColor}`}
-                        >
-                          {status}
-                        </td>
-                      </tr>
-                    );
-                  }
-                )}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       {loading && (
         <div className="text-center py-8 text-gray-500">

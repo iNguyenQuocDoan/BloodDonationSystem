@@ -43,7 +43,7 @@ const bloodTypeMapping = {
   "O+": "BT007",
   "O-": "BT008",
 };
-const bloodTypeList = Object.keys(bloodTypeMapping);
+const bloodTypeList = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 export default function DashboardPage() {
   const {
@@ -128,14 +128,9 @@ export default function DashboardPage() {
         const units = res.data || [];
         setBloodUnits(units);
 
-        // Lọc chỉ lấy các lô máu còn sử dụng (Available)
-        const availableUnits = units.filter(
-          (unit) => unit.Status === "Available"
-        );
-
-        // Tính tổng lượng máu theo nhóm máu chỉ cho Available
+        // Tính tổng lượng máu theo nhóm máu
         const groupStats = {};
-        availableUnits.forEach((unit) => {
+        units.forEach((unit) => {
           const group = unit.BloodGroup || "Unknown";
           const volume = parseInt(unit.Volume) || 0;
           if (groupStats[group]) {
@@ -149,7 +144,7 @@ export default function DashboardPage() {
         const statsArray = Object.entries(groupStats).map(([group, total]) => ({
           group,
           total,
-          count: availableUnits.filter((u) => u.BloodGroup === group).length,
+          count: units.filter((u) => u.BloodGroup === group).length,
         }));
 
         setBloodUnitStats(statsArray);
@@ -175,7 +170,7 @@ export default function DashboardPage() {
           if (groupStats[group]) {
             groupStats[group] += volume;
           } else {
-            groupStats[group] -= volume;
+            groupStats[group] = volume;
           }
         });
 
@@ -383,7 +378,7 @@ export default function DashboardPage() {
       setEditBloodUnit(null);
       await fetchBloodUnits();
     } catch (err) {
-      toast.error(err?.message || "Có lỗi xảy ra!");
+      toast.error(err?.message||"Có lỗi xảy ra!" );
     }
   };
 
@@ -454,6 +449,41 @@ export default function DashboardPage() {
         data: bloodBankStats.map((stat) => stat.total),
         backgroundColor: "#059669",
         borderColor: "#047857",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Thống kê lô máu chỉ lấy status "Available" và đủ nhóm máu
+  const availableBloodUnitStats = bloodUnits
+    .filter((unit) => unit.Status === "Available")
+    .reduce((acc, unit) => {
+      const group = unit.BloodGroup || "Unknown";
+      const volume = parseInt(unit.Volume) || 0;
+      if (!acc[group]) {
+        acc[group] = { group, total: 0, count: 0 };
+      }
+      acc[group].total += volume;
+      acc[group].count += 1;
+      return acc;
+    }, {});
+
+  // Đảm bảo đủ các nhóm máu
+  const availableStatsArray = bloodTypeList.map((group) => {
+    return (
+      availableBloodUnitStats[group] || { group, total: 0, count: 0 }
+    );
+  });
+
+  // Biểu đồ chỉ lấy lô máu "Available" và đủ nhóm máu
+  const availableBloodUnitChartData = {
+    labels: availableStatsArray.map((stat) => stat.group),
+    datasets: [
+      {
+        label: "Tổng lượng máu (ml)",
+        data: availableStatsArray.map((stat) => stat.total),
+        backgroundColor: "#DC2626",
+        borderColor: "#B91C1C",
         borderWidth: 1,
       },
     ],
@@ -625,16 +655,17 @@ export default function DashboardPage() {
       )}
 
       {/* BLOOD UNIT SUMMARY CARDS */}
-      {bloodUnitStats.length > 0 && (
+      {availableStatsArray.length > 0 && (
         <div className="mb-10">
           <h2 className="text-xl font-bold text-red-600 mb-4">
-            Thống kê lô máu theo nhóm máu
+            Thống kê lô máu theo nhóm máu (chỉ còn sử dụng)
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
-            {bloodUnitStats.map((stat, idx) => (
+            {availableStatsArray.map((stat, idx) => (
               <motion.div
                 key={stat.group}
                 initial={{ opacity: 0, scale: 0.9 }}
+                
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.05 }}
                 className="bg-gradient-to-br from-red-50 to-pink-50 border border-red-200 rounded-lg p-4 flex flex-col items-center hover:shadow-md transition-shadow"
@@ -657,13 +688,13 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold">
-                  {bloodUnitStats.reduce((sum, stat) => sum + stat.count, 0)}
+                  {availableStatsArray.reduce((sum, stat) => sum + stat.count, 0)}
                 </div>
                 <div className="text-red-100">Tổng số lô máu</div>
               </div>
               <div>
                 <div className="text-2xl font-bold">
-                  {bloodUnitStats
+                  {availableStatsArray
                     .reduce((sum, stat) => sum + stat.total, 0)
                     .toLocaleString()}{" "}
                   ml
@@ -672,7 +703,7 @@ export default function DashboardPage() {
               </div>
               <div className="md:col-span-1 col-span-2">
                 <div className="text-2xl font-bold">
-                  {bloodUnitStats.length}
+                  {availableStatsArray.length}
                 </div>
                 <div className="text-red-100">Nhóm máu khác nhau</div>
               </div>
@@ -684,13 +715,13 @@ export default function DashboardPage() {
       {/* CHARTS GRID */}
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Blood Unit Statistics Chart */}
-        {bloodUnitStats.length > 0 && (
+        {availableStatsArray.length > 0 && (
           <div className="bg-white p-6 shadow rounded-lg lg:col-span-2">
             <h2 className="text-lg font-semibold mb-4">
-              Biểu đồ thống kê lô máu theo nhóm máu
+              Biểu đồ thống kê lô máu theo nhóm máu (chỉ còn sử dụng)
             </h2>
             <Bar
-              data={bloodUnitChartData}
+              data={availableBloodUnitChartData}
               options={{
                 responsive: true,
                 plugins: {
@@ -766,43 +797,51 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bloodUnits
-                    .filter((item) => item.Status === "Available")
-                    .map((item) => (
-                      <tr
-                        key={item.BloodUnit_ID}
-                        className="hover:bg-pink-50 transition"
-                      >
-                        <td className="py-2 px-3">{item.BloodGroup}</td>
-                        <td className="py-2 px-3">{item.Volume}</td>
-                        <td className="py-2 px-3">
-                          {item.Collected_Date?.slice(0, 10)}
-                        </td>
-                        <td className="py-2 px-3">
-                          {item.Expiration_Date?.slice(0, 10)}
-                        </td>
-                        <td className="py-2 px-3">
-                          <span className="text-green-600 font-semibold">
-                            Còn sử dụng
-                          </span>
-                        </td>
-                        <td className="py-2 px-3">
-                          <button
-                            className="text-blue-600 underline font-semibold"
-                            onClick={() =>
-                              setEditBloodUnit({
-                                BloodUnit_ID: item.BloodUnit_ID,
-                                Status: item.Status,
-                                Expiration_Date:
-                                  item.Expiration_Date?.slice(0, 10) || "",
-                              })
-                            }
-                          >
-                            Sửa
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                  {bloodUnits.map((item) => (
+                    <tr
+                      key={item.BloodUnit_ID}
+                      className="hover:bg-pink-50 transition"
+                    >
+                      <td className="py-2 px-3">{item.BloodGroup}</td>
+                      <td className="py-2 px-3">{item.Volume}</td>
+                      <td className="py-2 px-3">
+                        {item.Collected_Date?.slice(0, 10)}
+                      </td>
+                      <td className="py-2 px-3">
+                        {item.Expiration_Date?.slice(0, 10)}
+                      </td>
+                      <td className="py-2 px-3">
+                        <span
+                          className={
+                            item.Status === "Available"
+                              ? "text-green-600 font-semibold"
+                              : item.Status === "Expired"
+                              ? "text-gray-500 font-semibold"
+                              : "text-orange-600 font-semibold"
+                          }
+                        >
+                          {item.Status === "Available" && "Còn sử dụng"}
+                          {item.Status === "Expired" && "Hết hạn"}
+                          {item.Status === "Used" && "Hết máu"}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3">
+                        <button
+                          className="text-blue-600 underline font-semibold"
+                          onClick={() =>
+                            setEditBloodUnit({
+                              BloodUnit_ID: item.BloodUnit_ID,
+                              Status: item.Status,
+                              Expiration_Date:
+                                item.Expiration_Date?.slice(0, 10) || "",
+                            })
+                          }
+                        >
+                          Sửa
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -883,6 +922,14 @@ export default function DashboardPage() {
                       onClick={() => setShowCreateBloodUnit(false)}
                     >
                       Đóng
+                    </button>
+                    <button
+                      className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded font-semibold mt-2"
+                      onClick={() =>
+                        setNewBloodUnit({ BloodType: "", Volume: "", Expiration_Date: "" })
+                      }
+                    >
+                      Reset
                     </button>
                   </div>
                 </div>

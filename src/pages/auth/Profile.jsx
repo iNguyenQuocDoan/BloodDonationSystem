@@ -147,39 +147,43 @@ const ProfilePage = () => {
             {user.date_of_birth || "Chưa cập nhật"}
           </div>
         </div>
-        <div className="mt-8 flex flex-col md:flex-row flex-wrap gap-4 items-center justify-start w-full">
-          <select
-            className="bg-white border-2 border-gray-400 text-black px-3 py-1 rounded shadow font-semibold text-base focus:outline-none focus:ring-2 focus:ring-gray-400 transition h-[40px] min-w-[160px] max-w-full md:w-auto"
-            value={historyType}
-            onChange={e => {
-              const value = e.target.value;
-              setHistoryType(value);
-              if (value === "donate") {
-                navigate("/history?type=donate");
-              } else if (value === "emergency") {
-                navigate("/history?type=emergency");
-              }
-            }}
-            style={{ minWidth: 160, maxWidth: '100%' }}
-          >
-            <option value="" disabled>Chọn loại lịch sử...</option>
-            <option value="donate">Lịch sử hiến máu </option>
-            <option value="emergency">Lịch sử hiến máu khẩn cấp</option>
-          </select>
-          <button
-            className="bg-[#D32F2F] text-white px-3 py-1 rounded shadow hover:bg-red-700 transition font-semibold text-base h-[40px] min-w-[100px] max-w-full flex-1"
-            onClick={handleEditClick}
-            style={{ minWidth: 100, maxWidth: '100%' }}
-          >
-            Chỉnh sửa hồ sơ
-          </button>
-          <button
-            className="bg-blue-600 text-white px-3 py-1 rounded shadow hover:bg-blue-800 transition font-semibold text-base h-[40px] min-w-[100px] max-w-full flex-1"
-            onClick={() => navigate('/patienthistory')}
-            style={{ minWidth: 100, maxWidth: '100%' }}
-          >
-            Xem hồ sơ bệnh án
-          </button>
+        <div className="mt-8 flex flex-col md:flex-row flex-wrap gap-4 items-center justify-center w-full">
+          {user.user_role === "member" && (
+            <>
+              <select
+                className="bg-white border-2 border-gray-400 text-black px-3 py-2 rounded shadow font-semibold text-base focus:outline-none focus:ring-2 focus:ring-gray-400 transition h-[44px] min-w-[180px] max-w-full md:w-auto text-center"
+                value={historyType}
+                onChange={e => {
+                  const value = e.target.value;
+                  setHistoryType(value);
+                  if (value === "donate") {
+                    navigate("/history?type=donate");
+                  } else if (value === "emergency") {
+                    navigate("/history?type=emergency");
+                  }
+                }}
+                style={{ minWidth: 180, maxWidth: '100%' }}
+              >
+                <option value="" disabled>Chọn loại lịch sử...</option>
+                <option value="donate">Lịch sử hiến máu</option>
+                <option value="emergency">Lịch sử hiến máu khẩn cấp</option>
+              </select>
+              <button
+                className="bg-[#D32F2F] text-white px-4 py-2 rounded shadow hover:bg-red-700 transition font-semibold text-base h-[44px] min-w-[120px] max-w-full flex-1"
+                onClick={handleEditClick}
+                style={{ minWidth: 120, maxWidth: '100%' }}
+              >
+                Chỉnh sửa hồ sơ
+              </button>
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-800 transition font-semibold text-base h-[44px] min-w-[120px] max-w-full flex-1"
+                onClick={() => navigate('/patienthistory')}
+                style={{ minWidth: 120, maxWidth: '100%' }}
+              >
+                Xem hồ sơ bệnh án
+              </button>
+            </>
+          )}
         </div>
       </div>
 
