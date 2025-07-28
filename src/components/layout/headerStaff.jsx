@@ -57,7 +57,7 @@ const HeaderStaff = () => {
         <div className="mx-auto max-w-full">
           <div className="flex items-center px-[20px] py-[10px]">
             <NavLink
-              to="/"
+              to="/dashboard"
               className="font-[900] text-[#D32F2F] xl:text-[28px] lg:text-[26px] md:text-[24px] text-[22px] whitespace-nowrap mr-8"
             >
               DaiVietBlood

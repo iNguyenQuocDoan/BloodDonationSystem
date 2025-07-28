@@ -1,6 +1,35 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GoArrowLeft } from "react-icons/go";
+import { toast } from "react-toastify";
+import useApi from "../../hooks/useApi";
+import { useState } from "react";
+
 const ForgotPasswordPage = () => {
+  const navigate = useNavigate();
+  const { forgotPassword } = useApi();
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    try {
+      await forgotPassword(email);
+      toast.success("Gửi yêu cầu thành công! Vui lòng kiểm tra email.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      navigate("/reset-password");
+    } catch (error) {
+      toast.error(error.message || "Gửi yêu cầu thất bại", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center p-8 relative overflow-hidden">
       {/* Background image for entire page - cute blood donation illustration */}
@@ -38,7 +67,7 @@ const ForgotPasswordPage = () => {
               Đừng lo, chúng tôi sẽ giúp bạn khôi phục!
             </p>
           </div>
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label className="block text-[#555555] font-medium">
                 Nhập email đã đăng ký
@@ -47,8 +76,12 @@ const ForgotPasswordPage = () => {
                 <input
                   type="email"
                   name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Nhập email của bạn"
                   className="w-full px-4 py-3 border border-gray-200/60 rounded-xl focus:ring-2 focus:ring-[#D32F2F] focus:border-transparent transition-all duration-200 bg-white/90 backdrop-blur-md focus:bg-white shadow-md"
+                  required
+                  disabled={sending}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <svg
@@ -68,8 +101,9 @@ const ForgotPasswordPage = () => {
             <button
               type="submit"
               className="w-full py-3 px-4 bg-gradient-to-r from-[#D32F2F] to-red-600 text-white font-semibold rounded-xl transition-all duration-300 hover:from-red-600 hover:to-red-700 transform hover:-translate-y-1 hover:scale-[1.02] shadow-lg hover:shadow-red-200/50 active:translate-y-0 active:shadow-inner"
+              disabled={sending}
             >
-              Gửi yêu cầu khôi phục
+              {sending ? "Đang gửi..." : "Gửi yêu cầu khôi phục"}
             </button>
           </form>
 
