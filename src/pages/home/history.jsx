@@ -34,6 +34,8 @@ export default function History() {
     const [showPatientModal, setShowPatientModal] = useState(false);
     const [patientInfo, setPatientInfo] = useState(null);
     const [patientLoading, setPatientLoading] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
 
     useEffect(() => {
         getInfoEmergencyRequestsByMember().then(res => setRequests(res.data || []));
@@ -46,10 +48,48 @@ export default function History() {
         setShowConfirm(true);
     };
     const confirmCancel = async () => {
-        await cancelEmergencyRequestByMember(cancelId);
-        setShowConfirm(false);
-        setCancelId(null);
-        getInfoEmergencyRequestsByMember().then(res => setRequests(res.data || []));
+        try {
+            await cancelEmergencyRequestByMember(cancelId);
+            // Xóa yêu cầu khỏi state ngay lập tức
+            setRequests(prevRequests => prevRequests.filter(req => req.Emergency_ID !== cancelId));
+            setShowConfirm(false);
+            setCancelId(null);
+            // Hiển thị toast thành công
+            setToastMessage("Hủy yêu cầu thành công!");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3000);
+        } catch (error) {
+            console.error("Lỗi khi hủy yêu cầu:", error);
+            
+            // Thử refresh lại danh sách để kiểm tra xem yêu cầu có thực sự bị hủy không
+            try {
+                const updatedRequests = await getInfoEmergencyRequestsByMember();
+                const currentRequests = updatedRequests.data || [];
+                
+                // Kiểm tra xem yêu cầu có còn trong danh sách không
+                const requestStillExists = currentRequests.some(req => req.Emergency_ID === cancelId);
+                
+                if (!requestStillExists) {
+                    // Yêu cầu đã bị hủy thành công, chỉ cần cập nhật state
+                    setRequests(currentRequests);
+                    setShowConfirm(false);
+                    setCancelId(null);
+                    setToastMessage("Hủy yêu cầu thành công!");
+                    setShowToast(true);
+                    setTimeout(() => setShowToast(false), 3000);
+                } else {
+                    // Yêu cầu vẫn còn, có lỗi thực sự
+                    setToastMessage("Có lỗi xảy ra khi hủy yêu cầu!");
+                    setShowToast(true);
+                    setTimeout(() => setShowToast(false), 3000);
+                }
+            } catch (refreshError) {
+                console.error("Lỗi khi refresh danh sách:", refreshError);
+                setToastMessage("Có lỗi xảy ra khi hủy yêu cầu!");
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 3000);
+            }
+        }
     };
 
     // Popup xem hồ sơ bệnh án
@@ -304,6 +344,23 @@ export default function History() {
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+            {/* Toast Notification */}
+            {showToast && (
+                <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 ${
+                    toastMessage.includes("thành công") 
+                        ? "bg-green-100 border border-green-300 text-green-800" 
+                        : "bg-red-100 border border-red-300 text-red-800"
+                }`}>
+                    <span className="text-xl font-bold">{toastMessage.includes("thành công") ? "✓" : "✗"}</span>
+                    <span className="font-semibold text-base">{toastMessage}</span>
+                    <button 
+                        onClick={() => setShowToast(false)}
+                        className="ml-3 text-gray-600 hover:text-gray-800 text-lg font-bold"
+                    >
+                        ×
+                    </button>
                 </div>
             )}
         </div>
