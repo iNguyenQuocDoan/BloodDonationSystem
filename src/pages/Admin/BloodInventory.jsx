@@ -12,6 +12,7 @@ import {
   Legend,
 } from "chart.js";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom"; // Thêm dòng này
 
 ChartJS.register(
   CategoryScale,
@@ -25,6 +26,7 @@ ChartJS.register(
 
 const BloodInventory = () => {
   const { getAllBloodUnit, getBloodBank, loading } = useApi();
+  const navigate = useNavigate(); // Thêm dòng này
 
   // State cho thống kê lô máu
   const [bloodUnitStats, setBloodUnitStats] = useState([]);
@@ -227,9 +229,15 @@ const BloodInventory = () => {
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen max-w-screen-xl mx-auto w-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-blue-600">Quản lý Kho Máu</h1>
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+          onClick={() => navigate("/admin/report-history")}
+        >
+          Xem lịch sử báo cáo nhân viên
+        </button>
       </div>
 
-      {/* SUMMARY CARDS CHO LÔ MÁUU */}
+      {/* SUMMARY CARDS CHO LÔ MáU */}
       {bloodUnitStats.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-bold text-red-600 mb-4">

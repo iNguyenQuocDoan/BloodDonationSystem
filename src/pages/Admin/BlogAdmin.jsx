@@ -26,7 +26,15 @@ const BlogAdmin = () => {
 
   useEffect(() => {
     fetchBlogs()
-      .then(setBlogs)
+      .then((data) => {
+        // Sắp xếp theo Update_At giảm dần nếu có, nếu không thì theo Pubished_At
+        const sorted = [...data].sort((a, b) => {
+          const getDate = (obj) =>
+            new Date(obj.Update_At || obj.Pubished_At || 0);
+          return getDate(b) - getDate(a);
+        });
+        setBlogs(sorted);
+      })
       .catch(() => setBlogs([]));
   }, [fetchBlogs]);
 

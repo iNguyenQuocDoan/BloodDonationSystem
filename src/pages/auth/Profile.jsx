@@ -4,6 +4,8 @@ import useApi from "../../hooks/useApi";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
+const phonePattern = /^(0|\+84)(3[2-9]|5[2689]|7[06-9]|8[1-689]|9[0-9])[0-9]{7}$/;
+
 const ProfilePage = () => {
   const { historyAppointmentsByUser, getCurrentUser, updateUser } = useApi();
   const [user, setUser] = useState(null);
@@ -13,7 +15,7 @@ const ProfilePage = () => {
     date_of_birth: "",
     Phone: "",
     Gender: "",
-    Address: "", // thêm dòng này
+    Address: "",
   });
   const [historyType, setHistoryType] = useState("");
   const [myRegistrations, setMyRegistrations] = useState([]);
@@ -56,7 +58,7 @@ const ProfilePage = () => {
       const monthDiff = today.getMonth() - birthDate.getMonth();
       const actualAge =
         monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+          (monthDiff === 0 && today.getDate() < birthDate.getDate())
           ? age - 1
           : age;
       if (actualAge < 18) {
@@ -67,6 +69,14 @@ const ProfilePage = () => {
         toast.error("Độ tuổi hiến máu tối đa là 60 tuổi");
         return;
       }
+    }
+
+    // Validate số điện thoại Việt Nam
+    if (editForm.Phone && !phonePattern.test(editForm.Phone)) {
+      toast.error(
+        "Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam đúng định dạng!"
+      );
+      return;
     }
 
     // Regex: Số nhà, tên đường, Xã/Phường, Quận (ít nhất 4 phần, cách nhau bởi dấu phẩy)
@@ -135,7 +145,6 @@ const ProfilePage = () => {
           </div>
           <div>
             <div className="text-[#D32F2F] font-semibold mb-1">Địa chỉ</div>
-
             <div className="text-gray-700">
               {user.address || "Chưa cập nhật"}
             </div>
@@ -148,12 +157,13 @@ const ProfilePage = () => {
           </div>
         </div>
         <div className="mt-8 flex flex-col md:flex-row flex-wrap gap-4 items-center justify-center w-full">
+
           {user.user_role === "member" && (
             <>
               <select
                 className="bg-white border-2 border-gray-400 text-black px-3 py-2 rounded shadow font-semibold text-base focus:outline-none focus:ring-2 focus:ring-gray-400 transition h-[44px] min-w-[180px] max-w-full md:w-auto text-center"
                 value={historyType}
-                onChange={e => {
+                onChange={(e) => {
                   const value = e.target.value;
                   setHistoryType(value);
                   if (value === "donate") {
@@ -162,23 +172,29 @@ const ProfilePage = () => {
                     navigate("/history?type=emergency");
                   }
                 }}
-                style={{ minWidth: 180, maxWidth: '100%' }}
+                style={{ minWidth: 180, maxWidth: "100%" }}
               >
-                <option value="" disabled>Chọn loại lịch sử...</option>
+                <option value="" disabled>
+                  Chọn loại lịch sử...
+                </option>
                 <option value="donate">Lịch sử hiến máu</option>
                 <option value="emergency">Lịch sử hiến máu khẩn cấp</option>
               </select>
-              <button
-                className="bg-[#D32F2F] text-white px-4 py-2 rounded shadow hover:bg-red-700 transition font-semibold text-base h-[44px] min-w-[120px] max-w-full flex-1"
-                onClick={handleEditClick}
-                style={{ minWidth: 120, maxWidth: '100%' }}
-              >
-                Chỉnh sửa hồ sơ
-              </button>
+            </>
+          )}
+          <button
+            className="bg-[#D32F2F] text-white px-4 py-2 rounded shadow hover:bg-red-700 transition font-semibold text-base h-[44px] min-w-[120px] max-w-full flex-1"
+            onClick={handleEditClick}
+            style={{ minWidth: 120, maxWidth: "100%" }}
+          >
+            Chỉnh sửa hồ sơ
+          </button>
+          {user.user_role === "member" && (
+            <>
               <button
                 className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-800 transition font-semibold text-base h-[44px] min-w-[120px] max-w-full flex-1"
-                onClick={() => navigate('/patienthistory')}
-                style={{ minWidth: 120, maxWidth: '100%' }}
+                onClick={() => navigate("/patienthistory")}
+                style={{ minWidth: 120, maxWidth: "100%" }}
               >
                 Xem hồ sơ bệnh án
               </button>
@@ -229,6 +245,7 @@ const ProfilePage = () => {
                 value={editForm.Phone}
                 onChange={handleEditChange}
                 className="w-full border rounded p-2"
+                required
               />
             </div>
             <div className="mb-3">
@@ -246,17 +263,18 @@ const ProfilePage = () => {
             </div>
             <div className="mb-3">
               <label className="block mb-1 font-medium">Địa chỉ</label>
-
               <input
                 type="text"
                 name="Address"
                 value={editForm.Address}
                 onChange={handleEditChange}
                 className="w-full border rounded p-2"
+                required
               />
               <div className="text-xs text-gray-400 mb-1">
-                Số nhà, tên đường, Xã/Phường, Quận<br/>
-                  *Nếu là quận 9 thì nhập Thủ Đức
+                Số nhà, tên đường, Xã/Phường, Quận
+                <br />
+                *Nếu là quận 9 thì nhập Thủ Đức
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">

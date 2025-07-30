@@ -112,7 +112,7 @@ const EmergencyRequest = () => {
       const response = await addEmergencyRequest(requestData);
 
       if (response.success) {
-        toast.success("🚨 Yêu cầu hiến máu khẩn cấp đã được gửi thành công!", {
+        toast.success("Yêu cầu hiến máu khẩn cấp đã được gửi thành công!", {
           autoClose: 3000,
         });
 
@@ -129,7 +129,7 @@ const EmergencyRequest = () => {
       }
     } catch (error) {
       console.error('Error submitting emergency request:', error);
-      toast.error("❌ Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại!", {
+      toast.error(error.message, {
         autoClose: 3000,
       });
     }
