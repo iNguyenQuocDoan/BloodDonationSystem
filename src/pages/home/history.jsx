@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useApi from "../../hooks/useApi";
+import { toast } from "react-toastify";
 
 const statusColor = {
     Pending: "bg-yellow-100 text-yellow-700",
@@ -34,8 +35,6 @@ export default function History() {
     const [showPatientModal, setShowPatientModal] = useState(false);
     const [patientInfo, setPatientInfo] = useState(null);
     const [patientLoading, setPatientLoading] = useState(false);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState("");
 
     useEffect(() => {
         getInfoEmergencyRequestsByMember().then(res => setRequests(res.data || []));
@@ -50,44 +49,27 @@ export default function History() {
     const confirmCancel = async () => {
         try {
             await cancelEmergencyRequestByMember(cancelId);
-            // Xóa yêu cầu khỏi state ngay lập tức
             setRequests(prevRequests => prevRequests.filter(req => req.Emergency_ID !== cancelId));
             setShowConfirm(false);
             setCancelId(null);
-            // Hiển thị toast thành công
-            setToastMessage("Hủy yêu cầu thành công!");
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 3000);
+            toast.success("Hủy yêu cầu thành công!"); // Sử dụng toast.success
         } catch (error) {
             console.error("Lỗi khi hủy yêu cầu:", error);
-            
-            // Thử refresh lại danh sách để kiểm tra xem yêu cầu có thực sự bị hủy không
             try {
                 const updatedRequests = await getInfoEmergencyRequestsByMember();
                 const currentRequests = updatedRequests.data || [];
-                
-                // Kiểm tra xem yêu cầu có còn trong danh sách không
                 const requestStillExists = currentRequests.some(req => req.Emergency_ID === cancelId);
-                
                 if (!requestStillExists) {
-                    // Yêu cầu đã bị hủy thành công, chỉ cần cập nhật state
                     setRequests(currentRequests);
                     setShowConfirm(false);
                     setCancelId(null);
-                    setToastMessage("Hủy yêu cầu thành công!");
-                    setShowToast(true);
-                    setTimeout(() => setShowToast(false), 3000);
+                    toast.success("Hủy yêu cầu thành công!"); // Sử dụng toast.success
                 } else {
-                    // Yêu cầu vẫn còn, có lỗi thực sự
-                    setToastMessage("Có lỗi xảy ra khi hủy yêu cầu!");
-                    setShowToast(true);
-                    setTimeout(() => setShowToast(false), 3000);
+                    toast.error("Có lỗi xảy ra khi hủy yêu cầu!"); // Sử dụng toast.error
                 }
             } catch (refreshError) {
-                console.error("Lỗi khi refresh danh sách:", refreshError);
-                setToastMessage("Có lỗi xảy ra khi hủy yêu cầu!");
-                setShowToast(true);
-                setTimeout(() => setShowToast(false), 3000);
+console.error("Lỗi khi refresh danh sách:", refreshError);
+                toast.error("Có lỗi xảy ra khi hủy yêu cầu!"); // Sử dụng toast.error
             }
         }
     };
@@ -156,7 +138,7 @@ export default function History() {
                     }}
                 >
                     <option value="donate">Lịch sử hiến máu</option>
-                    <option value="emergency">Lịch sử hiến máu khẩn cấp</option>
+<option value="emergency">Lịch sử hiến máu khẩn cấp</option>
                 </select>
             </div>
             {(type === 'donate' || type === 'emergency' || type === 'all') ? (
@@ -169,7 +151,7 @@ export default function History() {
                         <h2 className="text-2xl font-bold text-red-700 mb-6 text-center">Lịch sử hiến máu khẩn cấp</h2>
                     )}
                     {type === "all" && null}
-                    {loading && <div className="text-center text-gray-500">Đang tải...</div>}
+                    {loading && <div className="text-center text-gray-500">Đang tải....</div>}
                     {/* Lịch sử đăng ký hiến máu của bạn */}
                     {showDonate && (
                         <>
@@ -196,7 +178,7 @@ export default function History() {
                                                 if (reg.Status === "Pending") statusColor = "text-yellow-700 bg-yellow-50";
                                                 else if (reg.Status === "Processing") statusColor = "text-blue-700 bg-blue-50";
                                                 else if (reg.Status === "Completed") statusColor = "text-green-700 bg-green-50";
-                                                else if (reg.Status === "Canceled") statusColor = "text-red-700 bg-red-50";
+else if (reg.Status === "Canceled") statusColor = "text-red-700 bg-red-50";
                                                 return (
                                                     <tr key={reg.Appointment_ID} className="border-b hover:bg-gray-100 transition">
                                                         <td className="px-6 py-3 font-medium text-center">{formatDateVN(reg.Slot_Date)}</td>
@@ -231,7 +213,7 @@ export default function History() {
                         </>
                     )}
                     {/* Lịch sử hiến máu khẩn cấp */}
-                    {showEmergency && (
+{showEmergency && (
                         <>
                             {type === "all" && (
                                 <h3 className="text-xl font-bold text-red-600 mb-4 mt-6 text-center">Lịch sử hiến máu khẩn cấp</h3>
@@ -263,7 +245,7 @@ export default function History() {
                                                     <td className="py-2 px-2 text-center">{req.Volume}</td>
                                                     <td className="py-2 px-2 text-center">{req.Needed_Before?.split("T")[0]}</td>
                                                     <td className="py-2 px-2 text-center">
-                                                        <span className={`px-3 py-1 rounded-full font-semibold ${statusColor[req.Status] || "bg-gray-100 text-gray-700"}`}>
+<span className={`px-3 py-1 rounded-full font-semibold ${statusColor[req.Status] || "bg-gray-100 text-gray-700"}`}>
                                                             {statusLabel[req.Status] || req.Status}
                                                         </span>
                                                     </td>
@@ -302,7 +284,7 @@ export default function History() {
                                 className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
                                 onClick={() => setShowConfirm(false)}
                             >
-                                Đóng
+Đóng
                             </button>
                             <button
                                 className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white font-semibold"
@@ -344,23 +326,6 @@ export default function History() {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
-            {/* Toast Notification */}
-            {showToast && (
-                <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 ${
-                    toastMessage.includes("thành công") 
-                        ? "bg-green-100 border border-green-300 text-green-800" 
-                        : "bg-red-100 border border-red-300 text-red-800"
-                }`}>
-                    <span className="text-xl font-bold">{toastMessage.includes("thành công") ? "✓" : "✗"}</span>
-                    <span className="font-semibold text-base">{toastMessage}</span>
-                    <button 
-                        onClick={() => setShowToast(false)}
-                        className="ml-3 text-gray-600 hover:text-gray-800 text-lg font-bold"
-                    >
-                        ×
-                    </button>
                 </div>
             )}
         </div>
