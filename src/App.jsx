@@ -46,6 +46,7 @@ import { RegisterPage } from "./pages/auth/Register";
 import ProfilePage from "./pages/auth/Profile";
 import BlogAdmin from "./pages/Admin/BlogAdmin";
 import ResetPasswordPage from "./pages/auth/ResetPassword";
+import StaffReportHistory from "./pages/Admin/StaffReportHistory";
 
 function App() {
   return (
@@ -120,6 +121,7 @@ function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/create-slot" element={<CreateSlot />} />
               <Route path="/admin/manage-role" element={<RoleManage />} />
+              <Route path="/admin/report-history" element={<StaffReportHistory />} />
               <Route
                 path="/admin/blood-inventory"
                 element={<BloodInventory />}

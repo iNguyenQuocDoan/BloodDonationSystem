@@ -48,7 +48,7 @@ export default function ManageEmergencyPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(null);
 
-  // Thêm state cho popup danh sách ưu tiên
+  // State cho popup danh sách ưu tiên
   const [potentialList, setPotentialList] = useState([]);
   const [showPotentialPopup, setShowPotentialPopup] = useState(false);
   const [checkedDonors, setCheckedDonors] = useState([]);
@@ -61,19 +61,24 @@ export default function ManageEmergencyPage() {
   const [rejectOtherMsg, setRejectOtherMsg] = useState("");
   const [rejectRow, setRejectRow] = useState(null);
 
-  // Thêm state tạm cho từng dòng nếu chưa có:
+  // State tạm cho từng dòng
   const [editRows, setEditRows] = useState({});
 
-  // 1. Thêm state để lưu lý do cần máu của yêu cầu đang xem
+  // State lý do cần máu của yêu cầu đang xem
   const [currentReason, setCurrentReason] = useState("");
 
-  // Thêm state để phân biệt giữa profile người yêu cầu và profile người hiến
+  // State phân biệt profile người yêu cầu/người hiến
   const [profileType, setProfileType] = useState("profile");
 
-  // State cho popup ngân hàng máu
+  // State popup ngân hàng máu
   const [showBloodBank, setShowBloodBank] = useState(false);
   const [bloodBankList, setBloodBankList] = useState([]);
   const [loadingBloodBank, setLoadingBloodBank] = useState(false);
+
+  // State thống kê tổng lưu lượng máu
+  const [statDate, setStatDate] = useState("");
+  const [statBloodType, setStatBloodType] = useState("");
+  const [totalVolume, setTotalVolume] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -88,6 +93,26 @@ export default function ManageEmergencyPage() {
       }
     })();
   }, [filter, refreshKey]);
+
+  // Tính tổng lưu lượng máu đã sử dụng
+  useEffect(() => {
+    if (!statDate) {
+      setTotalVolume(0);
+      return;
+    }
+    const total = requests
+      .filter(
+        (item) =>
+          item.Status === "Completed" &&
+          item.Needed_Before &&
+          item.Volume &&
+          item.Place === "center" &&
+          item.Needed_Before.slice(0, 10) === statDate &&
+          (!statBloodType || item.BloodType === statBloodType)
+      )
+      .reduce((sum, item) => sum + Number(item.Volume || 0), 0);
+    setTotalVolume(total);
+  }, [statDate, statBloodType, requests]);
 
   // Sửa lại handleStatusChange
   const handleStatusChange = async (id, nextStatus) => {
@@ -107,10 +132,6 @@ export default function ManageEmergencyPage() {
       return;
     }
     try {
-      console.log("Reject API:", {
-        emergencyId: rejectRow,
-        body: { reason_Reject: reason },
-      });
       await rejectEmergencyRequest(rejectRow, reason);
       toast.success("Đã cập nhật trạng thái từ chối!");
       setShowRejectPopup(false);
@@ -119,7 +140,6 @@ export default function ManageEmergencyPage() {
       setRejectRow(null);
       setRefreshKey((k) => k + 1);
     } catch (err) {
-      console.error("Lỗi khi từ chối yêu cầu:", err);
       toast.error(
         err?.message ||
           err?.response?.data?.message ||
@@ -135,7 +155,6 @@ export default function ManageEmergencyPage() {
       setCurrentReason(req.reason_Need ?? "");
       setProfileType("requester");
     } catch (err) {
-      console.error("Lỗi khi lấy thông tin người yêu cầu:", err);
       setSelectedProfile({ error: "Không lấy được thông tin người yêu cầu" });
       setCurrentReason("");
       setProfileType("requester");
@@ -152,7 +171,6 @@ export default function ManageEmergencyPage() {
       setCurrentReason("");
       setProfileType("profile");
     } catch (err) {
-      console.error("Lỗi khi lấy thông tin người hiến:", err);
       setSelectedProfile({ error: "Không lấy được thông tin người hiến" });
       setCurrentReason("");
       setProfileType("profile");
@@ -171,7 +189,6 @@ export default function ManageEmergencyPage() {
       setShowPotentialPopup(true);
       setCheckedDonors([]);
     } catch (err) {
-      console.error("Lỗi khi lấy danh sách ưu tiên:", err);
       setPotentialList([]);
       setShowPotentialPopup(true);
       toast.error(
@@ -200,7 +217,6 @@ export default function ManageEmergencyPage() {
       setShowPotentialPopup(false);
       setRefreshKey((k) => k + 1);
     } catch (err) {
-      console.error("Lỗi khi thêm vào yêu cầu:", err);
       toast.error(
         err?.message ||
           err?.response?.data?.message ||
@@ -213,7 +229,7 @@ export default function ManageEmergencyPage() {
     }
   };
 
-  // Hàm gửi email (sau này call API)
+  // Hàm gửi email
   const handleSendEmail = async () => {
     if (sendingEmail) return;
     if (checkedDonors.length === 0) {
@@ -232,7 +248,6 @@ export default function ManageEmergencyPage() {
           await sendEmergencyEmail(donor.email, donor.userName);
         } catch (err) {
           hasError = true;
-          console.error("Lỗi khi gửi email:", err);
           toast.error(
             err?.message ||
               err?.response?.data?.message ||
@@ -275,7 +290,6 @@ export default function ManageEmergencyPage() {
       setBloodBankList(res.data || []);
     } catch (err) {
       setBloodBankList([]);
-      console.error("Lỗi khi lấy ngân hàng máu:", err);
       toast.error(
         err?.message ||
           err?.response?.data?.message ||
@@ -286,60 +300,56 @@ export default function ManageEmergencyPage() {
     }
   };
 
+  useEffect(() => {
+    // Tự động chọn "Trung tâm" nếu nguồn là ngân hàng máu
+    requests.forEach((req) => {
+      const rowKey = getRowKey(req);
+      const edit = editRows[rowKey] || {};
+      const tempSource = edit.sourceType ?? req.sourceType ?? "";
+      const tempPlace = edit.Place ?? req.Place ?? "";
+      if (tempSource === "bank" && tempPlace !== "center") {
+        handleEditRowChange(rowKey, "Place", "center");
+      }
+    });
+    // eslint-disable-next-line
+  }, [editRows, requests]);
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-red-600 mb-6">
         Quản lý yêu cầu máu khẩn cấp
       </h1>
 
-      {/* FILTER BAR */}
-      <div className="flex flex-wrap gap-4 items-end mb-6">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Nhóm máu (kèm Rh)
-          </label>
+      {/* Thống kê tổng lưu lượng máu + nút xem ngân hàng máu */}
+      <div className="flex flex-row items-center gap-4 mb-6 justify-between">
+        <div className="flex items-center gap-4">
+          <input
+            type="date"
+            className="border rounded px-3 py-2 w-[150px]"
+            value={statDate}
+            onChange={(e) => setStatDate(e.target.value)}
+          />
           <select
-            value={
-              filter.bloodGroup && filter.rhNeeded
-                ? `${filter.bloodGroup}${filter.rhNeeded}`
-                : ""
-            }
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === "") {
-                setFilter({ ...filter, bloodGroup: "", rhNeeded: "" });
-              } else {
-                const group = val.replace(/[+-]/, "");
-                const rh = val.endsWith("+") ? "+" : "-";
-                setFilter({ ...filter, bloodGroup: group, rhNeeded: rh });
-              }
-            }}
-            className="border border-gray-300 rounded px-3 py-2"
+            className="border rounded px-3 py-2 w-[185px]"
+            value={statBloodType}
+            onChange={(e) => setStatBloodType(e.target.value)}
           >
-            <option value="">Tất cả</option>
-            {BLOOD_TYPES.map((t) => (
-              <option key={t}>{t}</option>
+            <option value="">Tất cả nhóm máu</option>
+            {BLOOD_TYPES.map((type) => (
+              <option key={type} value={type}>{type}</option>
             ))}
           </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Trạng thái</label>
-          <select
-            value={filter.status}
-            onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-            className="border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">Tất cả</option>
-            <option value="Pending">Chờ xử lý</option>
-            <option value="Processing">Đã liên hệ</option>
-            <option value="Completed">Đã giải quyết</option>
-            <option value="Rejected">Đã giải quyết</option>
-          </select>
+          <div className="text-lg font-semibold text-red-700">
+            Tổng lưu lượng máu đã dùng:{" "}
+            <span className="text-blue-700">{totalVolume}</span> ml
+          </div>
         </div>
         <button
-          className="ml-auto bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm"
+          className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded shadow hover:from-pink-600 hover:to-red-700 transition"
           onClick={handleShowBloodBank}
+          style={{ minWidth: 180 }}
         >
+          <i className="fa fa-tint mr-2" />
           Xem ngân hàng máu
         </button>
       </div>
@@ -350,7 +360,6 @@ export default function ManageEmergencyPage() {
           <thead className="bg-gray-100 text-gray-700 uppercase text-xs font-semibold">
             <tr>
               <th className="px-4 py-3">Tên</th>
-              {/* con mắt hiện popup xem thông tin người yêu cầu*/}
               <th className="px-4 py-3">Nhóm máu cần</th>
               <th className="px-4 py-3">Lượng máu cần (ml)</th>
               <th className="px-4 py-3">Cần khi nào</th>
@@ -479,7 +488,7 @@ export default function ManageEmergencyPage() {
                           handleEditRowChange(rowKey, "Place", e.target.value)
                         }
                         className="border border-gray-300 rounded px-2 py-1 text-xs"
-                        disabled={req.Status === "Completed"}
+                        disabled={req.Status === "Completed" || tempSource === "bank"}
                       >
                         <option value="">Chọn địa điểm</option>
                         <option value="recive house">Nhà nhận máu</option>
@@ -700,7 +709,7 @@ export default function ManageEmergencyPage() {
                           handleAddDonor(currentEmergencyId, donor.potentialId)
                         }
                       >
-                        <i className="fa fa-plus-circle mr-1" /> Add
+                        <i className="fa fa-plus-circle mr-1" /> Thêm
                       </button>
                     </td>
                   </tr>
@@ -720,7 +729,7 @@ export default function ManageEmergencyPage() {
               ) : (
                 <>
                   <i className="fa fa-paper-plane mr-2" />
-                  Send Email
+                  Gửi Email
                 </>
               )}
             </button>

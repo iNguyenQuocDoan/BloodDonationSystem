@@ -465,6 +465,10 @@ const resetPassword = useCallback(async ({ otp, newPassword, confirmPassword }) 
   });
 }, [callApi]);
 
+const getStaffReports = useCallback(async () => {
+  return callApi("/getAllReports");
+}, [callApi]);
+
   return {
     loading,
     error,
@@ -523,7 +527,8 @@ const resetPassword = useCallback(async ({ otp, newPassword, confirmPassword }) 
     getApprovedPotentialList,
     updatePotentialStatus,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    getStaffReports
   };
 };
 

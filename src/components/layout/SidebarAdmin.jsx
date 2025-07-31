@@ -59,7 +59,7 @@ const AdminNavbar = () => {
             `block w-full px-0 py-3 rounded-2xl font-semibold text-lg text-center transition-all duration-150 ${isActive ? 'bg-[#D32F2F] text-white shadow' : 'bg-white text-[#D32F2F] hover:bg-[#FCA5A5] hover:text-[#D32F2F]'} `
           }
         >
-          Quản lý Người dùng
+          Quản lý người dùng
         </Link>
         <Link
           to="/admin/create-slot"

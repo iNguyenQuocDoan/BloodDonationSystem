@@ -121,7 +121,7 @@ const ConfirmBloodPage = () => {
 
   const handleEditCancel = () => {
     setShowEditConfirm(false);
-    setEditingId(null);
+    setEditingId(null); // Đảm bảo reset về nút "Chỉnh sửa"
   };
 
   // Hàm mở popup thêm bệnh nhân (CHỈNH LẠI)
@@ -206,24 +206,23 @@ const ConfirmBloodPage = () => {
     setAddPatientLoading(true);
     try {
       await addPatientDetail(
-        addPatientAppointmentId, // Appointment_ID vào param
-        addPatientDescription, // description vào body
-        addPatientStatus // status vào body
+        addPatientAppointmentId,
+        addPatientDescription,
+        addPatientStatus
       );
+      toast.success("Thêm hồ sơ thành công!");
+      await fetchConfirmList();
+    } catch (err) {
+      toast.error(err?.message || "Thêm hồ sơ thất bại!");
+    } finally {
       setShowAddPatientModal(false);
       setAddPatientDescription("");
       setAddPatientStatus("");
       setAddPatientAppointmentId(null);
-      await fetchConfirmList();
-      toast.success("Thêm hồ sơ thành công!");
-    } catch (err) {
-      toast.error(err?.message);
-    } finally {
       setAddPatientLoading(false);
     }
   };
 
-  
   const rejectReasons = [
     "Không đủ điều kiện sức khỏe",
     "Không đạt yêu cầu về tuổi/cân nặng",
@@ -235,28 +234,90 @@ const ConfirmBloodPage = () => {
     if (!selectedId) return;
     setLoading(true);
     try {
-      await updateStatusAppointmentByStaff(selectedId, "Processing"); // Gọi API cập nhật trạng thái
-      await fetchConfirmList(); // Refresh lại danh sách
+      await updateStatusAppointmentByStaff(selectedId, "Processing");
+      await fetchConfirmList();
       toast.success("Chấp thuận thành công!");
-      setShowApproveModal(false);
-      setSelectedId(null);
     } catch (err) {
       toast.error(err?.message);
     } finally {
+      setShowApproveModal(false);
+      setSelectedId(null);
+      setEditingId(null); // Thêm dòng này để reset về nút "Chỉnh sửa"
       setLoading(false);
     }
   };
 
+  // Thêm state mới ở đầu file:
+  const [rejectOtherMsg, setRejectOtherMsg] = useState("");
+
+  // Thay đổi phần modal nhập lý do từ chối:
+  {
+    showRejectModal && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+        <div className="bg-white p-6 rounded shadow-lg w-96">
+          <h2 className="text-lg font-semibold mb-4">Nhập lý do từ chối</h2>
+          <select
+            className="w-full border rounded p-2 mb-2"
+            value={rejectReason}
+            onChange={(e) => {
+              setRejectReason(e.target.value);
+              if (e.target.value !== "Lý do khác") setRejectOtherMsg("");
+            }}
+          >
+            <option value="">-- Chọn lý do --</option>
+            {rejectReasons.map((reason, idx) => (
+              <option key={idx} value={reason}>
+                {reason}
+              </option>
+            ))}
+          </select>
+          {rejectReason === "Lý do khác" && (
+            <textarea
+              className="w-full border rounded p-2 mb-4"
+              rows={3}
+              value={rejectOtherMsg}
+              onChange={(e) => setRejectOtherMsg(e.target.value)}
+              placeholder="Nhập lý do..."
+            />
+          )}
+          <div className="flex justify-end gap-2">
+            <button
+              className="px-4 py-2 bg-gray-300 rounded"
+              onClick={handleRejectModalClose}
+            >
+              Hủy
+            </button>
+            <button
+              className="px-4 py-2 bg-red-600 text-white rounded"
+              onClick={handleRejectModalSubmit}
+              disabled={
+                !rejectReason.trim() ||
+                (rejectReason === "Lý do khác" && !rejectOtherMsg.trim())
+              }
+            >
+              Từ chối
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Khi submit, lấy lý do:
   const handleRejectConfirmSubmit = async () => {
-    if (!selectedId || !rejectReason.trim()) return;
+    if (!selectedId) return;
+    const reason =
+      rejectReason === "Lý do khác" ? rejectOtherMsg : rejectReason;
+    if (!reason.trim()) return;
     setLoading(true);
     try {
-      await rejectAppointment(selectedId, rejectReason); // Gọi API từ chối
-      toast.success("Từ chối thành công!");
+      await rejectAppointment(selectedId, reason);
+      toast.success("Đã từ chối ca hiến máu này!"); // Hiện toast khi xác nhận từ chối
       setShowRejectConfirm(false);
       setShowRejectModal(false);
       setRejectReason("");
       setSelectedId(null);
+      setEditingId(null); // Thêm dòng này để reset về nút "Chỉnh sửa"
       await fetchConfirmList();
     } catch (err) {
       toast.error(err?.message || "Từ chối thất bại!");
@@ -481,8 +542,8 @@ const ConfirmBloodPage = () => {
                       <td className="px-3 py-2 text-center  whitespace-nowrap">
                         {item.Start_Time && item.End_Time
                           ? `${formatTimeVN(item.Start_Time)} - ${formatTimeVN(
-                              item.End_Time
-                            )}`
+                            item.End_Time
+                          )}`
                           : "-"}
                       </td>
                       <td className="px-3 py-2 text-center ">
@@ -594,7 +655,10 @@ const ConfirmBloodPage = () => {
             <select
               className="w-full border rounded p-2 mb-2"
               value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
+              onChange={(e) => {
+                setRejectReason(e.target.value);
+                if (e.target.value !== "Lý do khác") setRejectOtherMsg("");
+              }}
             >
               <option value="">-- Chọn lý do --</option>
               {rejectReasons.map((reason, idx) => (
@@ -607,8 +671,8 @@ const ConfirmBloodPage = () => {
               <textarea
                 className="w-full border rounded p-2 mb-4"
                 rows={3}
-                value={rejectReason === "Lý do khác" ? "" : rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
+                value={rejectOtherMsg}
+                onChange={(e) => setRejectOtherMsg(e.target.value)}
                 placeholder="Nhập lý do..."
               />
             )}
@@ -622,7 +686,10 @@ const ConfirmBloodPage = () => {
               <button
                 className="px-4 py-2 bg-red-600 text-white rounded"
                 onClick={handleRejectModalSubmit}
-                disabled={!rejectReason.trim()}
+                disabled={
+                  !rejectReason.trim() ||
+                  (rejectReason === "Lý do khác" && !rejectOtherMsg.trim())
+                }
               >
                 Từ chối
               </button>
@@ -691,7 +758,7 @@ const ConfirmBloodPage = () => {
                 if (typeof declaration === "string") {
                   try {
                     declaration = JSON.parse(declaration);
-                  } catch {}
+                  } catch { }
                 }
                 if (!declaration || typeof declaration !== "object") {
                   return (
