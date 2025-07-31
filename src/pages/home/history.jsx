@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useApi from "../../hooks/useApi";
+import { toast } from "react-toastify";
 
 const statusColor = {
     Pending: "bg-yellow-100 text-yellow-700",
@@ -46,10 +47,31 @@ export default function History() {
         setShowConfirm(true);
     };
     const confirmCancel = async () => {
-        await cancelEmergencyRequestByMember(cancelId);
-        setShowConfirm(false);
-        setCancelId(null);
-        getInfoEmergencyRequestsByMember().then(res => setRequests(res.data || []));
+        try {
+            await cancelEmergencyRequestByMember(cancelId);
+            setRequests(prevRequests => prevRequests.filter(req => req.Emergency_ID !== cancelId));
+            setShowConfirm(false);
+            setCancelId(null);
+            toast.success("Hủy yêu cầu thành công!"); // Sử dụng toast.success
+        } catch (error) {
+            console.error("Lỗi khi hủy yêu cầu:", error);
+            try {
+                const updatedRequests = await getInfoEmergencyRequestsByMember();
+                const currentRequests = updatedRequests.data || [];
+                const requestStillExists = currentRequests.some(req => req.Emergency_ID === cancelId);
+                if (!requestStillExists) {
+                    setRequests(currentRequests);
+                    setShowConfirm(false);
+                    setCancelId(null);
+                    toast.success("Hủy yêu cầu thành công!"); // Sử dụng toast.success
+                } else {
+                    toast.error("Có lỗi xảy ra khi hủy yêu cầu!"); // Sử dụng toast.error
+                }
+            } catch (refreshError) {
+console.error("Lỗi khi refresh danh sách:", refreshError);
+                toast.error("Có lỗi xảy ra khi hủy yêu cầu!"); // Sử dụng toast.error
+            }
+        }
     };
 
     // Popup xem hồ sơ bệnh án
@@ -116,7 +138,7 @@ export default function History() {
                     }}
                 >
                     <option value="donate">Lịch sử hiến máu</option>
-                    <option value="emergency">Lịch sử hiến máu khẩn cấp</option>
+<option value="emergency">Lịch sử hiến máu khẩn cấp</option>
                 </select>
             </div>
             {(type === 'donate' || type === 'emergency' || type === 'all') ? (
@@ -129,7 +151,7 @@ export default function History() {
                         <h2 className="text-2xl font-bold text-red-700 mb-6 text-center">Lịch sử hiến máu khẩn cấp</h2>
                     )}
                     {type === "all" && null}
-                    {loading && <div className="text-center text-gray-500">Đang tải...</div>}
+                    {loading && <div className="text-center text-gray-500">Đang tải....</div>}
                     {/* Lịch sử đăng ký hiến máu của bạn */}
                     {showDonate && (
                         <>
@@ -156,7 +178,7 @@ export default function History() {
                                                 if (reg.Status === "Pending") statusColor = "text-yellow-700 bg-yellow-50";
                                                 else if (reg.Status === "Processing") statusColor = "text-blue-700 bg-blue-50";
                                                 else if (reg.Status === "Completed") statusColor = "text-green-700 bg-green-50";
-                                                else if (reg.Status === "Canceled") statusColor = "text-red-700 bg-red-50";
+else if (reg.Status === "Canceled") statusColor = "text-red-700 bg-red-50";
                                                 return (
                                                     <tr key={reg.Appointment_ID} className="border-b hover:bg-gray-100 transition">
                                                         <td className="px-6 py-3 font-medium text-center">{formatDateVN(reg.Slot_Date)}</td>
@@ -191,7 +213,7 @@ export default function History() {
                         </>
                     )}
                     {/* Lịch sử hiến máu khẩn cấp */}
-                    {showEmergency && (
+{showEmergency && (
                         <>
                             {type === "all" && (
                                 <h3 className="text-xl font-bold text-red-600 mb-4 mt-6 text-center">Lịch sử hiến máu khẩn cấp</h3>
@@ -223,7 +245,7 @@ export default function History() {
                                                     <td className="py-2 px-2 text-center">{req.Volume}</td>
                                                     <td className="py-2 px-2 text-center">{req.Needed_Before?.split("T")[0]}</td>
                                                     <td className="py-2 px-2 text-center">
-                                                        <span className={`px-3 py-1 rounded-full font-semibold ${statusColor[req.Status] || "bg-gray-100 text-gray-700"}`}>
+<span className={`px-3 py-1 rounded-full font-semibold ${statusColor[req.Status] || "bg-gray-100 text-gray-700"}`}>
                                                             {statusLabel[req.Status] || req.Status}
                                                         </span>
                                                     </td>
@@ -262,7 +284,7 @@ export default function History() {
                                 className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
                                 onClick={() => setShowConfirm(false)}
                             >
-                                Đóng
+Đóng
                             </button>
                             <button
                                 className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white font-semibold"

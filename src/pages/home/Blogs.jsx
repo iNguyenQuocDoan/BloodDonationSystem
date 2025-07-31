@@ -3,40 +3,6 @@ import { Link } from "react-router-dom";
 
 const PAGE_SIZE = 6;
 
-// Demo dữ liệu blog (giống DB, thêm trường Image_Url)
-const blogList = [
-  {
-    Blog_ID: "BL001",
-    Title: "Ngày hội hiến máu toàn quốc",
-    Content:
-      `Sự kiện thu hút hàng ngàn người tham gia, góp phần cứu sống nhiều bệnh nhân cần truyền máu khẩn cấp. ` +
-      `Hiến máu là một nghĩa cử cao đẹp, mang lại sự sống cho nhiều người. `.repeat(100) + // Lặp lại để vượt 2000 ký tự
-      `Mỗi giọt máu cho đi là một cuộc đời ở lại. Hãy cùng nhau lan tỏa thông điệp yêu thương và sẻ chia.`,
-    Published_At: "2025-05-20",
-    Update_At: "2025-05-25",
-    Admin_ID: "U001",
-    Image_Url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=thumb&w=300&q=80",
-  },
-  {
-    Blog_ID: "BL002",
-    Title: "Tôi đã cứu người nhờ hiến máu",
-    Content: "Câu chuyện xúc động của một người hiến máu đã giúp đỡ bệnh nhân vượt qua cơn nguy kịch...",
-    Published_At: "2025-06-01",
-    Update_At: "2025-06-01",
-    Admin_ID: "U001",
-    Image_Url: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=thumb&w=300&q=80",
-  },
-  {
-    Blog_ID: "BL003",
-    Title: "Tìm hiểu về nhóm máu hiếm",
-    Content: "Nhóm máu hiếm rất quan trọng trong y học, việc hiến máu của những người có nhóm máu này càng ý nghĩa hơn...",
-    Published_At: "2025-06-04",
-    Update_At: "2025-06-05",
-    Admin_ID: "U001",
-    Image_Url: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=thumb&w=300&q=80",
-  },
-];
-
 function formatDate(dateStr) {
   const d = new Date(dateStr);
   return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
